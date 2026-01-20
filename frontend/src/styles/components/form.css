@@ -1,0 +1,300 @@
+/* ===== Badge & Form Component Styles ===== */
+
+/* ===== Badge ===== */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
+	line-height: 1;
+	border-radius: var(--radius-full);
+	white-space: nowrap;
+}
+
+.badge-primary {
+	background-color: var(--color-primary);
+	color: var(--color-text-primary);
+}
+
+.badge-secondary {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-text-secondary);
+}
+
+.badge-success {
+	background-color: rgba(16, 185, 129, 0.1);
+	color: var(--color-success);
+}
+
+.badge-warning {
+	background-color: rgba(245, 158, 11, 0.1);
+	color: var(--color-warning);
+}
+
+.badge-error {
+	background-color: rgba(239, 68, 68, 0.1);
+	color: var(--color-error);
+}
+
+.badge-info {
+	background-color: rgba(59, 130, 246, 0.1);
+	color: var(--color-info);
+}
+
+.badge-outline {
+	background-color: transparent;
+	border: 1px solid currentColor;
+}
+
+/* ===== Sector Badges ===== */
+.badge-sector-it { background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+.badge-sector-agriculture { background-color: rgba(16, 185, 129, 0.1); color: #10B981; }
+.badge-sector-manufacturing { background-color: rgba(107, 114, 128, 0.1); color: #6B7280; }
+.badge-sector-service { background-color: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+.badge-sector-realestate { background-color: rgba(236, 72, 153, 0.1); color: #EC4899; }
+.badge-sector-luxury { background-color: rgba(212, 175, 55, 0.1); color: #D4AF37; }
+.badge-sector-food { background-color: rgba(249, 115, 22, 0.1); color: #F97316; }
+
+/* ===== Checkbox ===== */
+.checkbox-wrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	cursor: pointer;
+}
+
+.checkbox {
+	width: 18px;
+	height: 18px;
+	border: 2px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background-color: var(--color-bg-primary);
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.checkbox:hover {
+	border-color: var(--color-primary);
+}
+
+.checkbox:checked {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.checkbox:checked::after {
+	content: '';
+	width: 5px;
+	height: 9px;
+	border: solid var(--color-text-primary);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	margin-bottom: 2px;
+}
+
+.checkbox:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.checkbox-label {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+	user-select: none;
+}
+
+/* ===== Radio ===== */
+.radio-wrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	cursor: pointer;
+}
+
+.radio {
+	width: 18px;
+	height: 18px;
+	border: 2px solid var(--color-border);
+	border-radius: 50%;
+	background-color: var(--color-bg-primary);
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	appearance: none;
+	-webkit-appearance: none;
+	position: relative;
+}
+
+.radio:hover {
+	border-color: var(--color-primary);
+}
+
+.radio:checked {
+	border-color: var(--color-primary);
+}
+
+.radio:checked::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 8px;
+	height: 8px;
+	background-color: var(--color-primary);
+	border-radius: 50%;
+}
+
+.radio:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.radio-label {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+	user-select: none;
+}
+
+/* ===== Radio Group ===== */
+.radio-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+.radio-group-horizontal {
+	flex-direction: row;
+	gap: var(--spacing-lg);
+}
+
+/* ===== Switch/Toggle ===== */
+.switch-wrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+}
+
+.switch {
+	position: relative;
+	width: 44px;
+	height: 24px;
+	background-color: var(--color-bg-tertiary);
+	border-radius: var(--radius-full);
+	cursor: pointer;
+	transition: background-color var(--transition-fast);
+}
+
+.switch::after {
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 20px;
+	height: 20px;
+	background-color: var(--color-bg-primary);
+	border-radius: 50%;
+	box-shadow: var(--shadow-sm);
+	transition: transform var(--transition-fast);
+}
+
+.switch:hover {
+	background-color: var(--color-secondary-light);
+}
+
+.switch.active {
+	background-color: var(--color-primary);
+}
+
+.switch.active::after {
+	transform: translateX(20px);
+}
+
+.switch:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* ===== Select ===== */
+.select-wrapper {
+	position: relative;
+}
+
+.select {
+	width: 100%;
+	padding: var(--spacing-sm) var(--spacing-md);
+	padding-right: 36px;
+	font-family: var(--font-family);
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+	background-color: var(--color-bg-primary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	transition: all var(--transition-fast);
+}
+
+.select:hover:not(:disabled) {
+	border-color: var(--color-border-dark);
+}
+
+.select:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.select:disabled {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-text-disabled);
+	cursor: not-allowed;
+}
+
+.select-wrapper::after {
+	content: '';
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 5px solid var(--color-text-secondary);
+	pointer-events: none;
+}
+
+/* ===== Form Group ===== */
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+	margin-bottom: var(--spacing-md);
+}
+
+.form-group:last-child {
+	margin-bottom: 0;
+}
+
+.form-row {
+	display: flex;
+	gap: var(--spacing-md);
+}
+
+.form-row .form-group {
+	flex: 1;
+}
+
+@media (max-width: 640px) {
+	.form-row {
+		flex-direction: column;
+	}
+}

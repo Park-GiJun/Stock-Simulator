@@ -1,0 +1,340 @@
+/* ===== Card Component Styles ===== */
+
+.card {
+	background-color: var(--color-bg-primary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	transition: all var(--transition-normal);
+}
+
+.card-hover:hover {
+	box-shadow: var(--shadow-md);
+	border-color: var(--color-border-dark);
+}
+
+.card-clickable {
+	cursor: pointer;
+}
+
+.card-clickable:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-lg);
+}
+
+/* ===== Card Header ===== */
+.card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.card-title {
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	color: var(--color-text-primary);
+	margin: 0;
+}
+
+.card-subtitle {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-secondary);
+	margin-top: var(--spacing-xs);
+}
+
+.card-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+}
+
+/* ===== Card Body ===== */
+.card-body {
+	padding: var(--spacing-lg);
+}
+
+.card-body-sm {
+	padding: var(--spacing-md);
+}
+
+.card-body-lg {
+	padding: var(--spacing-xl);
+}
+
+/* ===== Card Footer ===== */
+.card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border-top: 1px solid var(--color-border);
+	background-color: var(--color-bg-secondary);
+}
+
+/* ===== Card Variants ===== */
+.card-flat {
+	border: none;
+	box-shadow: none;
+}
+
+.card-elevated {
+	border: none;
+	box-shadow: var(--shadow-md);
+}
+
+.card-outlined {
+	border: 2px solid var(--color-border);
+}
+
+/* ===== Stock Card ===== */
+.card-stock {
+	cursor: pointer;
+}
+
+.card-stock:hover {
+	border-color: var(--color-primary);
+}
+
+.card-stock-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-md);
+}
+
+.card-stock-name {
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.card-stock-code {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.card-stock-body {
+	padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+.card-stock-price {
+	font-size: var(--font-size-xl);
+	font-weight: 700;
+	font-family: var(--font-mono);
+}
+
+.card-stock-price.up {
+	color: var(--color-stock-up);
+}
+
+.card-stock-price.down {
+	color: var(--color-stock-down);
+}
+
+.card-stock-change {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	font-size: var(--font-size-sm);
+	font-family: var(--font-mono);
+}
+
+.card-stock-change.up {
+	color: var(--color-stock-up);
+}
+
+.card-stock-change.down {
+	color: var(--color-stock-down);
+}
+
+.card-stock-footer {
+	display: flex;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: var(--color-bg-secondary);
+	border-top: 1px solid var(--color-border);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+/* ===== Stats Card ===== */
+.card-stat {
+	text-align: center;
+	padding: var(--spacing-lg);
+}
+
+.card-stat-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	margin: 0 auto var(--spacing-md);
+	background-color: var(--color-bg-accent);
+	border-radius: var(--radius-lg);
+	color: var(--color-primary);
+}
+
+.card-stat-value {
+	font-size: var(--font-size-2xl);
+	font-weight: 700;
+	color: var(--color-text-primary);
+	font-family: var(--font-mono);
+}
+
+.card-stat-label {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-secondary);
+	margin-top: var(--spacing-xs);
+}
+
+.card-stat-change {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-sm);
+	margin-top: var(--spacing-sm);
+	font-size: var(--font-size-xs);
+	border-radius: var(--radius-full);
+}
+
+.card-stat-change.up {
+	background-color: rgba(16, 185, 129, 0.1);
+	color: var(--color-success);
+}
+
+.card-stat-change.down {
+	background-color: rgba(239, 68, 68, 0.1);
+	color: var(--color-error);
+}
+
+/* ===== News Card ===== */
+.card-news {
+	cursor: pointer;
+}
+
+.card-news:hover {
+	border-color: var(--color-accent);
+}
+
+.card-news-badge {
+	display: inline-block;
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
+	border-radius: var(--radius-sm);
+	margin-bottom: var(--spacing-sm);
+}
+
+.card-news-badge.society {
+	background-color: rgba(239, 68, 68, 0.1);
+	color: var(--color-error);
+}
+
+.card-news-badge.industry {
+	background-color: rgba(59, 130, 246, 0.1);
+	color: var(--color-info);
+}
+
+.card-news-badge.company {
+	background-color: rgba(16, 185, 129, 0.1);
+	color: var(--color-success);
+}
+
+.card-news-headline {
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	color: var(--color-text-primary);
+	margin-bottom: var(--spacing-sm);
+	line-height: var(--line-height-tight);
+}
+
+.card-news-excerpt {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-secondary);
+	line-height: var(--line-height-relaxed);
+}
+
+.card-news-meta {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	margin-top: var(--spacing-md);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-disabled);
+}
+
+/* ===== Ranking Card ===== */
+.card-ranking {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	padding: var(--spacing-md);
+}
+
+.card-ranking-rank {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	font-weight: 700;
+	border-radius: var(--radius-full);
+	flex-shrink: 0;
+}
+
+.card-ranking-rank.gold {
+	background: linear-gradient(135deg, #FFD700, #FFA500);
+	color: #000;
+}
+
+.card-ranking-rank.silver {
+	background: linear-gradient(135deg, #C0C0C0, #808080);
+	color: #000;
+}
+
+.card-ranking-rank.bronze {
+	background: linear-gradient(135deg, #CD7F32, #8B4513);
+	color: #fff;
+}
+
+.card-ranking-rank.default {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-text-secondary);
+}
+
+.card-ranking-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.card-ranking-name {
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.card-ranking-stats {
+	display: flex;
+	gap: var(--spacing-md);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.card-ranking-value {
+	text-align: right;
+	font-family: var(--font-mono);
+}
+
+.card-ranking-return {
+	font-size: var(--font-size-lg);
+	font-weight: 700;
+}
+
+.card-ranking-return.positive {
+	color: var(--color-stock-up);
+}
+
+.card-ranking-return.negative {
+	color: var(--color-stock-down);
+}

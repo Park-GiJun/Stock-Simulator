@@ -1,0 +1,20 @@
+/* ===== Stock Simulator App CSS ===== */
+/* Main entry point for all styles */
+
+/* ===== Global Styles ===== */
+@import './styles/global.css';
+@import './styles/responsive.css';
+
+/* ===== Component Styles ===== */
+@import './styles/components/button.css';
+@import './styles/components/input.css';
+@import './styles/components/modal.css';
+@import './styles/components/card.css';
+@import './styles/components/table.css';
+@import './styles/components/skeleton.css';
+@import './styles/components/form.css';
+
+/* ===== Layout Styles ===== */
+@import './styles/layouts/sidebar.css';
+@import './styles/layouts/header.css';
+@import './styles/layouts/mobile-nav.css';
