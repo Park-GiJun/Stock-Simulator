@@ -8,9 +8,6 @@ tasks.bootJar { enabled = false }
 tasks.jar { enabled = true }
 
 dependencies {
-    // Shared KMP module (DTOs, validation, utils)
-    api(project(":shared"))
-
     // Spring
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")

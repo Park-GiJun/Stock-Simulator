@@ -9,12 +9,6 @@ pluginManagement {
     }
 }
 
-// Shared KMP Module
-include(":shared")
-
-// Compose Multiplatform Web Frontend
-include(":web-app")
-
 // Backend modules
 include(":backend")
 include(":backend:common")
