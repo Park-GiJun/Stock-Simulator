@@ -26,7 +26,11 @@ GRANT ALL PRIVILEGES ON SCHEMA scheduler TO stocksim;
 
 -- season 스키마 (season-service)
 CREATE SCHEMA IF NOT EXISTS season;
-GRANT ALL PRIVILEGES ON SCHEMA season TO season;
+GRANT ALL PRIVILEGES ON SCHEMA season TO stocksim;
+
+-- news 스키마 (news-service)
+CREATE SCHEMA IF NOT EXISTS news;
+GRANT ALL PRIVILEGES ON SCHEMA news TO stocksim;
 
 -- 확인 메시지
 DO $$
