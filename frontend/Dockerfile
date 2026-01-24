@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # 의존성 설치
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # 소스 복사 및 빌드
 COPY . .
