@@ -35,7 +35,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "panels": [],
-      "title": "?ñ•Ô∏?Host System Overview",
+      "title": "Host System Overview",
       "type": "row"
     },
     {
@@ -55,7 +55,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "(1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))) * 100", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?íª CPU Usage",
+      "title": "CPU Usage",
       "type": "stat"
     },
     {
@@ -75,7 +75,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?íæ Memory Usage",
+      "title": "Memory Usage",
       "type": "stat"
     },
     {
@@ -95,7 +95,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})) * 100", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?íø Disk Usage (/)",
+      "title": "Disk Usage (/)",
       "type": "stat"
     },
     {
@@ -115,7 +115,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "time() - node_boot_time_seconds", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?±Ô∏è Uptime",
+      "title": "Uptime",
       "type": "stat"
     },
     {
@@ -135,7 +135,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(container_last_seen)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?ê≥ Running Containers",
+      "title": "Running Containers",
       "type": "stat"
     },
     {
@@ -155,7 +155,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "node_load1", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?ìä Load Average (1m)",
+      "title": "Load Average (1m)",
       "type": "stat"
     },
     {
@@ -163,7 +163,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
       "id": 10,
       "panels": [],
-      "title": "?ê≥ Docker Container Resources",
+      "title": "Docker Container Resources",
       "type": "row"
     },
     {
@@ -184,7 +184,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(container_cpu_usage_seconds_total{name=~\"stockSimulator.*\"}[5m])", "legendFormat": "{{name}}", "range": true, "refId": "A" }
       ],
-      "title": "?íª Container CPU Usage",
+      "title": "Container CPU Usage",
       "type": "timeseries"
     },
     {
@@ -205,7 +205,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "container_memory_usage_bytes{name=~\"stockSimulator.*\"}", "legendFormat": "{{name}}", "range": true, "refId": "A" }
       ],
-      "title": "?íæ Container Memory Usage",
+      "title": "Container Memory Usage",
       "type": "timeseries"
     },
     {
@@ -226,7 +226,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(container_network_receive_bytes_total{name=~\"stockSimulator.*\"}[5m])", "legendFormat": "{{name}} RX", "range": true, "refId": "A" }
       ],
-      "title": "?ì° Container Network RX",
+      "title": "Container Network RX",
       "type": "timeseries"
     },
     {
@@ -247,7 +247,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(container_network_transmit_bytes_total{name=~\"stockSimulator.*\"}[5m])", "legendFormat": "{{name}} TX", "range": true, "refId": "A" }
       ],
-      "title": "?ì° Container Network TX",
+      "title": "Container Network TX",
       "type": "timeseries"
     },
     {
@@ -255,7 +255,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
       "id": 20,
       "panels": [],
-      "title": "?êò PostgreSQL",
+      "title": "PostgreSQL",
       "type": "row"
     },
     {
@@ -370,7 +370,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
       "id": 30,
       "panels": [],
-      "title": "?î¥ Redis",
+      "title": "Redis",
       "type": "row"
     },
     {
@@ -482,7 +482,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
       "id": 40,
       "panels": [],
-      "title": "?çÉ MongoDB",
+      "title": "MongoDB",
       "type": "row"
     },
     {
@@ -553,7 +553,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 57 },
       "id": 50,
       "panels": [],
-      "title": "?ì® Kafka",
+      "title": "Kafka",
       "type": "row"
     },
     {
@@ -665,7 +665,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 70 },
       "id": 60,
       "panels": [],
-      "title": "?îç Elasticsearch",
+      "title": "Elasticsearch",
       "type": "row"
     },
     {

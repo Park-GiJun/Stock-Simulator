@@ -61,7 +61,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "panels": [],
-      "title": "?ìä Stock Simulator Overview",
+      "title": "Stock Simulator Overview",
       "type": "row"
     },
     {
@@ -81,7 +81,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(up{job=~\".*-service|api-gateway|eureka-server\"} == 1) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "??Backend Services Up",
+      "title": "Backend Services Up",
       "type": "stat"
     },
     {
@@ -101,7 +101,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(up{job=~\".*-service|api-gateway|eureka-server\"} == 0) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "??Backend Services Down",
+      "title": "Backend Services Down",
       "type": "stat"
     },
     {
@@ -121,7 +121,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\"}[1m])) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?ìä Total Requests/s",
+      "title": "Total Requests/s",
       "type": "stat"
     },
     {
@@ -141,7 +141,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=~\".*-service|api-gateway\"}[5m])) by (le)) * 1000 or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?±Ô∏è Response Time (p95)",
+      "title": "Response Time (p95)",
       "type": "stat"
     },
     {
@@ -161,7 +161,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\",status=~\"5..\"}[5m])) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?î• 5xx Errors/s",
+      "title": "5xx Errors/s",
       "type": "stat"
     },
     {
@@ -181,7 +181,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(container_last_seen{name=~\"stockSimulator.*\"}) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?ê≥ Running Containers",
+      "title": "Running Containers",
       "type": "stat"
     },
     {
@@ -189,7 +189,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
       "id": 10,
       "panels": [],
-      "title": "?ì° Service Status",
+      "title": "Service Status",
       "type": "row"
     },
     {
@@ -245,7 +245,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
       "id": 20,
       "panels": [],
-      "title": "?ìà Traffic Overview",
+      "title": "Traffic Overview",
       "type": "row"
     },
     {
@@ -266,7 +266,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\"}[1m])) by (job)", "legendFormat": "{{job}}", "range": true, "refId": "A" }
       ],
-      "title": "?åê Request Rate by Service",
+      "title": "Request Rate by Service",
       "type": "timeseries"
     },
     {
@@ -287,7 +287,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=~\".*-service|api-gateway\"}[5m])) by (job, le)) * 1000", "legendFormat": "{{job}} (p95)", "range": true, "refId": "A" }
       ],
-      "title": "?±Ô∏è Response Time by Service (p95)",
+      "title": "Response Time by Service (p95)",
       "type": "timeseries"
     },
     {
@@ -295,7 +295,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
       "id": 30,
       "panels": [],
-      "title": "?íæ Resource Usage",
+      "title": "Resource Usage",
       "type": "row"
     },
     {
@@ -316,7 +316,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(jvm_memory_used_bytes{job=~\".*-service|api-gateway|eureka-server\", area=\"heap\"}) by (job)", "legendFormat": "{{job}}", "range": true, "refId": "A" }
       ],
-      "title": "?íæ JVM Heap Memory by Service",
+      "title": "JVM Heap Memory by Service",
       "type": "timeseries"
     },
     {
@@ -337,7 +337,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "process_cpu_usage{job=~\".*-service|api-gateway|eureka-server\"}", "legendFormat": "{{job}}", "range": true, "refId": "A" }
       ],
-      "title": "?íª Process CPU by Service",
+      "title": "Process CPU by Service",
       "type": "timeseries"
     },
     {
@@ -358,7 +358,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "container_memory_usage_bytes{name=~\"stockSimulator.*\"}", "legendFormat": "{{name}}", "range": true, "refId": "A" }
       ],
-      "title": "?ê≥ Container Memory Usage",
+      "title": "Container Memory Usage",
       "type": "timeseries"
     },
     {
@@ -366,7 +366,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
       "id": 40,
       "panels": [],
-      "title": "?èóÔ∏?Infrastructure Overview",
+      "title": "Infrastructure Overview",
       "type": "row"
     },
     {
@@ -387,7 +387,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "pg_stat_activity_count", "legendFormat": "{{datname}}", "range": true, "refId": "A" }
       ],
-      "title": "?êò PostgreSQL Connections",
+      "title": "PostgreSQL Connections",
       "type": "timeseries"
     },
     {
@@ -408,7 +408,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(redis_commands_processed_total[5m])", "legendFormat": "Redis Commands/s", "range": true, "refId": "A" }
       ],
-      "title": "?î¥ Redis Operations",
+      "title": "Redis Operations",
       "type": "timeseries"
     },
     {
@@ -429,7 +429,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "kafka_consumergroup_lag", "legendFormat": "{{consumergroup}} - {{topic}}", "range": true, "refId": "A" }
       ],
-      "title": "?ì® Kafka Consumer Lag",
+      "title": "Kafka Consumer Lag",
       "type": "timeseries"
     }
   ],

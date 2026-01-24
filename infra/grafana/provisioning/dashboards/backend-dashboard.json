@@ -35,7 +35,7 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "panels": [],
-      "title": "?? Backend Services Overview",
+      "title": "Backend Services Overview",
       "type": "row"
     },
     {
@@ -55,7 +55,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(up{job=~\".*-service|api-gateway|eureka-server\"} == 1) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "??Healthy Services",
+      "title": "Healthy Services",
       "type": "stat"
     },
     {
@@ -75,7 +75,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "count(up{job=~\".*-service|api-gateway|eureka-server\"} == 0) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "??Unhealthy Services",
+      "title": "Unhealthy Services",
       "type": "stat"
     },
     {
@@ -95,7 +95,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\"}[1m])) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?ìä Total Requests/s",
+      "title": "Total Requests/s",
       "type": "stat"
     },
     {
@@ -115,7 +115,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=~\".*-service|api-gateway\"}[5m])) by (le)) * 1000 or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?±Ô∏è Response Time (p95)",
+      "title": "Response Time (p95)",
       "type": "stat"
     },
     {
@@ -135,7 +135,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\",status=~\"5..\"}[5m])) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?î• 5xx Errors/s",
+      "title": "5xx Errors/s",
       "type": "stat"
     },
     {
@@ -155,37 +155,296 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\",status=~\"4..\"}[5m])) or vector(0)", "legendFormat": "__auto", "range": true, "refId": "A" }
       ],
-      "title": "?†Ô∏è 4xx Errors/s",
+      "title": "4xx Errors/s",
       "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 8,
+      "panels": [],
+      "title": "Service Status Table",
+      "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }
-          ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+          "custom": {
+            "align": "center",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Service" },
+            "properties": [
+              { "id": "custom.width", "value": 150 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "custom.width", "value": 80 },
+              { "id": "mappings", "value": [
+                { "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }
+              ]},
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Requests/s" },
+            "properties": [
+              { "id": "unit", "value": "reqps" },
+              { "id": "decimals", "value": 2 },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Response (p95)" },
+            "properties": [
+              { "id": "unit", "value": "ms" },
+              { "id": "decimals", "value": 1 },
+              { "id": "custom.width", "value": 120 },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 100 }, { "color": "red", "value": 500 }] } },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Error Rate" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "decimals", "value": 2 },
+              { "id": "custom.width", "value": 100 },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] } },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "CPU" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "decimals", "value": 1 },
+              { "id": "custom.width", "value": 80 },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.9 }] } },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Heap Used" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Heap Max" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Threads" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 80 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "DB Conns" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 80 }
+            ]
+          }
+        ]
       },
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 5 },
-      "id": 8,
-      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "enablePagination": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "Service" }]
+      },
       "pluginVersion": "10.2.0",
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "up{job=~\".*-service|api-gateway|eureka-server\"}", "legendFormat": "{{job}}", "range": true, "refId": "A" }
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "up{job=~\".*-service|api-gateway|eureka-server\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "status"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway|eureka-server\"}[5m])) by (job)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "requests"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=~\".*-service|api-gateway|eureka-server\"}[5m])) by (job, le)) * 1000",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "latency"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway|eureka-server\",status=~\"5..\"}[5m])) by (job) / sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway|eureka-server\"}[5m])) by (job)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "errorrate"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "process_cpu_usage{job=~\".*-service|api-gateway|eureka-server\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "cpu"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(jvm_memory_used_bytes{job=~\".*-service|api-gateway|eureka-server\", area=\"heap\"}) by (job)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "heapused"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(jvm_memory_max_bytes{job=~\".*-service|api-gateway|eureka-server\", area=\"heap\"}) by (job)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "heapmax"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "jvm_threads_live_threads{job=~\".*-service|api-gateway|eureka-server\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "threads"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "hikaricp_connections_active{job=~\".*-service|api-gateway|eureka-server\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "dbconns"
+        }
       ],
-      "title": "?ì° Service Status",
-      "type": "stat"
+      "title": "All Services Status",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": { "byField": "job" }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Time 5": true,
+              "Time 6": true,
+              "Time 7": true,
+              "Time 8": true,
+              "Time 9": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
+              "__name__ 4": true,
+              "__name__ 5": true,
+              "__name__ 6": true,
+              "__name__ 7": true,
+              "__name__ 8": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "instance 3": true,
+              "instance 4": true,
+              "instance 5": true,
+              "instance 6": true,
+              "instance 7": true,
+              "instance 8": true,
+              "le": true,
+              "area": true,
+              "id": true,
+              "pool": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "job": "Service",
+              "Value #status": "Status",
+              "Value #requests": "Requests/s",
+              "Value #latency": "Response (p95)",
+              "Value #errorrate": "Error Rate",
+              "Value #cpu": "CPU",
+              "Value #heapused": "Heap Used",
+              "Value #heapmax": "Heap Max",
+              "Value #threads": "Threads",
+              "Value #dbconns": "DB Conns"
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
       "id": 10,
       "panels": [],
-      "title": "?ìà Service Traffic (by Service)",
+      "title": "Service Traffic (by Service)",
       "type": "row"
     },
     {
@@ -200,13 +459,13 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
       "id": 11,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=~\".*-service|api-gateway\"}[1m])) by (job)", "legendFormat": "{{job}}", "range": true, "refId": "A" }
       ],
-      "title": "?åê Request Rate by Service",
+      "title": "Request Rate by Service",
       "type": "timeseries"
     },
     {
@@ -221,21 +480,21 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
       "id": 12,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=~\".*-service|api-gateway\"}[5m])) by (job, le)) * 1000", "legendFormat": "{{job}} (p95)", "range": true, "refId": "A" }
       ],
-      "title": "?±Ô∏è Response Time by Service (p95)",
+      "title": "Response Time by Service (p95)",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
       "id": 20,
       "panels": [],
-      "title": "?éØ ${service} - Detailed Metrics",
+      "title": "${service} - Detailed Metrics",
       "type": "row"
     },
     {
@@ -250,13 +509,13 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
       "id": 21,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=\"$service\"}[1m])) by (uri, method)", "legendFormat": "{{method}} {{uri}}", "range": true, "refId": "A" }
       ],
-      "title": "?îó Endpoint Request Rate (${service})",
+      "title": "Endpoint Request Rate (${service})",
       "type": "timeseries"
     },
     {
@@ -271,7 +530,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
       "id": 22,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
@@ -280,7 +539,7 @@
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])) by (le)) * 1000", "legendFormat": "p95", "range": true, "refId": "C" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])) by (le)) * 1000", "legendFormat": "p99", "range": true, "refId": "D" }
       ],
-      "title": "?±Ô∏è Response Time Percentiles (${service})",
+      "title": "Response Time Percentiles (${service})",
       "type": "timeseries"
     },
     {
@@ -300,13 +559,13 @@
           { "matcher": { "id": "byRegexp", "options": ".*5.." }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
       "id": 23,
       "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(rate(http_server_requests_seconds_count{job=\"$service\"}[5m])) by (status)", "legendFormat": "{{status}}", "range": true, "refId": "A" }
       ],
-      "title": "?ìä HTTP Status Distribution (${service})",
+      "title": "HTTP Status Distribution (${service})",
       "type": "timeseries"
     },
     {
@@ -321,21 +580,21 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
       "id": 24,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])) by (uri, le)) * 1000", "legendFormat": "{{uri}}", "range": true, "refId": "A" }
       ],
-      "title": "?îó Endpoint Response Time (${service}) (p95)",
+      "title": "Endpoint Response Time (${service}) (p95)",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 },
       "id": 30,
       "panels": [],
-      "title": "?íæ JVM Memory & GC",
+      "title": "JVM Memory & GC",
       "type": "row"
     },
     {
@@ -350,13 +609,13 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 43 },
       "id": 31,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "sum(jvm_memory_used_bytes{job=~\".*-service|api-gateway|eureka-server\", area=\"heap\"}) by (job)", "legendFormat": "{{job}} Used", "range": true, "refId": "A" }
       ],
-      "title": "?íæ JVM Heap Memory Used (All Services)",
+      "title": "JVM Heap Memory Used (All Services)",
       "type": "timeseries"
     },
     {
@@ -371,14 +630,14 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 43 },
       "id": 32,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "jvm_memory_used_bytes{job=\"$service\", area=\"heap\"}", "legendFormat": "{{id}} Used", "range": true, "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "jvm_memory_max_bytes{job=\"$service\", area=\"heap\"}", "legendFormat": "{{id}} Max", "range": true, "refId": "B" }
       ],
-      "title": "?íæ JVM Heap Memory (${service})",
+      "title": "JVM Heap Memory (${service})",
       "type": "timeseries"
     },
     {
@@ -393,13 +652,13 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 51 },
       "id": 33,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(jvm_gc_pause_seconds_sum{job=\"$service\"}[5m])", "legendFormat": "{{action}} {{cause}}", "range": true, "refId": "A" }
       ],
-      "title": "?óëÔ∏?GC Pause Time (${service})",
+      "title": "GC Pause Time (${service})",
       "type": "timeseries"
     },
     {
@@ -414,7 +673,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 51 },
       "id": 34,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
@@ -422,15 +681,15 @@
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "jvm_threads_daemon_threads{job=\"$service\"}", "legendFormat": "Daemon Threads", "range": true, "refId": "B" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "jvm_threads_peak_threads{job=\"$service\"}", "legendFormat": "Peak Threads", "range": true, "refId": "C" }
       ],
-      "title": "?ßµ JVM Threads (${service})",
+      "title": "JVM Threads (${service})",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 53 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
       "id": 40,
       "panels": [],
-      "title": "?íª CPU & Process",
+      "title": "CPU & Process",
       "type": "row"
     },
     {
@@ -447,13 +706,13 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 54 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 },
       "id": 41,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "process_cpu_usage{job=~\".*-service|api-gateway|eureka-server\"}", "legendFormat": "{{job}}", "range": true, "refId": "A" }
       ],
-      "title": "?íª Process CPU Usage (All Services)",
+      "title": "Process CPU Usage (All Services)",
       "type": "timeseries"
     },
     {
@@ -470,22 +729,22 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 54 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 },
       "id": 42,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "process_cpu_usage{job=\"$service\"}", "legendFormat": "Process CPU", "range": true, "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "system_cpu_usage{job=\"$service\"}", "legendFormat": "System CPU", "range": true, "refId": "B" }
       ],
-      "title": "?íª CPU Usage (${service})",
+      "title": "CPU Usage (${service})",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 62 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 68 },
       "id": 50,
       "panels": [],
-      "title": "?îå Connection Pools & Circuit Breaker",
+      "title": "Connection Pools & Circuit Breaker",
       "type": "row"
     },
     {
@@ -500,7 +759,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 63 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 69 },
       "id": 51,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
@@ -509,7 +768,7 @@
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "hikaricp_connections_pending{job=\"$service\"}", "legendFormat": "Pending", "range": true, "refId": "C" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "hikaricp_connections_max{job=\"$service\"}", "legendFormat": "Max", "range": true, "refId": "D" }
       ],
-      "title": "?îå HikariCP Connections (${service})",
+      "title": "HikariCP Connections (${service})",
       "type": "timeseries"
     },
     {
@@ -524,22 +783,22 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 63 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 69 },
       "id": 52,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "hikaricp_connections_acquire_seconds_max{job=\"$service\"} * 1000", "legendFormat": "Max Acquire Time", "range": true, "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "hikaricp_connections_creation_seconds_max{job=\"$service\"} * 1000", "legendFormat": "Max Creation Time", "range": true, "refId": "B" }
       ],
-      "title": "?±Ô∏è HikariCP Connection Times (${service})",
+      "title": "HikariCP Connection Times (${service})",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 71 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 77 },
       "id": 60,
       "panels": [],
-      "title": "?ì® Kafka Producer/Consumer",
+      "title": "Kafka Producer/Consumer",
       "type": "row"
     },
     {
@@ -554,14 +813,14 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 72 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 78 },
       "id": 61,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(kafka_producer_record_send_total{job=\"$service\"}[5m])", "legendFormat": "Records Sent/s", "range": true, "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(kafka_producer_record_error_total{job=\"$service\"}[5m])", "legendFormat": "Record Errors/s", "range": true, "refId": "B" }
       ],
-      "title": "?ì§ Kafka Producer (${service})",
+      "title": "Kafka Producer (${service})",
       "type": "timeseries"
     },
     {
@@ -576,14 +835,14 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 72 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 78 },
       "id": 62,
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "rate(kafka_consumer_records_consumed_total{job=\"$service\"}[5m])", "legendFormat": "Records Consumed/s", "range": true, "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "editorMode": "code", "expr": "kafka_consumer_records_lag{job=\"$service\"}", "legendFormat": "Lag", "range": true, "refId": "B" }
       ],
-      "title": "?ì• Kafka Consumer (${service})",
+      "title": "Kafka Consumer (${service})",
       "type": "timeseries"
     }
   ],
