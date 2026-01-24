@@ -14,10 +14,83 @@ global:
 #   - "rules/*.yml"
 
 scrape_configs:
-  # Prometheus self-monitoring
+  # =============================================================================
+  # Prometheus Self-Monitoring
+  # =============================================================================
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  # =============================================================================
+  # Infrastructure Services (인프라)
+  # =============================================================================
+  
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'postgres-primary'
+
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis'
+
+  # MongoDB Exporter
+  - job_name: 'mongodb-exporter'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'mongodb'
+
+  # Kafka Exporter
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'kafka'
+
+  # Elasticsearch Exporter
+  - job_name: 'elasticsearch-exporter'
+    static_configs:
+      - targets: ['elasticsearch-exporter:9114']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'elasticsearch'
+
+  # Node Exporter (Host Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'docker-host'
+
+  # cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'docker-containers'
+
+  # =============================================================================
+  # Backend Microservices (백엔드)
+  # =============================================================================
 
   # Eureka Server
   - job_name: 'eureka-server'
@@ -108,3 +181,26 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: instance
         replacement: 'season-service'
+
+  # =============================================================================
+  # Frontend (프론트엔드)
+  # =============================================================================
+
+  # SvelteKit Frontend (Node.js metrics if enabled)
+  - job_name: 'frontend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['frontend:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'frontend'
+
+  # Nginx (if using nginx-prometheus-exporter)
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'nginx'

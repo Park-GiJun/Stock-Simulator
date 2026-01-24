@@ -240,6 +240,117 @@ services:
       - prometheus
 
   # ===========================================================================
+  # Monitoring Exporters
+  # ===========================================================================
+
+  # Node Exporter (Host Metrics)
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: stockSimulator-node-exporter
+    profiles: ["monitoring", "all"]
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    networks:
+      - stocksim-network
+
+  # cAdvisor (Container Metrics)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: stockSimulator-cadvisor
+    profiles: ["monitoring", "all"]
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - stocksim-network
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: stockSimulator-postgres-exporter
+    profiles: ["monitoring", "all"]
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-primary:5432/${POSTGRES_DB}?sslmode=disable"
+    networks:
+      - stocksim-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: stockSimulator-redis-exporter
+    profiles: ["monitoring", "all"]
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks:
+      - stocksim-network
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # MongoDB Exporter
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    container_name: stockSimulator-mongodb-exporter
+    profiles: ["monitoring", "all"]
+    environment:
+      MONGODB_URI: "mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/admin?authSource=admin"
+    command:
+      - '--mongodb.uri=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/admin?authSource=admin'
+      - '--collect-all'
+    networks:
+      - stocksim-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # Kafka Exporter
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    container_name: stockSimulator-kafka-exporter
+    profiles: ["monitoring", "all"]
+    command:
+      - '--kafka.server=kafka:9092'
+      - '--topic.filter=.*'
+      - '--group.filter=.*'
+    networks:
+      - stocksim-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # Elasticsearch Exporter
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.7.0
+    container_name: stockSimulator-elasticsearch-exporter
+    profiles: ["monitoring", "all"]
+    command:
+      - '--es.uri=http://elasticsearch:9200'
+      - '--es.all'
+      - '--es.indices'
+      - '--es.cluster_settings'
+      - '--es.shards'
+    networks:
+      - stocksim-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # ===========================================================================
   # Microservices
   # ===========================================================================
 

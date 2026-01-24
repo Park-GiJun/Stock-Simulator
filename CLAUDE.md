@@ -4,65 +4,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game with event-based price dynamics. The project uses a SvelteKit frontend with a planned Kotlin/Spring Boot microservices backend.
+Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game with event-based price dynamics. The project uses a SvelteKit frontend with a Kotlin/Spring Boot microservices backend.
 
-**Current Status:** MVP phase - frontend scaffolding complete, backend structure ready.
+**Current Status:** MVP phase - Docker infrastructure deployed, backend services running.
 
 ## Tech Stack
 
 - **Frontend:** SvelteKit 2.x, Svelte 5, TypeScript, TailwindCSS 4.x, Vite
 - **Backend:** Kotlin 1.9.25, Spring Boot 3.5.7, Spring Cloud 2024, WebFlux, JPA + Kotlin JDSL 3.5.4, Redisson
 - **Package Manager:** pnpm (frontend), Gradle Kotlin DSL (backend)
+- **Infrastructure:** Docker Compose, Prometheus, Grafana
 
 ## Common Commands
 
 ### Frontend (from `frontend/` directory)
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Development server
-pnpm run dev
-
-# Production build
-pnpm run build
-
-# Preview production build
-pnpm run preview
-
-# Type checking
-pnpm run check
-pnpm run check:watch
-
-# Format code
-pnpm run format
-
-# Lint code
-pnpm run lint
+pnpm install          # Install dependencies
+pnpm run dev          # Development server
+pnpm run build        # Production build
+pnpm run preview      # Preview production build
+pnpm run check        # Type checking
+pnpm run format       # Format code
+pnpm run lint         # Lint code
 ```
 
-### Backend (from `backend/` directory)
+### Backend (from project root)
 ```bash
 # Build all modules
-./gradlew build
+./gradlew build -x test
 
-# Run specific service
-./gradlew :user-service:bootRun
-./gradlew :stock-service:bootRun
-./gradlew :eureka-server:bootRun
-./gradlew :api-gateway:bootRun
+# Build specific service
+./gradlew :backend:eureka-server:build
+./gradlew :backend:user-service:build
+./gradlew :backend:api-gateway:build
 
 # Clean build
-./gradlew clean build
+./gradlew clean build -x test
 
 # Run tests
 ./gradlew test
 ```
 
+### Docker Compose
+```bash
+# Start all services
+docker-compose --profile all up -d
+
+# Start with rebuild
+docker-compose --profile all up -d --build
+
+# Stop all services
+docker-compose --profile all down
+
+# View logs
+docker logs stockSimulator-<service-name> 2>&1 | tail -50
+
+# Check container status
+docker-compose --profile all ps
+
+# Restart specific service
+docker-compose --profile all restart <service-name>
+
+# Reset Kafka (cluster ID mismatch)
+docker-compose --profile all down
+docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker-compose --profile all up -d
+```
+
 ## Architecture
 
-### Current Structure
+### Project Structure
 
 ```
 Stock-Simulator/
@@ -71,7 +83,7 @@ Stock-Simulator/
 ├── backend/                # Kotlin/Spring Boot MSA
 │   ├── common/            # Shared DTOs, exceptions, events
 │   ├── eureka-server/     # Service discovery (port 8761)
-│   ├── api-gateway/       # API Gateway (port 8080)
+│   ├── api-gateway/       # API Gateway (port 8080 → 9832)
 │   ├── user-service/      # Auth, users (port 8081)
 │   ├── stock-service/     # Stocks, prices (port 8082)
 │   ├── trading-service/   # Orders, portfolio (port 8083)
@@ -80,7 +92,38 @@ Stock-Simulator/
 │   ├── news-service/      # News articles (port 8086)
 │   └── season-service/    # Rankings (port 8087)
 ├── infra/                  # Prometheus, Grafana configs
+│   ├── grafana/provisioning/
+│   │   ├── dashboards/    # Dashboard JSON files
+│   │   └── datasources/   # Datasource configs
+│   └── prometheus/        # Prometheus config
 └── docker-compose.yml
+```
+
+### Backend Service Configuration
+
+Each service has two config files:
+- `application.yml` - Local development (localhost)
+- `application-docker.yml` - Docker environment (uses env variables)
+
+**Environment Variables (`.env` file):**
+```env
+# Infrastructure hosts
+EUREKA_HOST=172.30.1.79
+POSTGRES_HOST=172.30.1.79
+REDIS_HOST=172.30.1.79
+MONGO_HOST=172.30.1.79
+KAFKA_HOST=172.30.1.79
+ELASTICSEARCH_HOST=172.30.1.79
+
+# Credentials
+POSTGRES_USER=stocksim
+POSTGRES_PASSWORD=stocksim123
+REDIS_PASSWORD=stocksim123
+MONGO_USER=stocksim
+MONGO_PASSWORD=stocksim123
+
+# Spring profile
+SPRING_PROFILES_ACTIVE=docker
 ```
 
 ### Backend Architecture
@@ -104,86 +147,87 @@ service/
 - **Redis/Redisson**: stock (prices), trading (orderbook), season (ranking)
 - **Kafka**: inter-service events
 
-## Database Schema Structure
-
-PostgreSQL uses a single `stocksimulator` database with separate schemas per service:
-| Schema | Service | Description |
-|--------|---------|-------------|
-| `users` | user-service | 회원, 인증 |
-| `stocks` | stock-service | 종목, 시세 |
-| `trading` | trading-service | 주문, 포트폴리오 |
-| `events` | event-service | 게임 이벤트 |
-| `scheduler` | scheduler-service | NPC 트레이딩 |
-| `season` | season-service | 시즌, 랭킹 |
-
 ## Docker Infrastructure
-
-Start all services:
-```bash
-docker-compose up -d
-```
 
 | Service | Container | External Port | Credentials |
 |---------|-----------|---------------|-------------|
-| PostgreSQL | stockSimulator-postgres | 5432 | user: `stocksim`, pw: `stocksim123`, db: `stocksimulator` |
+| PostgreSQL | stockSimulator-postgres | 5432 | user: `stocksim`, pw: `stocksim123` |
+| PostgreSQL Replica | stockSimulator-postgres-replica | 5433 | same as primary |
 | MongoDB | stockSimulator-mongo | 27018 | user: `stocksim`, pw: `stocksim123` |
 | Redis | stockSimulator-redis | 6380 | pw: `stocksim123` |
 | Kafka | stockSimulator-kafka | 9093 | - |
 | Kafka UI | stockSimulator-kafka-ui | 8089 | http://localhost:8089 |
 | Elasticsearch | stockSimulator-elasticsearch | 9201 | - |
 | Prometheus | stockSimulator-prometheus | 9091 | http://localhost:9091 |
-| Grafana | stockSimulator-grafana | 3001 | http://localhost:3001 (admin/stocksim123) |
+| Grafana | stockSimulator-grafana | 3001 | admin/stocksim123 |
+| Eureka | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
+| API Gateway | stockSimulator-api-gateway | 9832 | - |
 
-Configuration files:
-- `infra/prometheus/prometheus.yml` - Prometheus scrape config
-- `infra/grafana/provisioning/` - Grafana datasources and dashboards
+## Monitoring
+
+### Prometheus Targets
+Check service health: `http://localhost:9091/targets`
+
+All services expose metrics at `/actuator/prometheus`
+
+### Grafana Dashboard
+- URL: http://localhost:3001
+- Login: admin / stocksim123
+- Dashboard: "Stock Simulator - Services Overview"
+  - Service status (UP/DOWN)
+  - Request rate per service
+  - Response time (p95)
+  - JVM memory usage
+  - CPU usage
+  - Thread count
+  - DB connection pool
+
+## Known Issues & Solutions
+
+### 1. Kafka Cluster ID Mismatch
+**Error:** `InconsistentClusterIdException`
+**Solution:**
+```bash
+docker-compose --profile all down
+docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker-compose --profile all up -d
+```
+
+### 2. Eureka Server Starting on Wrong Port
+**Cause:** Missing `application.yml` or `application-docker.yml`
+**Solution:** Ensure `SERVER_PORT` env variable is set in docker-compose.yml
+
+### 3. Services Can't Connect to Eureka
+**Cause:** Using `localhost` instead of Docker service name
+**Solution:** Use `application-docker.yml` with `eureka-server:8761`
+
+## Key Documentation
+
+Design specifications in `doc/`:
+- `모의주식게임_기획서_v1.0.md` - Feature spec
+- `모의주식게임_개발로드맵.md` - Development roadmap
+- `인프라_구축_진행상황.md` - Infrastructure setup progress
+- `SVELTEKIT_DEVELOPMENT_TEMPLATE.md` - Frontend guidelines
 
 ## Code Style
 
 - **Formatting:** Prettier with tabs, single quotes, 100 char line width
 - **TypeScript:** Strict mode enabled
 - **Svelte:** Uses Svelte 5 runes syntax
+- **Kotlin:** Standard Kotlin conventions
 
-## Key Documentation
-
-Design specifications are in Korean in the `doc/` directory:
-- `모의주식게임_기획서_v1.0.md` - Comprehensive feature spec including time scaling, economic balance, stock parameters, event system, investor AI behaviors
-- `모의주식게임_개발로드맵.md` - 6-phase development roadmap with milestones
-- `SVELTEKIT_DEVELOPMENT_TEMPLATE.md` - **Must read** for frontend development guidelines
-
-## Frontend Development Rules (from SVELTEKIT_DEVELOPMENT_TEMPLATE.md)
+## Frontend Development Rules
 
 ### Critical CSS Rules
 - **All styles must be in separate CSS files** (`src/styles/`) - NO `<style>` tags in Svelte components
-- Use CSS variables for all colors: `var(--color-primary)`, `var(--color-bg-primary)`, etc.
+- Use CSS variables for all colors
 - Support dark/light mode via CSS variables
-
-### CSS File Structure
-```
-src/styles/
-├── global.css          # Global variables and utility classes
-├── responsive.css      # Responsive utilities
-├── components/         # Component styles (button.css, modal.css, etc.)
-├── layouts/            # Layout styles (sidebar.css, header.css, etc.)
-└── pages/              # Page-specific styles
-```
 
 ### Mobile/Desktop Routing
 - Desktop routes: `/페이지명` (e.g., `/dashboard`)
 - Mobile routes: `/m/페이지명` (e.g., `/m/dashboard`)
-- **Both desktop and mobile versions required** for every page
-
-### Component Rules
-- Use shared components from `$lib/components/` (Button, Input, Modal, Table, etc.)
-- Icons: Use **Lucide** or **Heroicons** only - no custom SVG icons
-- All component props must have TypeScript interfaces
 
 ### API Communication
-- All responses follow `ApiResponse<T>` structure: `{ success, data, message, errorCode }`
+- All responses follow `ApiResponse<T>` structure
 - Use `$lib/api/api.ts` for all API calls
-- Before backend: use mock data in `$lib/mock/` with `VITE_USE_MOCK=true`
-
-### TypeScript Rules
-- No `any` type - use proper interfaces
-- All types in `$lib/types/` directory
-- Component props must be typed via interfaces
+- Before backend: use mock data with `VITE_USE_MOCK=true`
