@@ -6,11 +6,18 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
+    // JPA + PostgreSQL
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("org.postgresql:postgresql")
+
     // MongoDB
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
     // Elasticsearch
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+
+    // Redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
