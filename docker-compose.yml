@@ -1,0 +1,515 @@
+version: '3.8'
+
+# =============================================================================
+# Stock Simulator - Docker Compose
+# =============================================================================
+# 사용법:
+#   전체 인프라 시작:    docker-compose up -d
+#   인프라만 시작:       docker-compose --profile infra up -d
+#   마이크로서비스 시작:  docker-compose --profile services up -d
+#   전체 중지:          docker-compose down
+#   볼륨 포함 삭제:      docker-compose down -v
+# =============================================================================
+
+networks:
+  stocksim-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  postgres_replica_data:
+  mongodb_data:
+  redis_data:
+  kafka_data:
+  zookeeper_data:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  # PostgreSQL Primary
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: stockSimulator-postgres
+    profiles: ["infra", "all"]
+    environment:
+      POSTGRES_USER: stocksim
+      POSTGRES_PASSWORD: stocksim123
+      POSTGRES_DB: stocksimulator
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stocksim -d stocksimulator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Replica (Read)
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: stockSimulator-postgres-replica
+    profiles: ["infra", "all"]
+    environment:
+      POSTGRES_USER: stocksim
+      POSTGRES_PASSWORD: stocksim123
+      POSTGRES_DB: stocksimulator
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+    networks:
+      - stocksim-network
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: stockSimulator-mongo
+    profiles: ["infra", "all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: stocksim
+      MONGO_INITDB_ROOT_PASSWORD: stocksim123
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: stockSimulator-redis
+    profiles: ["infra", "all"]
+    command: redis-server --requirepass stocksim123
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "stocksim123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper (Kafka dependency)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: stockSimulator-zookeeper
+    profiles: ["infra", "all"]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: stockSimulator-kafka
+    profiles: ["infra", "all"]
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9093:9093"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: stockSimulator-kafka-ui
+    profiles: ["infra", "all"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: stocksim
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8089:8080"
+    networks:
+      - stocksim-network
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: stockSimulator-elasticsearch
+    profiles: ["infra", "all"]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: stockSimulator-prometheus
+    profiles: ["monitoring", "all"]
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./infra/prometheus/prometheus-docker.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - stocksim-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: stockSimulator-grafana
+    profiles: ["monitoring", "all"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=stocksim123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - stocksim-network
+    depends_on:
+      - prometheus
+
+  # ===========================================================================
+  # Microservices
+  # ===========================================================================
+
+  # Eureka Server (Service Discovery)
+  eureka-server:
+    image: stocksim/eureka-server:latest
+    container_name: stockSimulator-eureka-server
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # API Gateway
+  api-gateway:
+    image: stocksim/api-gateway:latest
+    container_name: stockSimulator-api-gateway
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # User Service
+  user-service:
+    image: stocksim/user-service:latest
+    container_name: stockSimulator-user-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=users
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=stocksim123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Stock Service
+  stock-service:
+    image: stocksim/stock-service:latest
+    container_name: stockSimulator-stock-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/stock-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=stocks
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=stocksim123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Trading Service
+  trading-service:
+    image: stocksim/trading-service:latest
+    container_name: stockSimulator-trading-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/trading-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=trading
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=stocksim123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # Event Service
+  event-service:
+    image: stocksim/event-service:latest
+    container_name: stockSimulator-event-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/event-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=events
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_MONGODB_URI=mongodb://stocksim:stocksim123@mongodb:27017/stocksimulator?authSource=admin
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # Scheduler Service
+  scheduler-service:
+    image: stocksim/scheduler-service:latest
+    container_name: stockSimulator-scheduler-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/scheduler-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=scheduler
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=stocksim123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # News Service
+  news-service:
+    image: stocksim/news-service:latest
+    container_name: stockSimulator-news-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/news-service
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://stocksim:stocksim123@mongodb:27017/stocksimulator?authSource=admin
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # Season Service
+  season-service:
+    image: stocksim/season-service:latest
+    container_name: stockSimulator-season-service
+    profiles: ["services", "all"]
+    build:
+      context: ./backend/season-service
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/stocksimulator?currentSchema=season
+      - SPRING_DATASOURCE_USERNAME=stocksim
+      - SPRING_DATASOURCE_PASSWORD=stocksim123
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=stocksim123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - stocksim-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ===========================================================================
+  # Frontend
+  # ===========================================================================
+
+  frontend:
+    image: stocksim/frontend:latest
+    container_name: stockSimulator-frontend
+    profiles: ["frontend", "all"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PUBLIC_API_URL=http://api-gateway:8080
+    networks:
+      - stocksim-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
