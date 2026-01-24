@@ -1,0 +1,13 @@
+# Docker 환경 설정
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST:eureka-server}
+    prefer-ip-address: false
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${EUREKA_HOST:eureka-server}:${EUREKA_PORT:8761}/eureka/

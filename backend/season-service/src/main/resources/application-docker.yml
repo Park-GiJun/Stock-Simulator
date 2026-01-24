@@ -1,0 +1,24 @@
+# Docker 환경 설정
+server:
+  port: 8087
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres-primary}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=season
+    username: ${POSTGRES_USER:stocksim}
+    password: ${POSTGRES_PASSWORD:stocksim123}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:stocksim123}
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:eureka-server}:${EUREKA_PORT:8761}/eureka/
+  instance:
+    hostname: season-service
+    prefer-ip-address: false

@@ -1,0 +1,22 @@
+# Docker 환경 설정
+server:
+  port: 8084
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres-primary}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=events
+    username: ${POSTGRES_USER:stocksim}
+    password: ${POSTGRES_PASSWORD:stocksim123}
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongodb}:${MONGO_PORT:27017}/${POSTGRES_DB:stocksimulator}?authSource=admin
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:eureka-server}:${EUREKA_PORT:8761}/eureka/
+  instance:
+    hostname: event-service
+    prefer-ip-address: false
