@@ -1,0 +1,202 @@
+# =============================================================================
+# Stock-Simulator Nginx Configuration
+# Domain: gijun.net (Frontend) + api.gijun.net (Backend)
+# Mode: Docker Compose (호스트 서버에서 직접 nginx 사용)
+# =============================================================================
+# 
+# 설치 방법:
+#   1. 이 파일을 서버에 복사:
+#      sudo cp gijun.net.docker /etc/nginx/sites-available/gijun.net
+#   2. 심볼릭 링크 생성 (이미 있으면 스킵):
+#      sudo ln -sf /etc/nginx/sites-available/gijun.net /etc/nginx/sites-enabled/
+#   3. SSL 인증서 발급 (api.gijun.net):
+#      sudo certbot --nginx -d api.gijun.net
+#   4. nginx 재시작:
+#      sudo nginx -t && sudo systemctl reload nginx
+# =============================================================================
+
+# =============================================================================
+# Main Domain - Frontend (gijun.net)
+# =============================================================================
+server {
+    server_name gijun.net www.gijun.net;
+
+    # SSL 설정 (Certbot 관리)
+    listen 443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/gijun.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/gijun.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # 기본 설정
+    client_max_body_size 50M;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    # ==========================================================================
+    # Frontend - SvelteKit Application (Docker: port 8080)
+    # ==========================================================================
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        # WebSocket 지원 (SvelteKit HMR용)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # ==========================================================================
+    # Health Check Endpoint
+    # ==========================================================================
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # ==========================================================================
+    # Security Headers
+    # ==========================================================================
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # ==========================================================================
+    # Error Pages
+    # ==========================================================================
+    error_page 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+        internal;
+    }
+}
+
+# =============================================================================
+# API Subdomain - Backend (api.gijun.net)
+# =============================================================================
+server {
+    server_name api.gijun.net;
+
+    # SSL 설정 (Certbot 관리) - certbot 실행 후 자동 추가됨
+    listen 443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/api.gijun.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.gijun.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # 기본 설정
+    client_max_body_size 50M;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    # ==========================================================================
+    # API Gateway - All API Routes (Docker: port 9832)
+    # ==========================================================================
+    location / {
+        proxy_pass http://localhost:9832;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        # CORS 헤더
+        add_header Access-Control-Allow-Origin "https://gijun.net" always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With" always;
+        add_header Access-Control-Allow-Credentials true always;
+        
+        # Preflight 요청 처리
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin "https://gijun.net";
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With";
+            add_header Access-Control-Allow-Credentials true;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+    }
+
+    # ==========================================================================
+    # WebSocket - 실시간 주식 가격
+    # ==========================================================================
+    location /ws/ {
+        proxy_pass http://localhost:9832/ws/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket 타임아웃 설정
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    # ==========================================================================
+    # Swagger UI - API 문서
+    # ==========================================================================
+    location /swagger-ui/ {
+        proxy_pass http://localhost:9832/swagger-ui/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api-docs {
+        proxy_pass http://localhost:9832/api-docs;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # Health Check
+    # ==========================================================================
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # ==========================================================================
+    # Security Headers
+    # ==========================================================================
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+
+# =============================================================================
+# HTTP to HTTPS Redirect
+# =============================================================================
+server {
+    listen 80;
+    server_name gijun.net www.gijun.net api.gijun.net;
+
+    # ACME Challenge for Certbot
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all HTTP to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}

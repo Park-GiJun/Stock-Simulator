@@ -268,7 +268,7 @@ services:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "9832:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -505,12 +505,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://api-gateway:8080
+        - VITE_API_URL=https://api.gijun.net
     ports:
-      - "3000:3000"
+      - "8080:8080"
     environment:
-      - ORIGIN=http://localhost:3000
-      - PUBLIC_API_URL=http://api-gateway:8080
+      - ORIGIN=https://gijun.net
+      - PUBLIC_API_URL=https://api.gijun.net
     networks:
       - stocksim-network
     depends_on:
@@ -521,10 +521,11 @@ services:
   # Nginx Reverse Proxy
   # ===========================================================================
 
+  # Nginx Reverse Proxy (Docker 내부용 - 개발 환경)
   nginx:
     image: nginx:alpine
     container_name: stockSimulator-nginx
-    profiles: ["frontend", "all"]
+    profiles: ["dev"]
     ports:
       - "80:80"
     volumes:

@@ -29,12 +29,12 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
 # 포트 설정
-EXPOSE 3000
+EXPOSE 8080
 
 # 환경변수
 ENV HOST=0.0.0.0
-ENV PORT=3000
-ENV ORIGIN=http://localhost:3000
+ENV PORT=8080
+ENV ORIGIN=http://localhost:8080
 
 # SvelteKit Node adapter 실행
 CMD ["node", "build"]
