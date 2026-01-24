@@ -38,6 +38,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
-		"lucide-svelte": "^0.562.0"
+		"lucide-svelte": "^0.562.0",
+		"prom-client": "^15.1.3"
 	}
 }
