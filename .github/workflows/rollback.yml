@@ -1,0 +1,346 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '롤백할 환경'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      version:
+        description: '롤백할 버전 (Docker 이미지 태그, 예: v1.2.3 또는 SHA)'
+        required: true
+        type: string
+      services:
+        description: '롤백할 서비스 (쉼표로 구분, all=전체)'
+        required: true
+        default: 'all'
+        type: string
+      reason:
+        description: '롤백 사유'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/stocksim
+
+jobs:
+  validate-rollback:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      server_host: ${{ steps.set-env.outputs.server_host }}
+      server_user: ${{ steps.set-env.outputs.server_user }}
+      deploy_path: ${{ steps.set-env.outputs.deploy_path }}
+      services_list: ${{ steps.parse-services.outputs.services_list }}
+
+    steps:
+      - name: Set environment variables
+        id: set-env
+        run: |
+          case "${{ inputs.environment }}" in
+            dev)
+              echo "server_host=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_OUTPUT
+              echo "server_user=${{ secrets.DEV_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
+              echo "deploy_path=~/Stock-Simulator-dev" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "server_host=${{ secrets.STAGING_SERVER_HOST }}" >> $GITHUB_OUTPUT
+              echo "server_user=${{ secrets.STAGING_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
+              echo "deploy_path=~/Stock-Simulator-staging" >> $GITHUB_OUTPUT
+              ;;
+            prod)
+              echo "server_host=${{ secrets.PROD_SERVER_HOST || secrets.SERVER_HOST }}" >> $GITHUB_OUTPUT
+              echo "server_user=${{ secrets.PROD_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
+              echo "deploy_path=~/Stock-Simulator" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Parse services list
+        id: parse-services
+        run: |
+          if [ "${{ inputs.services }}" = "all" ]; then
+            SERVICES="eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service season-service frontend"
+          else
+            SERVICES="${{ inputs.services }}"
+          fi
+          echo "services_list=$SERVICES" >> $GITHUB_OUTPUT
+
+      - name: Verify image exists
+        run: |
+          echo "🔍 Verifying image exists for version: ${{ inputs.version }}"
+          
+          for service in ${{ steps.parse-services.outputs.services_list }}; do
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:${{ inputs.version }}"
+            
+            if docker manifest inspect $IMAGE > /dev/null 2>&1; then
+              echo "✅ Found image: $IMAGE"
+            else
+              echo "❌ Image not found: $IMAGE"
+              echo "::error::Cannot rollback - image does not exist: $IMAGE"
+              exit 1
+            fi
+          done
+
+      - name: Create rollback record
+        run: |
+          echo "## 🔄 Rollback Request" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ inputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ inputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Services | ${{ inputs.services }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Reason | ${{ inputs.reason }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Initiated by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u +'%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
+
+  backup-current:
+    name: Backup Current State
+    runs-on: ubuntu-latest
+    needs: validate-rollback
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
+
+      - name: Backup current deployment
+        run: |
+          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << 'ENDSSH'
+            BACKUP_DIR="~/backups/$(date +'%Y%m%d_%H%M%S')"
+            mkdir -p $BACKUP_DIR
+            
+            cd ${{ needs.validate-rollback.outputs.deploy_path }}
+            
+            echo "📦 Creating backup at $BACKUP_DIR..."
+            
+            # docker-compose 상태 저장
+            docker-compose --profile all ps > $BACKUP_DIR/services_status.txt
+            
+            # 현재 이미지 태그 저장
+            docker-compose --profile all config > $BACKUP_DIR/docker-compose.yml
+            
+            # 현재 실행 중인 컨테이너 목록
+            docker ps --filter "name=stockSimulator" --format "{{.Names}}\t{{.Image}}\t{{.Status}}" > $BACKUP_DIR/running_containers.txt
+            
+            echo "✅ Backup created: $BACKUP_DIR"
+            echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
+          ENDSSH
+
+  rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, backup-current]
+    environment:
+      name: ${{ inputs.environment }}-rollback
+      url: https://${{ inputs.environment }}.stocksimulator.com
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Execute rollback
+        run: |
+          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << ENDSSH
+            cd ${{ needs.validate-rollback.outputs.deploy_path }}
+            
+            echo "🔄 Starting rollback to version ${{ inputs.version }}..."
+            
+            # GitHub Container Registry 로그인
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            
+            # 서비스별 롤백
+            for service in ${{ needs.validate-rollback.outputs.services_list }}; do
+              IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:${{ inputs.version }}"
+              
+              echo "📥 Pulling image: \$IMAGE"
+              docker pull \$IMAGE
+              
+              # docker-compose에서 이미지 태그 업데이트
+              if [ "\$service" = "frontend" ]; then
+                CONTAINER_NAME="stockSimulator-frontend"
+              else
+                CONTAINER_NAME="stockSimulator-\$service"
+              fi
+              
+              echo "🔄 Restarting \$CONTAINER_NAME with \$IMAGE..."
+              docker stop \$CONTAINER_NAME || true
+              docker rm \$CONTAINER_NAME || true
+              
+              # 서비스 재시작 (docker-compose 사용)
+              docker-compose --profile all up -d \$service
+            done
+            
+            echo "✅ Rollback completed"
+          ENDSSH
+
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+  health-check:
+    name: Health Check After Rollback
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, rollback]
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
+
+      - name: Comprehensive health check
+        id: health-check
+        run: |
+          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << 'ENDSSH'
+            echo "🏥 Running health checks..."
+            
+            FAILED=0
+            
+            # API Gateway 체크
+            if curl -s -f http://localhost:9832/actuator/health > /dev/null; then
+              echo "✅ API Gateway: HEALTHY"
+            else
+              echo "❌ API Gateway: UNHEALTHY"
+              FAILED=1
+            fi
+            
+            # Eureka Server 체크
+            if curl -s -f http://localhost:8761/actuator/health > /dev/null; then
+              echo "✅ Eureka Server: HEALTHY"
+            else
+              echo "❌ Eureka Server: UNHEALTHY"
+              FAILED=1
+            fi
+            
+            # Frontend 체크
+            if curl -s -f http://localhost:8080 > /dev/null; then
+              echo "✅ Frontend: HEALTHY"
+            else
+              echo "❌ Frontend: UNHEALTHY"
+              FAILED=1
+            fi
+            
+            # 컨테이너 상태 확인
+            echo ""
+            echo "📊 Container Status:"
+            docker-compose --profile all ps
+            
+            if [ $FAILED -eq 1 ]; then
+              echo "::error::Health check failed after rollback"
+              exit 1
+            fi
+            
+            echo "✅ All health checks passed!"
+          ENDSSH
+
+      - name: Update summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏥 Health Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.health-check.outcome }}" = "success" ]; then
+            echo "✅ **All services are healthy after rollback**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Health check failed - manual intervention required**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, rollback, health-check]
+    if: always()
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.health-check.result }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.emoji }} Rollback ${{ steps.status.outputs.status }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ steps.status.outputs.emoji }} Rollback ${{ steps.status.outputs.status }}: ${{ inputs.environment }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ inputs.environment }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version:*\n${{ inputs.version }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Services:*\n${{ inputs.services }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Initiated by:*\n${{ github.actor }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Reason:*\n${{ inputs.reason }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

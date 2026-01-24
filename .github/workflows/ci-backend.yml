@@ -21,17 +21,29 @@ jobs:
     runs-on: ubuntu-latest
     
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:16-alpine
         env:
-          MYSQL_ROOT_PASSWORD: root123
-          MYSQL_USER: stocksim
-          MYSQL_PASSWORD: stocksim123
-          MYSQL_DATABASE: stocksimulator_test
+          POSTGRES_USER: stocksim
+          POSTGRES_PASSWORD: stocksim123
+          POSTGRES_DB: stocksimulator_test
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping -h localhost"
+          --health-cmd="pg_isready -U stocksim"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: stocksim
+          MONGO_INITDB_ROOT_PASSWORD: stocksim123
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -64,11 +76,12 @@ jobs:
         working-directory: backend
         run: ./gradlew test --parallel
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/stocksimulator_test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/stocksimulator_test
           SPRING_DATASOURCE_USERNAME: stocksim
           SPRING_DATASOURCE_PASSWORD: stocksim123
           SPRING_DATA_REDIS_HOST: localhost
           SPRING_DATA_REDIS_PORT: 6379
+          SPRING_DATA_MONGODB_URI: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator_test?authSource=admin
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
