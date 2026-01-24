@@ -1,0 +1,274 @@
+# =============================================================================
+# Stock-Simulator Nginx Configuration (NodePort Direct)
+# Domain: gijun.net
+# 설명: K8s Ingress 없이 NodePort로 직접 연결하는 방식
+# =============================================================================
+
+# Upstream 정의
+upstream frontend {
+    server 172.30.1.79:30000;  # Frontend NodePort
+    keepalive 32;
+}
+
+upstream api-gateway {
+    server 172.30.1.79:30080;  # API Gateway NodePort
+    keepalive 64;
+}
+
+upstream eureka {
+    server 172.30.1.79:30761;  # Eureka NodePort
+    keepalive 16;
+}
+
+upstream argocd {
+    server 172.30.1.79:30443;  # ArgoCD NodePort (HTTPS)
+    keepalive 16;
+}
+
+upstream grafana {
+    server 172.30.1.79:30300;  # Grafana NodePort
+    keepalive 16;
+}
+
+upstream prometheus {
+    server 172.30.1.79:30090;  # Prometheus NodePort
+    keepalive 16;
+}
+
+upstream kafka-ui {
+    server 172.30.1.79:30089;  # Kafka UI NodePort
+    keepalive 16;
+}
+
+upstream kibana {
+    server 172.30.1.79:30561;  # Kibana NodePort
+    keepalive 16;
+}
+
+# =============================================================================
+# HTTPS Server Block
+# =============================================================================
+server {
+    server_name gijun.net www.gijun.net;
+
+    listen 443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/gijun.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/gijun.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # 기본 설정
+    client_max_body_size 50M;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+
+    # Gzip 압축
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
+
+    # ==========================================================================
+    # Frontend (메인 페이지)
+    # ==========================================================================
+    location / {
+        proxy_pass http://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # ==========================================================================
+    # API Gateway (모든 백엔드 API)
+    # ==========================================================================
+    location /api/ {
+        proxy_pass http://api-gateway/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
+        # CORS
+        add_header Access-Control-Allow-Origin $http_origin always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With" always;
+        add_header Access-Control-Allow-Credentials true always;
+
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin $http_origin;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, PATCH, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With";
+            add_header Access-Control-Allow-Credentials true;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+    }
+
+    # ==========================================================================
+    # WebSocket (실시간 주가, 랭킹)
+    # ==========================================================================
+    location /ws/ {
+        proxy_pass http://api-gateway/ws/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    # ==========================================================================
+    # Swagger UI & API Docs
+    # ==========================================================================
+    location /swagger-ui {
+        proxy_pass http://api-gateway/swagger-ui;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~ ^/(.+)-service/api-docs {
+        proxy_pass http://api-gateway/$1-service/api-docs;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # Eureka Dashboard (서비스 디스커버리)
+    # ==========================================================================
+    location /eureka {
+        proxy_pass http://eureka;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # ArgoCD (GitOps 대시보드)
+    # ==========================================================================
+    location /argocd {
+        rewrite ^/argocd(/|$)(.*) /$2 break;
+        proxy_pass https://argocd;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_ssl_verify off;
+    }
+
+    # ==========================================================================
+    # Grafana (모니터링 대시보드)
+    # ==========================================================================
+    location /grafana/ {
+        rewrite ^/grafana/(.*) /$1 break;
+        proxy_pass http://grafana;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # ==========================================================================
+    # Prometheus (메트릭 수집)
+    # ==========================================================================
+    location /prometheus/ {
+        rewrite ^/prometheus/(.*) /$1 break;
+        proxy_pass http://prometheus;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # Kafka UI (메시지 큐 모니터링)
+    # ==========================================================================
+    location /kafka-ui/ {
+        rewrite ^/kafka-ui/(.*) /$1 break;
+        proxy_pass http://kafka-ui;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # Kibana (로그 검색)
+    # ==========================================================================
+    location /kibana/ {
+        rewrite ^/kibana/(.*) /$1 break;
+        proxy_pass http://kibana;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ==========================================================================
+    # Health Check
+    # ==========================================================================
+    location /health {
+        access_log off;
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+
+    # ==========================================================================
+    # Security Headers
+    # ==========================================================================
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # ==========================================================================
+    # Error Pages
+    # ==========================================================================
+    error_page 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+        internal;
+    }
+}
+
+# =============================================================================
+# HTTP to HTTPS Redirect
+# =============================================================================
+server {
+    listen 80;
+    server_name gijun.net www.gijun.net;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}

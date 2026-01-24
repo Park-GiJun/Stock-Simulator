@@ -1,0 +1,223 @@
+# =============================================================================
+# GitHub Actions CI/CD Pipeline
+# Docker Build & Push + ArgoCD Sync Trigger
+# =============================================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'infra/k8s/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: ghcr.io
+  REPOSITORY: ${{ github.repository_owner }}/stocksim
+
+jobs:
+  # =============================================================================
+  # 변경된 서비스 감지
+  # =============================================================================
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend-services: ${{ steps.filter.outputs.backend-services }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            eureka-server:
+              - 'backend/eureka-server/**'
+              - 'backend/common/**'
+            api-gateway:
+              - 'backend/api-gateway/**'
+              - 'backend/common/**'
+            user-service:
+              - 'backend/user-service/**'
+              - 'backend/common/**'
+            stock-service:
+              - 'backend/stock-service/**'
+              - 'backend/common/**'
+            trading-service:
+              - 'backend/trading-service/**'
+              - 'backend/common/**'
+            event-service:
+              - 'backend/event-service/**'
+              - 'backend/common/**'
+            news-service:
+              - 'backend/news-service/**'
+              - 'backend/common/**'
+            scheduler-service:
+              - 'backend/scheduler-service/**'
+              - 'backend/common/**'
+            season-service:
+              - 'backend/season-service/**'
+              - 'backend/common/**'
+            frontend:
+              - 'frontend/**'
+            infra:
+              - 'infra/k8s/**'
+      
+      - name: Build service list
+        id: services
+        run: |
+          services=()
+          for svc in eureka-server api-gateway user-service stock-service trading-service event-service news-service scheduler-service season-service; do
+            if [ "${{ steps.filter.outputs[svc] }}" == "true" ]; then
+              services+=("$svc")
+            fi
+          done
+          echo "backend-services=$(echo ${services[@]} | jq -R -s -c 'split(" ") | map(select(. != ""))')" >> $GITHUB_OUTPUT
+
+  # =============================================================================
+  # Backend 서비스 빌드 & 푸시
+  # =============================================================================
+  build-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-services != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.backend-services) }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      
+      - name: Build with Gradle
+        working-directory: backend
+        run: ./gradlew :${{ matrix.service }}:build -x test
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: infra/docker/backend/Dockerfile
+          build-args: |
+            SERVICE_NAME=${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ matrix.service }}:latest
+
+  # =============================================================================
+  # Frontend 빌드 & 푸시
+  # =============================================================================
+  build-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build
+        working-directory: frontend
+        run: pnpm run build
+        env:
+          PUBLIC_API_URL: http://172.30.1.79/api
+          PUBLIC_WS_URL: ws://172.30.1.79/ws
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/frontend:latest
+
+  # =============================================================================
+  # K8s Manifest 업데이트 (GitOps)
+  # =============================================================================
+  update-manifests:
+    needs: [build-backend, build-frontend]
+    if: always() && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update image tags
+        run: |
+          # Backend services
+          for file in infra/k8s/apps/*.yaml; do
+            sed -i "s|image: stocksim/.*:.*|image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/\1:${{ github.sha }}|g" $file || true
+          done
+      
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add infra/k8s/apps/
+          git diff --staged --quiet || git commit -m "chore: update image tags to ${{ github.sha }}"
+          git push
+
+  # =============================================================================
+  # ArgoCD Sync (Optional - Webhook 대신 직접 트리거)
+  # =============================================================================
+  # argocd-sync:
+  #   needs: update-manifests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger ArgoCD Sync
+  #       run: |
+  #         curl -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/stocksim-apps/sync \
+  #           -H "Authorization: Bearer ${{ secrets.ARGOCD_TOKEN }}"

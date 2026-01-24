@@ -1,0 +1,52 @@
+# =============================================================================
+# ArgoCD Application - Databases
+# MySQL, MongoDB, Redis 리소스 관리
+# =============================================================================
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stocksim-databases
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: stocksim
+  
+  source:
+    # Git 저장소 URL (본인 저장소로 변경)
+    repoURL: https://github.com/YOUR_USERNAME/Stock-Simulator.git
+    targetRevision: main
+    path: infra/k8s/databases
+    
+    # 디렉토리 내 모든 YAML 파일 적용
+    directory:
+      recurse: true
+      include: '*.yaml'
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stocksim-db
+  
+  syncPolicy:
+    automated:
+      prune: true        # Git에서 삭제된 리소스 자동 삭제
+      selfHeal: true     # 클러스터 상태가 Git과 다르면 자동 복구
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Health Check 설정
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates

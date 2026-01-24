@@ -1,0 +1,275 @@
+# =============================================================================
+# Apache Kafka with KRaft (Zookeeper-less) Mode
+# 3-node Kafka Cluster
+# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  namespace: stocksim-infra
+data:
+  server.properties: |
+    # KRaft 모드 설정
+    process.roles=broker,controller
+    node.id=${NODE_ID}
+    controller.quorum.voters=0@kafka-0.kafka.stocksim-infra.svc.cluster.local:9093,1@kafka-1.kafka.stocksim-infra.svc.cluster.local:9093,2@kafka-2.kafka.stocksim-infra.svc.cluster.local:9093
+    
+    # Listeners
+    listeners=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+    advertised.listeners=PLAINTEXT://${POD_NAME}.kafka.stocksim-infra.svc.cluster.local:9092,EXTERNAL://172.30.1.79:${EXTERNAL_PORT}
+    listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+    controller.listener.names=CONTROLLER
+    inter.broker.listener.name=PLAINTEXT
+    
+    # Log 설정
+    log.dirs=/var/lib/kafka/data
+    num.partitions=3
+    default.replication.factor=3
+    min.insync.replicas=2
+    
+    # Log 보존
+    log.retention.hours=168
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    
+    # 성능 튜닝
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: stocksim-infra
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      initContainers:
+        - name: init-config
+          image: apache/kafka:3.7.0
+          command:
+            - bash
+            - -c
+            - |
+              # Node ID 추출 (hostname에서 숫자 부분)
+              NODE_ID=${HOSTNAME##*-}
+              EXTERNAL_PORT=$((30092 + NODE_ID))
+              
+              # 설정 파일 생성
+              cp /etc/kafka-config/server.properties /etc/kafka/server.properties
+              sed -i "s/\${NODE_ID}/$NODE_ID/g" /etc/kafka/server.properties
+              sed -i "s/\${POD_NAME}/$HOSTNAME/g" /etc/kafka/server.properties
+              sed -i "s/\${EXTERNAL_PORT}/$EXTERNAL_PORT/g" /etc/kafka/server.properties
+              
+              # Cluster ID 생성 (첫 번째 노드에서만)
+              if [ "$NODE_ID" == "0" ] && [ ! -f /var/lib/kafka/data/cluster_id ]; then
+                CLUSTER_ID=$(/opt/kafka/bin/kafka-storage.sh random-uuid)
+                echo $CLUSTER_ID > /var/lib/kafka/data/cluster_id
+              fi
+              
+              # 저장소 포맷
+              if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+                CLUSTER_ID=$(cat /var/lib/kafka/data/cluster_id 2>/dev/null || echo "stocksim-kafka-cluster-id")
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/server.properties --ignore-formatted
+              fi
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: config-template
+              mountPath: /etc/kafka-config
+            - name: config
+              mountPath: /etc/kafka
+            - name: data
+              mountPath: /var/lib/kafka/data
+      containers:
+        - name: kafka
+          image: apache/kafka:3.7.0
+          ports:
+            - containerPort: 9092
+              name: plaintext
+            - containerPort: 9093
+              name: controller
+            - containerPort: 9094
+              name: external
+          command:
+            - /opt/kafka/bin/kafka-server-start.sh
+            - /etc/kafka/server.properties
+          env:
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx512m -Xms512m"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/kafka
+            - name: data
+              mountPath: /var/lib/kafka/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 60
+            periodSeconds: 20
+      volumes:
+        - name: config-template
+          configMap:
+            name: kafka-config
+        - name: config
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 10Gi
+---
+# Headless Service for StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: stocksim-infra
+  labels:
+    app: kafka
+spec:
+  ports:
+    - port: 9092
+      targetPort: 9092
+      name: plaintext
+    - port: 9093
+      targetPort: 9093
+      name: controller
+  clusterIP: None
+  selector:
+    app: kafka
+---
+# External Service (NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-external
+  namespace: stocksim-infra
+  labels:
+    app: kafka
+spec:
+  type: NodePort
+  ports:
+    - port: 9094
+      targetPort: 9094
+      nodePort: 30092
+      name: kafka-0
+  selector:
+    app: kafka
+    statefulset.kubernetes.io/pod-name: kafka-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-external-1
+  namespace: stocksim-infra
+spec:
+  type: NodePort
+  ports:
+    - port: 9094
+      targetPort: 9094
+      nodePort: 30093
+      name: kafka-1
+  selector:
+    app: kafka
+    statefulset.kubernetes.io/pod-name: kafka-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-external-2
+  namespace: stocksim-infra
+spec:
+  type: NodePort
+  ports:
+    - port: 9094
+      targetPort: 9094
+      nodePort: 30094
+      name: kafka-2
+  selector:
+    app: kafka
+    statefulset.kubernetes.io/pod-name: kafka-2
+---
+# Kafka UI
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  namespace: stocksim-infra
+  labels:
+    app: kafka-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: provectuslabs/kafka-ui:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_CLUSTERS_0_NAME
+              value: stocksim-kafka
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: kafka-0.kafka.stocksim-infra.svc.cluster.local:9092,kafka-1.kafka.stocksim-infra.svc.cluster.local:9092,kafka-2.kafka.stocksim-infra.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  namespace: stocksim-infra
+  labels:
+    app: kafka-ui
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: kafka-ui

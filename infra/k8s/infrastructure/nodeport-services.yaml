@@ -1,0 +1,130 @@
+# =============================================================================
+# NodePort Services for External Nginx Access
+# 외부 Nginx에서 K8s 서비스로 접근하기 위한 NodePort 설정
+# =============================================================================
+---
+# API Gateway NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-external
+  namespace: stocksim-apps
+  labels:
+    app: api-gateway
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+      name: http
+  selector:
+    app: api-gateway
+---
+# Frontend NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+  namespace: stocksim-apps
+  labels:
+    app: frontend
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+      name: http
+  selector:
+    app: frontend
+---
+# Eureka NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-external
+  namespace: stocksim-apps
+  labels:
+    app: eureka-server
+spec:
+  type: NodePort
+  ports:
+    - port: 8761
+      targetPort: 8761
+      nodePort: 30761
+      name: http
+  selector:
+    app: eureka-server
+---
+# Grafana NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-external
+  namespace: stocksim-monitoring
+  labels:
+    app: grafana
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30300
+      name: http
+  selector:
+    app: grafana
+---
+# Prometheus NodePort (선택사항)
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-external
+  namespace: stocksim-monitoring
+  labels:
+    app: prometheus
+spec:
+  type: NodePort
+  ports:
+    - port: 9090
+      targetPort: 9090
+      nodePort: 30090
+      name: http
+  selector:
+    app: prometheus
+---
+# Kafka UI NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui-external
+  namespace: stocksim-infra
+  labels:
+    app: kafka-ui
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30089
+      name: http
+  selector:
+    app: kafka-ui
+---
+# Kibana NodePort (선택사항)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-external
+  namespace: stocksim-infra
+  labels:
+    app: kibana
+spec:
+  type: NodePort
+  ports:
+    - port: 5601
+      targetPort: 5601
+      nodePort: 30561
+      name: http
+  selector:
+    app: kibana

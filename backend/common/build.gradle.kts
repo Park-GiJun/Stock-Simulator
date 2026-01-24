@@ -23,4 +23,17 @@ dependencies {
     // Kotlinx Serialization (for shared DTOs)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+    // Kafka
+    implementation("org.springframework.kafka:spring-kafka")
+
+    // Redisson
+    implementation("org.redisson:redisson:3.52.0")
+
+    // Monitoring
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
+    // Swagger / OpenAPI
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.4")
 }

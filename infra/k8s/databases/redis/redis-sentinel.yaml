@@ -1,0 +1,362 @@
+# =============================================================================
+# Redis with Sentinel for High Availability
+# 1 Master + 2 Replica + 3 Sentinel
+# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: stocksim-db
+data:
+  redis-master.conf: |
+    port 6379
+    bind 0.0.0.0
+    requirepass stocksim123
+    masterauth stocksim123
+    
+    # Persistence
+    appendonly yes
+    appendfsync everysec
+    
+    # Memory
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    
+    # Replication
+    min-replicas-to-write 1
+    min-replicas-max-lag 10
+    
+  redis-replica.conf: |
+    port 6379
+    bind 0.0.0.0
+    requirepass stocksim123
+    masterauth stocksim123
+    
+    # Persistence
+    appendonly yes
+    appendfsync everysec
+    
+    # Memory
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    
+    # Replication - will be overridden by Sentinel
+    replicaof redis-master.stocksim-db.svc.cluster.local 6379
+    replica-read-only yes
+    
+  sentinel.conf: |
+    port 26379
+    bind 0.0.0.0
+    
+    sentinel monitor mymaster redis-master.stocksim-db.svc.cluster.local 6379 2
+    sentinel auth-pass mymaster stocksim123
+    sentinel down-after-milliseconds mymaster 5000
+    sentinel failover-timeout mymaster 60000
+    sentinel parallel-syncs mymaster 1
+---
+# Redis Master
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-master
+  namespace: stocksim-db
+  labels:
+    app: redis
+    role: master
+spec:
+  serviceName: redis-master
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+          command:
+            - redis-server
+            - /etc/redis/redis.conf
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /etc/redis
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "-a", "stocksim123", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "-a", "stocksim123", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: redis-config
+            items:
+              - key: redis-master.conf
+                path: redis.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  namespace: stocksim-db
+  labels:
+    app: redis
+    role: master
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  selector:
+    app: redis
+    role: master
+---
+# Redis Replica
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-replica
+  namespace: stocksim-db
+  labels:
+    app: redis
+    role: replica
+spec:
+  serviceName: redis-replica
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: replica
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: replica
+    spec:
+      initContainers:
+        - name: wait-for-master
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z redis-master.stocksim-db.svc.cluster.local 6379; do
+                echo "Waiting for Redis master..."
+                sleep 2
+              done
+      containers:
+        - name: redis
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+          command:
+            - redis-server
+            - /etc/redis/redis.conf
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /etc/redis
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "-a", "stocksim123", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "-a", "stocksim123", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: redis-config
+            items:
+              - key: redis-replica.conf
+                path: redis.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-replica
+  namespace: stocksim-db
+  labels:
+    app: redis
+    role: replica
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  selector:
+    app: redis
+    role: replica
+---
+# Redis Read Service (모든 Replica에 로드밸런싱)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-read
+  namespace: stocksim-db
+  labels:
+    app: redis
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  selector:
+    app: redis
+    role: replica
+---
+# Redis Sentinel
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-sentinel
+  namespace: stocksim-db
+  labels:
+    app: redis-sentinel
+spec:
+  serviceName: redis-sentinel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-sentinel
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel
+    spec:
+      initContainers:
+        - name: wait-for-redis
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z redis-master.stocksim-db.svc.cluster.local 6379; do
+                echo "Waiting for Redis..."
+                sleep 2
+              done
+        - name: init-config
+          image: redis:7.2-alpine
+          command:
+            - sh
+            - -c
+            - |
+              cp /etc/redis-sentinel/sentinel.conf /data/sentinel.conf
+              chmod 777 /data/sentinel.conf
+          volumeMounts:
+            - name: sentinel-config
+              mountPath: /etc/redis-sentinel
+            - name: data
+              mountPath: /data
+      containers:
+        - name: sentinel
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 26379
+              name: sentinel
+          command:
+            - redis-sentinel
+            - /data/sentinel.conf
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "-p", "26379", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "-p", "26379", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: sentinel-config
+          configMap:
+            name: redis-config
+            items:
+              - key: sentinel.conf
+                path: sentinel.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sentinel
+  namespace: stocksim-db
+  labels:
+    app: redis-sentinel
+spec:
+  ports:
+    - port: 26379
+      targetPort: 26379
+      name: sentinel
+  selector:
+    app: redis-sentinel

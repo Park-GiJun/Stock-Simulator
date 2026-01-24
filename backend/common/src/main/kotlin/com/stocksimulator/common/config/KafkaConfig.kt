@@ -1,0 +1,132 @@
+package com.stocksimulator.common.config
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.stocksimulator.common.event.KafkaTopics
+import org.apache.kafka.clients.admin.NewTopic
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.StringSerializer
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.config.TopicBuilder
+import org.springframework.kafka.core.*
+import org.springframework.kafka.support.serializer.JsonDeserializer
+import org.springframework.kafka.support.serializer.JsonSerializer
+
+@Configuration
+class KafkaConfig(
+    @Value("\${spring.kafka.bootstrap-servers:localhost:9093}")
+    private val bootstrapServers: String,
+
+    @Value("\${spring.application.name:unknown}")
+    private val applicationName: String,
+
+    private val objectMapper: ObjectMapper
+) {
+
+    // ===== Producer Configuration =====
+
+    @Bean
+    fun producerFactory(): ProducerFactory<String, Any> {
+        val configProps = mapOf(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
+            ProducerConfig.ACKS_CONFIG to "all",
+            ProducerConfig.RETRIES_CONFIG to 3,
+            ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
+            JsonSerializer.ADD_TYPE_INFO_HEADERS to false
+        )
+        return DefaultKafkaProducerFactory(configProps, StringSerializer(), JsonSerializer(objectMapper))
+    }
+
+    @Bean
+    fun kafkaTemplate(): KafkaTemplate<String, Any> {
+        return KafkaTemplate(producerFactory())
+    }
+
+    // ===== Consumer Configuration =====
+
+    @Bean
+    fun consumerFactory(): ConsumerFactory<String, Any> {
+        val configProps = mapOf(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+            ConsumerConfig.GROUP_ID_CONFIG to applicationName,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
+            JsonDeserializer.TRUSTED_PACKAGES to "com.stocksimulator.*"
+        )
+        return DefaultKafkaConsumerFactory(
+            configProps,
+            StringDeserializer(),
+            JsonDeserializer<Any>(objectMapper).apply {
+                addTrustedPackages("com.stocksimulator.*")
+            }
+        )
+    }
+
+    @Bean
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
+        return ConcurrentKafkaListenerContainerFactory<String, Any>().apply {
+            consumerFactory = consumerFactory()
+            setConcurrency(3)
+            containerProperties.ackMode = org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
+        }
+    }
+
+    // ===== Topic Configuration =====
+
+    @Bean
+    fun orderCreatedTopic(): NewTopic = createTopic(KafkaTopics.ORDER_CREATED)
+
+    @Bean
+    fun orderMatchedTopic(): NewTopic = createTopic(KafkaTopics.ORDER_MATCHED)
+
+    @Bean
+    fun orderCancelledTopic(): NewTopic = createTopic(KafkaTopics.ORDER_CANCELLED)
+
+    @Bean
+    fun tradeExecutedTopic(): NewTopic = createTopic(KafkaTopics.TRADE_EXECUTED)
+
+    @Bean
+    fun priceUpdatedTopic(): NewTopic = createTopic(KafkaTopics.PRICE_UPDATED)
+
+    @Bean
+    fun orderBookUpdatedTopic(): NewTopic = createTopic(KafkaTopics.ORDERBOOK_UPDATED)
+
+    @Bean
+    fun eventOccurredTopic(): NewTopic = createTopic(KafkaTopics.EVENT_OCCURRED)
+
+    @Bean
+    fun newsPublishedTopic(): NewTopic = createTopic(KafkaTopics.NEWS_PUBLISHED)
+
+    @Bean
+    fun rankingUpdatedTopic(): NewTopic = createTopic(KafkaTopics.RANKING_UPDATED)
+
+    @Bean
+    fun scheduleTradeTopic(): NewTopic = createTopic(KafkaTopics.SCHEDULE_TRADE)
+
+    @Bean
+    fun incomeDistributedTopic(): NewTopic = createTopic(KafkaTopics.INCOME_DISTRIBUTED)
+
+    @Bean
+    fun userCreatedTopic(): NewTopic = createTopic(KafkaTopics.USER_CREATED)
+
+    @Bean
+    fun seasonStartedTopic(): NewTopic = createTopic(KafkaTopics.SEASON_STARTED)
+
+    @Bean
+    fun seasonEndedTopic(): NewTopic = createTopic(KafkaTopics.SEASON_ENDED)
+
+    private fun createTopic(name: String, partitions: Int = 3, replicas: Int = 1): NewTopic {
+        return TopicBuilder.name(name)
+            .partitions(partitions)
+            .replicas(replicas)
+            .build()
+    }
+}
