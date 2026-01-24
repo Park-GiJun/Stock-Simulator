@@ -208,7 +208,7 @@ services:
     ports:
       - "9091:9090"
     volumes:
-      - ./infra/prometheus/prometheus-docker.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - stocksim-network

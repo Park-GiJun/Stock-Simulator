@@ -4,16 +4,16 @@
 
 | 파일 | 설명 |
 |------|------|
-| `gijun.net` | K8s Ingress를 통한 연결 (권장) |
-| `gijun.net.nodeport` | NodePort 직접 연결 (Ingress 없이) |
+| `gijun.net` | Docker 컨테이너 연결 (운영 환경) |
+| `nginx.conf` | Docker 내부 프록시용 (개발 환경) |
 
 ## 🚀 설치 방법
 
 ### 1. Nginx 설정 파일 복사
 
 ```bash
-# 권장: NodePort 직접 연결 방식
-sudo cp infra/nginx/gijun.net.nodeport /etc/nginx/sites-available/gijun.net
+# 설정 파일 복사
+sudo cp infra/nginx/gijun.net /etc/nginx/sites-available/gijun.net
 
 # 심볼릭 링크 생성
 sudo ln -sf /etc/nginx/sites-available/gijun.net /etc/nginx/sites-enabled/
@@ -45,24 +45,22 @@ sudo systemctl restart nginx
 sudo apt install certbot python3-certbot-nginx -y
 
 # SSL 인증서 발급
-sudo certbot --nginx -d gijun.net -d www.gijun.net
+sudo certbot --nginx -d gijun.net -d api.gijun.net
 
 # 자동 갱신 테스트
 sudo certbot renew --dry-run
 ```
 
-## 🔌 NodePort 매핑
+## 🔌 Docker 포트 매핑
 
-| 서비스 | NodePort | 설명 |
-|--------|----------|------|
-| Frontend | 30000 | SvelteKit 앱 |
-| API Gateway | 30080 | 백엔드 API |
-| Eureka | 30761 | 서비스 디스커버리 |
-| ArgoCD | 30443 | GitOps (HTTPS) |
-| Grafana | 30300 | 모니터링 대시보드 |
-| Prometheus | 30090 | 메트릭 수집 |
-| Kafka UI | 30089 | 메시지 큐 모니터링 |
-| Kibana | 30561 | 로그 검색 |
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| Frontend | 8080 | SvelteKit 앱 |
+| API Gateway | 9832 | 백엔드 API |
+| Eureka | 8761 | 서비스 디스커버리 |
+| Grafana | 3001 | 모니터링 대시보드 |
+| Prometheus | 9091 | 메트릭 수집 |
+| Kafka UI | 8089 | 메시지 큐 모니터링 |
 
 ## 🌐 접속 URL
 
@@ -71,43 +69,32 @@ sudo certbot renew --dry-run
 | 서비스 | URL |
 |--------|-----|
 | 메인 (Frontend) | https://gijun.net/ |
-| API | https://gijun.net/api/ |
-| Swagger UI | https://gijun.net/swagger-ui |
-| Eureka | https://gijun.net/eureka |
-| ArgoCD | https://gijun.net/argocd |
-| Grafana | https://gijun.net/grafana/ |
-| Prometheus | https://gijun.net/prometheus/ |
-| Kafka UI | https://gijun.net/kafka-ui/ |
-| Kibana | https://gijun.net/kibana/ |
-
-## 🔧 K8s NodePort 서비스 적용
-
-Nginx가 K8s 서비스에 연결하려면 NodePort 서비스가 필요합니다:
-
-```bash
-kubectl apply -f infra/k8s/infrastructure/nodeport-services.yaml
-```
+| API | https://api.gijun.net/ |
+| Eureka | http://localhost:8761/ |
+| Grafana | http://localhost:3001/ |
+| Prometheus | http://localhost:9091/ |
+| Kafka UI | http://localhost:8089/ |
 
 ## ⚠️ 문제 해결
 
 ### 502 Bad Gateway
-- K8s Pod가 정상 실행 중인지 확인
-- NodePort 서비스가 올바르게 설정되었는지 확인
+- Docker 컨테이너가 정상 실행 중인지 확인
 
 ```bash
-# Pod 상태 확인
-kubectl get pods -n stocksim-apps
+# 컨테이너 상태 확인
+docker-compose ps
 
-# 서비스 확인
-kubectl get svc -n stocksim-apps
+# 로그 확인
+docker-compose logs -f api-gateway
 ```
 
 ### Connection Refused
-- 방화벽에서 NodePort 포트가 열려있는지 확인
+- Docker 컨테이너가 실행 중인지 확인
+- 포트가 올바르게 매핑되었는지 확인
 
 ```bash
-# UFW 사용시
-sudo ufw allow 30000:32767/tcp
+# 포트 확인
+docker port stockSimulator-api-gateway
 ```
 
 ### SSL 인증서 오류

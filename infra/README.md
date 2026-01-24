@@ -6,11 +6,10 @@
 
 ## 📋 목차
 1. [개요](#개요)
-2. [DB 구조](#db-구조)
-3. [Kubernetes 구조](#kubernetes-구조)
-4. [ArgoCD GitOps](#argocd-gitops)
-5. [배포 가이드](#배포-가이드)
-6. [운영 가이드](#운영-가이드)
+2. [Docker Compose 구성](#docker-compose-구성)
+3. [서비스 구조](#서비스-구조)
+4. [배포 가이드](#배포-가이드)
+5. [운영 가이드](#운영-가이드)
 
 
 
@@ -19,83 +18,85 @@
 Stock-Simulator는 마이크로서비스 아키텍처 기반의 모의 주식 거래 게임입니다.
 
 ### 기술 스택
-- **Orchestration**: Kubernetes (K3s 또는 K8s)
-- **CI/CD**: ArgoCD (GitOps)
-- **Database**: MySQL (Master-Replica), MongoDB (ReplicaSet), Redis (Sentinel)
-- **Message Broker**: Apache Kafka (KRaft 모드)
+- **Container**: Docker & Docker Compose
+- **Database**: PostgreSQL (Primary + Replica), MongoDB, Redis
+- **Message Broker**: Apache Kafka
 - **Search**: Elasticsearch
 - **Monitoring**: Prometheus + Grafana
+- **Reverse Proxy**: Nginx (외부 서버)
 
 ### 서버 정보
 - **Server IP**: 172.30.1.79
-- **Frontend**: http://172.30.1.79/
-- **API Gateway**: http://172.30.1.79/api/
-- **ArgoCD**: https://172.30.1.79:30443
-- **Grafana**: http://172.30.1.79/grafana
+- **Frontend**: https://gijun.net
+- **API Gateway**: https://api.gijun.net
+- **Grafana**: http://localhost:3001 (admin/stocksim123)
+- **Kafka UI**: http://localhost:8089
 
 ---
 
-## DB 구조
+## Docker Compose 구성
 
-### MySQL - 서비스별 분리 (Master + Replica)
+### Profile 구조
 
-| 서비스 | Master Host | Replica Host | Database |
-|--------|-------------|--------------|----------|
-| user-service | mysql-user-master | mysql-user-read | userdb |
-| stock-service | mysql-stock-master | mysql-stock-read | stockdb |
-| trading-service | mysql-trading-master | mysql-trading-read | tradingdb |
-| event-service | mysql-event-master | mysql-event-read | eventdb |
-| scheduler-service | mysql-scheduler-master | mysql-scheduler-read | schedulerdb |
-| season-service | mysql-season-master | mysql-season-read | seasondb |
+```bash
+# 전체 인프라 시작 (DB, 메시지 브로커 등)
+docker-compose --profile infra up -d
 
-**Read/Write 분리**:
-- Write 작업 → Master
-- Read 작업 → Replica (로드밸런싱)
+# 모니터링 시작
+docker-compose --profile monitoring up -d
 
-### MongoDB ReplicaSet
+# 마이크로서비스 시작
+docker-compose --profile services up -d
 
-```
-mongodb-0 (Primary) ─┬─► mongodb-1 (Secondary)
-                     └─► mongodb-2 (Secondary)
-```
+# 프론트엔드 시작
+docker-compose --profile frontend up -d
 
-- 사용 서비스: news-service, event-service (로그)
-- ReadPreference: secondaryPreferred
+# 전체 시작
+docker-compose --profile all up -d
 
-### Redis Sentinel
+# 전체 중지
+docker-compose down
 
-```
-redis-master ◄─── redis-sentinel-0
-     │            redis-sentinel-1
-     │            redis-sentinel-2
-     ▼
-redis-replica-0
-redis-replica-1
+# 볼륨 포함 삭제
+docker-compose down -v
 ```
 
-- 자동 Failover 지원
-- 사용: 세션, 캐시, 실시간 데이터
+### 서비스 포트 맵핑
+
+| 서비스 | 컨테이너명 | 외부 포트 | 접속 정보 |
+|--------|-----------|----------|----------|
+| PostgreSQL (Primary) | stockSimulator-postgres | 5432 | user: `stocksim`, pw: `stocksim123`, db: `stocksimulator` |
+| PostgreSQL (Replica) | stockSimulator-postgres-replica | 5433 | user: `stocksim`, pw: `stocksim123` |
+| MongoDB | stockSimulator-mongo | 27018 | user: `stocksim`, pw: `stocksim123` |
+| Redis | stockSimulator-redis | 6380 | pw: `stocksim123` |
+| Kafka | stockSimulator-kafka | 9093 | - |
+| Kafka UI | stockSimulator-kafka-ui | 8089 | http://localhost:8089 |
+| Elasticsearch | stockSimulator-elasticsearch | 9201 | - |
+| Prometheus | stockSimulator-prometheus | 9091 | http://localhost:9091 |
+| Grafana | stockSimulator-grafana | 3001 | http://localhost:3001 (admin/stocksim123) |
+| Eureka Server | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
+| API Gateway | stockSimulator-api-gateway | 9832 | http://localhost:9832 |
+| User Service | stockSimulator-user-service | 8081 | - |
+| Stock Service | stockSimulator-stock-service | 8082 | - |
+| Trading Service | stockSimulator-trading-service | 8083 | - |
+| Event Service | stockSimulator-event-service | 8084 | - |
+| Scheduler Service | stockSimulator-scheduler-service | 8085 | - |
+| News Service | stockSimulator-news-service | 8086 | - |
+| Season Service | stockSimulator-season-service | 8087 | - |
+| Frontend | stockSimulator-frontend | 8080 | http://localhost:8080 |
 
 ---
 
-## Kubernetes 구조
+## 서비스 구조
 
-### Namespace 구조
-
-```
-├── stocksim-apps        # 애플리케이션 서비스
-├── stocksim-db          # 데이터베이스
-├── stocksim-infra       # Kafka, Elasticsearch
-├── stocksim-monitoring  # Prometheus, Grafana
-└── argocd               # ArgoCD
-```
-
-### 서비스 구성
+### 네트워크 아키텍처
 
 ```
                     ┌─────────────────┐
-                    │   Ingress       │
-                    │ (172.30.1.79)   │
+                    │     Nginx       │
+                    │ (외부 서버)      │
+                    │ gijun.net       │
+                    │ api.gijun.net   │
                     └────────┬────────┘
                              │
               ┌──────────────┼──────────────┐
@@ -103,6 +104,7 @@ redis-replica-1
               ▼              ▼              ▼
         ┌─────────┐   ┌───────────┐   ┌─────────┐
         │Frontend │   │API Gateway│   │ Grafana │
+        │ :8080   │   │  :9832    │   │ :3001   │
         └─────────┘   └─────┬─────┘   └─────────┘
                             │
            ┌────────────────┼────────────────┐
@@ -110,43 +112,37 @@ redis-replica-1
            ▼                ▼                ▼
       ┌─────────┐     ┌──────────┐    ┌──────────┐
       │ Eureka  │◄────│ Services │────│  Kafka   │
+      │ :8761   │     │8081-8087 │    │  :9093   │
       └─────────┘     └────┬─────┘    └──────────┘
                            │
               ┌────────────┼────────────┐
               │            │            │
               ▼            ▼            ▼
          ┌───────┐   ┌─────────┐  ┌─────────┐
-         │ MySQL │   │ MongoDB │  │  Redis  │
-         │ (M/R) │   │  (RS)   │  │(Sentinel│
+         │ Postgres│  │ MongoDB │  │  Redis  │
+         │:5432/33│   │ :27018  │  │ :6380   │
          └───────┘   └─────────┘  └─────────┘
 ```
 
----
+### DB 구조
 
-## ArgoCD GitOps
+#### PostgreSQL (스키마 분리)
 
-### Application 구조 (App of Apps)
+| Schema | Service | Description |
+|--------|---------|-------------|
+| `users` | user-service | 회원, 인증 |
+| `stocks` | stock-service | 종목, 시세 |
+| `trading` | trading-service | 주문, 포트폴리오 |
+| `events` | event-service | 게임 이벤트 |
+| `scheduler` | scheduler-service | NPC 트레이딩 |
+| `season` | season-service | 시즌, 랭킹 |
 
-```
-stocksim-root (Root App)
-    │
-    ├── stocksim-databases    → infra/k8s/databases/
-    ├── stocksim-infrastructure → infra/k8s/infrastructure/
-    ├── stocksim-apps         → infra/k8s/apps/
-    └── stocksim-monitoring   → infra/k8s/monitoring/
-```
+#### MongoDB
+- 사용 서비스: news-service, event-service (로그)
+- Database: `stocksimulator`
 
-### 배포 흐름
-
-```
-1. 개발자 → Git Push
-         ↓
-2. GitHub Actions → Docker Build → Registry Push
-         ↓
-3. GitHub Actions → K8s Manifest 업데이트 (이미지 태그)
-         ↓
-4. ArgoCD → Git 변경 감지 → 자동 Sync → K8s 배포
-```
+#### Redis
+- 사용: 세션, 캐시, 실시간 데이터 (주가, 호가창, 랭킹)
 
 ---
 
@@ -155,135 +151,113 @@ stocksim-root (Root App)
 ### 1. 사전 요구사항
 
 ```bash
-# kubectl 설치
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+# Docker 설치
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
 
-# K3s 설치 (경량 K8s)
-curl -sfL https://get.k3s.io | sh -
-
-# kubeconfig 설정
-mkdir -p ~/.kube
-sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-sudo chown $(id -u):$(id -g) ~/.kube/config
+# Docker Compose 설치 (Docker Desktop에는 포함됨)
+sudo apt-get install docker-compose-plugin
 ```
 
-### 2. 클러스터 초기 설정
+### 2. 인프라 시작
 
 ```bash
-# 스크립트 실행 권한 부여
-chmod +x infra/scripts/*.sh
+# 저장소 클론
+git clone https://github.com/YOUR_USERNAME/Stock-Simulator.git
+cd Stock-Simulator
 
-# 클러스터 기본 설정
-./infra/scripts/setup-cluster.sh
+# 인프라 서비스 시작 (DB, Kafka, Redis 등)
+docker-compose --profile infra up -d
 
-# ArgoCD 설치
-./infra/scripts/setup-argocd.sh
+# 모니터링 시작
+docker-compose --profile monitoring up -d
 ```
 
-### 3. Git 저장소 설정
-
-ArgoCD Application 파일에서 Git URL 수정:
-```yaml
-# infra/k8s/argocd/applications/*.yaml
-spec:
-  source:
-    repoURL: https://github.com/YOUR_USERNAME/Stock-Simulator.git
-```
-
-### 4. ArgoCD Application 배포
+### 3. 서비스 빌드 및 시작
 
 ```bash
-# Project 생성
-kubectl apply -f infra/k8s/argocd/projects/stocksim-project.yaml
+# 백엔드 이미지 빌드
+./infra/scripts/build-docker-images.sh
 
-# Root Application 배포 (모든 하위 앱 자동 생성)
-kubectl apply -f infra/k8s/argocd/applications/root-app.yaml
+# 마이크로서비스 시작
+docker-compose --profile services up -d
+
+# 프론트엔드 시작
+docker-compose --profile frontend up -d
 ```
 
-### 5. 수동 배포 (ArgoCD 없이)
+### 4. 외부 접근 설정 (Nginx)
+
+서버에서 Nginx를 리버스 프록시로 설정:
 
 ```bash
-# Namespace & Secrets
-kubectl apply -f infra/k8s/base/
+# Nginx 설정 복사
+sudo cp infra/nginx/gijun.net /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/gijun.net /etc/nginx/sites-enabled/
 
-# Databases
-kubectl apply -f infra/k8s/databases/ -R
-
-# Infrastructure
-kubectl apply -f infra/k8s/infrastructure/ -R
-
-# Applications
-kubectl apply -f infra/k8s/apps/ -R
-
-# Monitoring
-kubectl apply -f infra/k8s/monitoring/ -R
+# Nginx 재시작
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 ---
 
 ## 운영 가이드
 
-### Pod 상태 확인
+### 컨테이너 상태 확인
 
 ```bash
-# 모든 서비스 상태
-kubectl get pods -n stocksim-apps
+# 전체 상태
+docker-compose ps
 
-# DB 상태
-kubectl get pods -n stocksim-db
+# 특정 서비스 로그
+docker-compose logs -f user-service
 
-# 로그 확인
-kubectl logs -f deployment/user-service -n stocksim-apps
+# 컨테이너 내부 접속
+docker exec -it stockSimulator-postgres psql -U stocksim -d stocksimulator
 ```
 
-### MySQL Replication 상태 확인
+### DB 관리
 
 ```bash
-# Master 확인
-kubectl exec -it mysql-user-master-0 -n stocksim-db -- \
-  mysql -u root -proot123 -e "SHOW MASTER STATUS\G"
+# PostgreSQL 접속
+docker exec -it stockSimulator-postgres psql -U stocksim -d stocksimulator
 
-# Replica 상태 확인
-kubectl exec -it mysql-user-replica-0 -n stocksim-db -- \
-  mysql -u root -proot123 -e "SHOW SLAVE STATUS\G"
+# MongoDB 접속
+docker exec -it stockSimulator-mongo mongosh -u stocksim -p stocksim123 --authenticationDatabase admin
+
+# Redis 접속
+docker exec -it stockSimulator-redis redis-cli -a stocksim123
 ```
 
-### Redis Sentinel 상태
+### 서비스 재시작
 
 ```bash
-kubectl exec -it redis-sentinel-0 -n stocksim-db -- \
-  redis-cli -p 26379 SENTINEL masters
-```
+# 특정 서비스 재시작
+docker-compose restart user-service
 
-### ArgoCD UI 접속
-
-```bash
-# 초기 비밀번호 확인
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 -d
-
-# 접속: https://172.30.1.79:30443
-# Username: admin
+# 서비스 재빌드 및 시작
+docker-compose up -d --build user-service
 ```
 
 ### 스케일링
 
 ```bash
-# Deployment 스케일
-kubectl scale deployment user-service --replicas=3 -n stocksim-apps
-
-# HPA 적용 (자동 스케일링)
-kubectl autoscale deployment user-service \
-  --cpu-percent=70 --min=2 --max=5 -n stocksim-apps
+# 서비스 스케일 아웃
+docker-compose up -d --scale user-service=3
 ```
 
-### 롤백
+### 로그 확인
 
 ```bash
-# ArgoCD UI에서 이전 버전으로 Sync
-# 또는 CLI:
-argocd app rollback stocksim-apps
+# 전체 로그
+docker-compose logs -f
+
+# 특정 서비스 로그
+docker-compose logs -f api-gateway user-service
+
+# 최근 100줄
+docker-compose logs --tail=100 user-service
 ```
 
 ---
@@ -292,29 +266,55 @@ argocd app rollback stocksim-apps
 
 ### DB 연결 실패
 ```bash
-# DNS 확인
-kubectl exec -it [pod] -- nslookup mysql-user-master.stocksim-db
+# PostgreSQL 상태 확인
+docker exec -it stockSimulator-postgres pg_isready -U stocksim
 
-# 네트워크 정책 확인
-kubectl get networkpolicy -n stocksim-db
+# 네트워크 확인
+docker network inspect stock-simulator_stocksim-network
 ```
 
-### Pod CrashLoopBackOff
+### 컨테이너 재시작 반복
 ```bash
-# 이벤트 확인
-kubectl describe pod [pod-name] -n stocksim-apps
+# 로그 확인
+docker logs stockSimulator-user-service
 
-# 이전 로그 확인
-kubectl logs [pod-name] --previous -n stocksim-apps
+# 컨테이너 상세 정보
+docker inspect stockSimulator-user-service
 ```
 
-### ArgoCD Sync 실패
+### 포트 충돌
 ```bash
-# Application 상태 확인
-kubectl get application -n argocd
+# 사용 중인 포트 확인 (Linux)
+sudo lsof -i :8080
 
-# 상세 정보
-argocd app get stocksim-apps
+# 사용 중인 포트 확인 (Windows)
+netstat -ano | findstr :8080
+```
+
+---
+
+## 설정 파일 구조
+
+```
+infra/
+├── docker/               # Dockerfile 모음
+│   ├── backend/          # 백엔드 서비스 Dockerfile
+│   └── frontend/         # 프론트엔드 Dockerfile
+├── grafana/
+│   └── provisioning/     # Grafana 자동 설정
+│       ├── dashboards/
+│       └── datasources/
+├── nginx/                # Nginx 설정
+│   ├── gijun.net         # 메인 도메인 설정
+│   └── nginx.conf        # Docker 내부용
+├── postgres/
+│   └── init-schemas.sql  # 스키마 초기화
+├── prometheus/
+│   ├── prometheus.yml        # K8s용 (deprecated)
+│   └── prometheus-docker.yml # Docker용
+├── scripts/
+│   └── build-docker-images.sh # 이미지 빌드 스크립트
+└── README.md             # 이 문서
 ```
 
 ---
