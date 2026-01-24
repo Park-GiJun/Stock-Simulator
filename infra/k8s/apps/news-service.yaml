@@ -19,11 +19,11 @@ data:
       
       data:
         mongodb:
-          uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongodb-0.mongodb.stocksim-db.svc.cluster.local:27017,mongodb-1.mongodb.stocksim-db.svc.cluster.local:27017,mongodb-2.mongodb.stocksim-db.svc.cluster.local:27017/newsdb?authSource=admin&replicaSet=rs0&readPreference=secondaryPreferred
+          uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongodb.stocksim-infra.svc.cluster.local:27017/newsdb?authSource=admin
         elasticsearch:
           uris: http://elasticsearch.stocksim-infra.svc.cluster.local:9200
         redis:
-          host: redis-master.stocksim-db.svc.cluster.local
+          host: redis-master.stocksim-infra.svc.cluster.local
           port: 6379
           password: ${REDIS_PASSWORD}
       
@@ -82,18 +82,18 @@ spec:
             - name: MONGODB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mongodb-user
+                  name: mongodb-credentials
+                  key: username
             - name: MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mongodb-password
+                  name: mongodb-credentials
+                  key: password
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: redis-password
+                  name: redis-credentials
+                  key: password
           volumeMounts:
             - name: config
               mountPath: /app/config
@@ -104,18 +104,28 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          # Spring Boot 시작에 충분한 시간 제공
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8086
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8086
-            initialDelaySeconds: 60
+            initialDelaySeconds: 5
             periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8086
-            initialDelaySeconds: 90
+            initialDelaySeconds: 10
             periodSeconds: 30
+            failureThreshold: 3
       volumes:
         - name: config
           configMap:

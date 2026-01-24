@@ -1,6 +1,6 @@
 # =============================================================================
 # Stock Service - 종목/시세 관리
-# Database: mysql-stock-master/replica (stockdb)
+# Database: PostgreSQL (schema: stocks)
 # =============================================================================
 ---
 apiVersion: v1
@@ -19,43 +19,51 @@ data:
       
       datasource:
         write:
-          jdbc-url: jdbc:mysql://mysql-stock-master.stocksim-db.svc.cluster.local:3306/stockdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+          jdbc-url: jdbc:postgresql://postgresql-write.stocksim-db.svc.cluster.local:5432/stocksimulator?currentSchema=stocks
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
-          driver-class-name: com.mysql.cj.jdbc.Driver
+          driver-class-name: org.postgresql.Driver
           hikari:
             pool-name: write-pool
             maximum-pool-size: 10
             minimum-idle: 5
+            connection-timeout: 30000
+            idle-timeout: 600000
+            max-lifetime: 1800000
         read:
-          jdbc-url: jdbc:mysql://mysql-stock-read.stocksim-db.svc.cluster.local:3306/stockdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+          jdbc-url: jdbc:postgresql://postgresql-read.stocksim-db.svc.cluster.local:5432/stocksimulator?currentSchema=stocks
           username: ${DB_READONLY_USERNAME}
           password: ${DB_READONLY_PASSWORD}
-          driver-class-name: com.mysql.cj.jdbc.Driver
+          driver-class-name: org.postgresql.Driver
           hikari:
             pool-name: read-pool
             maximum-pool-size: 20
             minimum-idle: 10
+            connection-timeout: 30000
+            idle-timeout: 600000
+            max-lifetime: 1800000
       
       jpa:
         hibernate:
           ddl-auto: validate
         properties:
           hibernate:
-            dialect: org.hibernate.dialect.MySQLDialect
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            default_schema: stocks
         open-in-view: false
       
       flyway:
         enabled: true
         baseline-on-migrate: true
-        locations: classpath:db/migration/stock
+        schemas: stocks
+        locations: classpath:db/migration
       
       kafka:
         bootstrap-servers: kafka.stocksim-infra.svc.cluster.local:9092
       
       data:
         redis:
-          host: redis-master.stocksim-db.svc.cluster.local
+          host: redis-master.stocksim-infra.svc.cluster.local
           port: 6379
           password: ${REDIS_PASSWORD}
 
@@ -111,28 +119,28 @@ spec:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mysql-user
+                  name: postgresql-credentials
+                  key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mysql-password
+                  name: postgresql-credentials
+                  key: password
             - name: DB_READONLY_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mysql-readonly-user
+                  name: postgresql-credentials
+                  key: readonly-username
             - name: DB_READONLY_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: mysql-readonly-password
+                  name: postgresql-credentials
+                  key: readonly-password
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-credentials
-                  key: redis-password
+                  name: redis-credentials
+                  key: password
           volumeMounts:
             - name: config
               mountPath: /app/config
@@ -143,18 +151,28 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          # Spring Boot 시작에 충분한 시간 제공
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8082
-            initialDelaySeconds: 60
+            initialDelaySeconds: 5
             periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8082
-            initialDelaySeconds: 90
+            initialDelaySeconds: 10
             periodSeconds: 30
+            failureThreshold: 3
       volumes:
         - name: config
           configMap:

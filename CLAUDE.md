@@ -98,10 +98,23 @@ service/
 
 **Service Dependencies:**
 - All services register with Eureka, routed through API Gateway
-- MySQL: user, stock, trading, event, scheduler, season (with Flyway migrations)
-- MongoDB: event (logs), news
-- Redis/Redisson: stock (prices), trading (orderbook), season (ranking)
-- Kafka: inter-service events
+- **PostgreSQL**: Single DB with schema separation (users, stocks, trading, events, scheduler, season)
+  - Primary + Replica (Streaming Replication) for Write/Read separation
+- **MongoDB**: event (logs), news
+- **Redis/Redisson**: stock (prices), trading (orderbook), season (ranking)
+- **Kafka**: inter-service events
+
+## Database Schema Structure
+
+PostgreSQL uses a single `stocksimulator` database with separate schemas per service:
+| Schema | Service | Description |
+|--------|---------|-------------|
+| `users` | user-service | 회원, 인증 |
+| `stocks` | stock-service | 종목, 시세 |
+| `trading` | trading-service | 주문, 포트폴리오 |
+| `events` | event-service | 게임 이벤트 |
+| `scheduler` | scheduler-service | NPC 트레이딩 |
+| `season` | season-service | 시즌, 랭킹 |
 
 ## Docker Infrastructure
 
@@ -112,7 +125,7 @@ docker-compose up -d
 
 | Service | Container | External Port | Credentials |
 |---------|-----------|---------------|-------------|
-| MySQL | stockSimulator-mysql | 3307 | user: `stocksim`, pw: `stocksim123`, db: `stocksimulator` |
+| PostgreSQL | stockSimulator-postgres | 5432 | user: `stocksim`, pw: `stocksim123`, db: `stocksimulator` |
 | MongoDB | stockSimulator-mongo | 27018 | user: `stocksim`, pw: `stocksim123` |
 | Redis | stockSimulator-redis | 6380 | pw: `stocksim123` |
 | Kafka | stockSimulator-kafka | 9093 | - |
