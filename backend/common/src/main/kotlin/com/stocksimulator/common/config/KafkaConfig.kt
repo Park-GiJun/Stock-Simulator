@@ -117,12 +117,6 @@ class KafkaConfig(
     @Bean
     fun userCreatedTopic(): NewTopic = createTopic(KafkaTopics.USER_CREATED)
 
-    @Bean
-    fun seasonStartedTopic(): NewTopic = createTopic(KafkaTopics.SEASON_STARTED)
-
-    @Bean
-    fun seasonEndedTopic(): NewTopic = createTopic(KafkaTopics.SEASON_ENDED)
-
     private fun createTopic(name: String, partitions: Int = 3, replicas: Int = 1): NewTopic {
         return TopicBuilder.name(name)
             .partitions(partitions)
