@@ -152,132 +152,103 @@ jobs:
   # ===========================================================================
   backup-production:
     name: Backup Production
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [validate, build-and-push, manual-approval]
 
     steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-      - name: Add server to known hosts
-        run: |
-          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || echo "Warning: ssh-keyscan failed"
-          chmod 644 ~/.ssh/known_hosts || true
-
-      - name: Test SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=yes ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} "echo 'SSH connection successful'" || echo "SSH test failed but continuing..."
-
       - name: Create production backup
         continue-on-error: true
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << ENDSSH
-            BACKUP_DIR="~/production-backups/\$(date +'%Y%m%d_%H%M%S')_${VERSION}"
-            mkdir -p \$BACKUP_DIR
-            
-            cd ${{ env.DEPLOY_PATH }}
-            
-            echo "📦 Creating production backup at \$BACKUP_DIR..."
-            
-            # Database backup
-            docker exec stockSimulator-postgres pg_dump -U stocksim stocksimulator > \$BACKUP_DIR/postgres_dump.sql
-            
-            # Configuration backup
-            cp .env \$BACKUP_DIR/ 2>/dev/null || echo "No .env file found"
-            cp docker-compose.yml \$BACKUP_DIR/
-            
-            # Current state
-            docker-compose --profile all ps > \$BACKUP_DIR/services_status.txt
-            docker ps --filter "name=stockSimulator" --format "{{.Names}}\t{{.Image}}\t{{.Status}}" > \$BACKUP_DIR/running_containers.txt
-            
-            echo "✅ Production backup created: \$BACKUP_DIR"
-          ENDSSH
+          BACKUP_DIR="~/production-backups/$(date +'%Y%m%d_%H%M%S')_${VERSION}"
+          mkdir -p $BACKUP_DIR
+          
+          cd ${{ env.DEPLOY_PATH }}
+          
+          echo "📦 Creating production backup at $BACKUP_DIR..."
+          
+          # Database backup
+          docker exec stockSimulator-postgres pg_dump -U stocksim stocksimulator > $BACKUP_DIR/postgres_dump.sql
+          
+          # Configuration backup
+          cp .env $BACKUP_DIR/ 2>/dev/null || echo "No .env file found"
+          cp docker-compose.yml $BACKUP_DIR/
+          
+          # Current state
+          docker-compose --profile all ps > $BACKUP_DIR/services_status.txt
+          docker ps --filter "name=stockSimulator" --format "{{.Names}}\t{{.Image}}\t{{.Status}}" > $BACKUP_DIR/running_containers.txt
+          
+          echo "✅ Production backup created: $BACKUP_DIR"
 
   # ===========================================================================
   # 5. 프로덕션 배포
   # ===========================================================================
   deploy:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [validate, build-and-push, manual-approval, backup-production]
     environment:
       name: production
       url: https://gijun.net
 
     steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          chmod 644 ~/.ssh/known_hosts || true
-
       - name: Deploy to production server
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << ENDSSH
-            cd ${{ env.DEPLOY_PATH }}
+          cd ${{ env.DEPLOY_PATH }}
+          
+          echo "🚀 Starting production deployment: ${VERSION}"
+          
+          # Pull latest code
+          echo "📥 Pulling latest code..."
+          git fetch --tags
+          git checkout ${VERSION} || git checkout main
+          
+          echo "🔐 Logging into GitHub Container Registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          
+          echo "🐳 Pulling production images (${VERSION})..."
+          SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service frontend)
+          
+          for service in "${SERVICES[@]}"; do
+            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:${VERSION}"
+            echo "Pulling $IMAGE..."
+            docker pull $IMAGE
             
-            echo "🚀 Starting production deployment: ${VERSION}"
-            
-            # Pull latest code
-            echo "📥 Pulling latest code..."
-            git fetch --tags
-            git checkout ${VERSION} || git checkout main
-            
-            echo "🔐 Logging into GitHub Container Registry..."
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-            
-            echo "🐳 Pulling production images (${VERSION})..."
-            SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service frontend)
-            
-            for service in "\${SERVICES[@]}"; do
-              IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:${VERSION}"
-              echo "Pulling \$IMAGE..."
-              docker pull \$IMAGE
-              
-              # Tag as latest for docker-compose
-              docker tag \$IMAGE ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:latest
-            done
-            
-            echo "🔄 Performing rolling update..."
-            
-            # 1. Eureka 먼저 재시작
-            echo "Restarting eureka-server..."
-            docker-compose --profile all up -d --no-deps --force-recreate eureka-server
-            sleep 15
-            
-            # 2. 백엔드 서비스 순차 재시작
-            for service in user-service stock-service trading-service event-service scheduler-service news-service; do
-              echo "Restarting \$service..."
-              docker-compose --profile all up -d --no-deps --force-recreate \$service
-              sleep 10
-            done
-            
-            # 3. API Gateway 재시작
-            echo "Restarting api-gateway..."
-            docker-compose --profile all up -d --no-deps --force-recreate api-gateway
+            # Tag as latest for docker-compose
+            docker tag $IMAGE ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:latest
+          done
+          
+          echo "🔄 Performing rolling update..."
+          
+          # 1. Eureka 먼저 재시작
+          echo "Restarting eureka-server..."
+          docker-compose --profile all up -d --no-deps --force-recreate eureka-server
+          sleep 15
+          
+          # 2. 백엔드 서비스 순차 재시작
+          for service in user-service stock-service trading-service event-service scheduler-service news-service; do
+            echo "Restarting $service..."
+            docker-compose --profile all up -d --no-deps --force-recreate $service
             sleep 10
-            
-            # 4. Frontend 마지막 재시작
-            echo "Restarting frontend..."
-            docker-compose --profile all up -d --no-deps --force-recreate frontend
-            sleep 5
-            
-            echo "🧹 Cleaning up old images..."
-            docker image prune -f
-            
-            echo "✅ Production deployment complete: ${VERSION}"
-          ENDSSH
+          done
+          
+          # 3. API Gateway 재시작
+          echo "Restarting api-gateway..."
+          docker-compose --profile all up -d --no-deps --force-recreate api-gateway
+          sleep 10
+          
+          # 4. Frontend 마지막 재시작
+          echo "Restarting frontend..."
+          docker-compose --profile all up -d --no-deps --force-recreate frontend
+          sleep 5
+          
+          echo "🧹 Cleaning up old images..."
+          docker image prune -f
+          
+          echo "✅ Production deployment complete: ${VERSION}"
 
       - name: Wait for services to stabilize
         run: sleep 60
@@ -287,7 +258,7 @@ jobs:
   # ===========================================================================
   health-check:
     name: Health Check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: deploy
 
     steps:
