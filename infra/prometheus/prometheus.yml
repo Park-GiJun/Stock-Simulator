@@ -94,16 +94,6 @@ scrape_configs:
         target_label: instance
         replacement: 'news-service'
 
-  # Season Service
-  - job_name: 'season-service'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['season-service:8087']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'season-service'
-
   # =============================================================================
   # Frontend
   # =============================================================================

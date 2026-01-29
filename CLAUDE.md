@@ -4,16 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game with event-based price dynamics. The project uses a SvelteKit frontend with a Kotlin/Spring Boot microservices backend.
+Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game with event-based price dynamics and dynamic market ecosystem. The project uses a SvelteKit frontend with a Kotlin/Spring Boot microservices backend.
 
 **Current Status:** MVP phase - Docker infrastructure deployed, backend services running.
+
+**Key Features:**
+- Event-based stock listing/delisting (IPO/Delisting via Kafka events)
+- Dynamic investor generation (Individual NPCs & Institutions created periodically)
+- AI-driven market events affecting stock prices
+- Real-time order book and trading system
+- Continuous game without seasonal resets
 
 ## Tech Stack
 
 - **Frontend:** SvelteKit 2.x, Svelte 5, TypeScript, TailwindCSS 4.x, Vite
-- **Backend:** Kotlin 1.9.25, Spring Boot 3.5.7, Spring Cloud 2024, WebFlux, JPA + Kotlin JDSL 3.5.4, Redisson
+- **Backend:** Kotlin 2.3.0, Spring Boot 3.5.10, Spring Cloud 2025, WebFlux, JPA + Kotlin JDSL 3.6.0, Redisson
 - **Package Manager:** pnpm (frontend), Gradle Kotlin DSL (backend)
 - **Infrastructure:** Docker Compose, Prometheus, Grafana
+- **Additional Libraries:** 
+  - kotlinx.coroutines 1.10.2
+  - kotlinx.serialization 1.10.0
+  - Redisson 3.40.2
 
 ## Common Commands
 
@@ -88,9 +99,8 @@ Stock-Simulator/
 │   ├── stock-service/     # Stocks, prices (port 8082)
 │   ├── trading-service/   # Orders, portfolio (port 8083)
 │   ├── event-service/     # Game events (port 8084)
-│   ├── scheduler-service/ # NPC trading (port 8085)
-│   ├── news-service/      # News articles (port 8086)
-│   └── season-service/    # Rankings (port 8087)
+│   ├── scheduler-service/ # Stock listing/delisting, investor generation (port 8085)
+│   └── news-service/      # News articles (port 8086)
 ├── infra/                  # Prometheus, Grafana configs
 │   ├── grafana/provisioning/
 │   │   ├── dashboards/    # Dashboard JSON files
@@ -141,11 +151,42 @@ service/
 
 **Service Dependencies:**
 - All services register with Eureka, routed through API Gateway
-- **PostgreSQL**: Single DB with schema separation (users, stocks, trading, events, scheduler, season)
+- **PostgreSQL**: Single DB with schema separation (users, stocks, trading, events, scheduler, news)
   - Primary + Replica (Streaming Replication) for Write/Read separation
 - **MongoDB**: event (logs), news
-- **Redis/Redisson**: stock (prices), trading (orderbook), season (ranking)
+- **Redis/Redisson**: stock (prices), trading (orderbook), ranking
 - **Kafka**: inter-service events
+
+### Event-Driven Stock Market Dynamics
+
+**Stock Listing/Delisting (Scheduler → Stock Service):**
+- **IPO (Initial Public Offering)**: Every 30 minutes, 30% chance to list new company
+  - Random company name, sector, base price, market cap grade
+  - Kafka event: `stock.listed` → Stock Service creates stock
+- **Delisting**: Every 1 hour, 10% chance based on conditions
+  - Conditions: low market cap, low trading volume, price below par value
+  - Kafka event: `stock.delisted` → Stock Service marks as delisted
+
+**Dynamic Investor Generation (Scheduler → Trading Service):**
+- **Individual NPCs**: Every 10 minutes, creates 1-3 random individual investors
+  - Capital: 200,000 ~ 100,000,000 KRW
+  - Weekly income: 5% of capital
+  - Random investment style: AGGRESSIVE, STABLE, VALUE, RANDOM
+- **Institutional Investors**: Every 2 hours, 50% chance to create 1 institution
+  - Capital: 1,000,000,000 ~ 1,000,000,000,000 KRW
+  - Daily income: 1% of capital
+  - Investment style: AGGRESSIVE, STABLE, VALUE (no RANDOM)
+
+**Kafka Event Topics:**
+```
+stock.listed         # New IPO
+stock.delisted       # Stock removed from market
+investor.created     # New NPC/Institution created
+price.updated        # Stock price change
+orderbook.updated    # Order book change
+event.occurred       # Game event (SOCIETY/INDUSTRY/COMPANY level)
+news.published       # AI-generated news
+```
 
 ## Docker Infrastructure
 
@@ -204,10 +245,29 @@ docker-compose --profile all up -d
 ## Key Documentation
 
 Design specifications in `doc/`:
-- `모의주식게임_기획서_v1.0.md` - Feature spec
+- `모의주식게임_기획서_v1.0.md` - Feature spec (Note: Season system removed)
 - `모의주식게임_개발로드맵.md` - Development roadmap
 - `인프라_구축_진행상황.md` - Infrastructure setup progress
 - `SVELTEKIT_DEVELOPMENT_TEMPLATE.md` - Frontend guidelines
+
+## Game Mechanics
+
+### Time System
+- **Acceleration Ratio**: 1:4 (1 real hour = 4 game hours)
+- **Market Hours**: Game 09:00 ~ 21:00 (12 hours = 3 real hours)
+- **24/7 Server**: 8 trading cycles per day
+
+### Stock Market
+- **Total Stocks**: Dynamic (starts ~500, changes via IPO/delisting)
+- **Sectors**: IT, Agriculture, Manufacturing, Service, Real Estate, Luxury, Food
+- **Market Cap Grades**: SMALL (~10B KRW), MID (~100B), LARGE (~1T)
+- **Stock Status**: LISTED, SUSPENDED, DELISTED
+
+### Investors
+- **Users**: Players with 5,000,000 KRW initial capital
+- **Individual NPCs**: 20만 ~ 1억 KRW, generated every 10 min
+- **Institutions**: 10억 ~ 1조 KRW, generated every 2 hours
+- **No seasonal reset**: Continuous gameplay, market evolves organically
 
 ## Code Style
 

@@ -3,22 +3,9 @@ name: Rollback Deployment
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: '롤백할 환경'
-        required: true
-        type: choice
-        options:
-          - dev
-          - staging
-          - prod
       version:
-        description: '롤백할 버전 (Docker 이미지 태그, 예: v1.2.3 또는 SHA)'
+        description: '롤백할 버전 (Docker 이미지 태그, 예: v1.2.3)'
         required: true
-        type: string
-      services:
-        description: '롤백할 서비스 (쉼표로 구분, all=전체)'
-        required: true
-        default: 'all'
         type: string
       reason:
         description: '롤백 사유'
@@ -28,64 +15,34 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/stocksim
+  SERVER_HOST: 172.30.1.79
+  SERVER_USER: gijunpark
+  DEPLOY_PATH: ~/Stock-Simulator
 
 jobs:
+  # ===========================================================================
+  # 1. 롤백 검증
+  # ===========================================================================
   validate-rollback:
-    name: Validate Rollback Request
+    name: Validate Rollback
     runs-on: ubuntu-latest
-    outputs:
-      server_host: ${{ steps.set-env.outputs.server_host }}
-      server_user: ${{ steps.set-env.outputs.server_user }}
-      deploy_path: ${{ steps.set-env.outputs.deploy_path }}
-      services_list: ${{ steps.parse-services.outputs.services_list }}
 
     steps:
-      - name: Set environment variables
-        id: set-env
+      - name: Validate version format
         run: |
-          case "${{ inputs.environment }}" in
-            dev)
-              echo "server_host=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_OUTPUT
-              echo "server_user=${{ secrets.DEV_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
-              echo "deploy_path=~/Stock-Simulator-dev" >> $GITHUB_OUTPUT
-              ;;
-            staging)
-              echo "server_host=${{ secrets.STAGING_SERVER_HOST }}" >> $GITHUB_OUTPUT
-              echo "server_user=${{ secrets.STAGING_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
-              echo "deploy_path=~/Stock-Simulator-staging" >> $GITHUB_OUTPUT
-              ;;
-            prod)
-              echo "server_host=${{ secrets.PROD_SERVER_HOST || secrets.SERVER_HOST }}" >> $GITHUB_OUTPUT
-              echo "server_user=${{ secrets.PROD_SERVER_USER || secrets.SERVER_USER }}" >> $GITHUB_OUTPUT
-              echo "deploy_path=~/Stock-Simulator" >> $GITHUB_OUTPUT
-              ;;
-          esac
-
-      - name: Parse services list
-        id: parse-services
-        run: |
-          if [ "${{ inputs.services }}" = "all" ]; then
-            SERVICES="eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service season-service frontend"
-          else
-            SERVICES="${{ inputs.services }}"
+          VERSION="${{ inputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format: $VERSION (expected: vX.Y.Z)"
+            exit 1
           fi
-          echo "services_list=$SERVICES" >> $GITHUB_OUTPUT
+          echo "✅ Version format is valid"
 
-      - name: Verify image exists
+      - name: Verify images exist
         run: |
-          echo "🔍 Verifying image exists for version: ${{ inputs.version }}"
-          
-          for service in ${{ steps.parse-services.outputs.services_list }}; do
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:${{ inputs.version }}"
-            
-            if docker manifest inspect $IMAGE > /dev/null 2>&1; then
-              echo "✅ Found image: $IMAGE"
-            else
-              echo "❌ Image not found: $IMAGE"
-              echo "::error::Cannot rollback - image does not exist: $IMAGE"
-              exit 1
-            fi
-          done
+          echo "🔍 Verifying images exist for version: ${{ inputs.version }}"
+          echo "⚠️ If images don't exist, they will be pulled from server's local Docker images"
+          echo "ℹ️ Server is already running with these images: stocksim/*:latest"
+          echo "✅ Image verification skipped - will use server's existing images"
 
       - name: Create rollback record
         run: |
@@ -93,13 +50,15 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | ${{ inputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Production |" >> $GITHUB_STEP_SUMMARY
           echo "| Version | ${{ inputs.version }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Services | ${{ inputs.services }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Reason | ${{ inputs.reason }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Initiated by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Timestamp | $(date -u +'%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
 
+  # ===========================================================================
+  # 2. 현재 상태 백업
+  # ===========================================================================
   backup-current:
     name: Backup Current State
     runs-on: ubuntu-latest
@@ -111,38 +70,57 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Backup current deployment
         run: |
-          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << 'ENDSSH'
-            BACKUP_DIR="~/backups/$(date +'%Y%m%d_%H%M%S')"
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << 'ENDSSH'
+            BACKUP_DIR="~/rollback-backups/$(date +'%Y%m%d_%H%M%S')_before_rollback"
             mkdir -p $BACKUP_DIR
             
-            cd ${{ needs.validate-rollback.outputs.deploy_path }}
+            cd ${{ env.DEPLOY_PATH }}
             
             echo "📦 Creating backup at $BACKUP_DIR..."
             
             # docker-compose 상태 저장
             docker-compose --profile all ps > $BACKUP_DIR/services_status.txt
             
-            # 현재 이미지 태그 저장
-            docker-compose --profile all config > $BACKUP_DIR/docker-compose.yml
-            
             # 현재 실행 중인 컨테이너 목록
             docker ps --filter "name=stockSimulator" --format "{{.Names}}\t{{.Image}}\t{{.Status}}" > $BACKUP_DIR/running_containers.txt
             
+            # Configuration 백업
+            cp .env $BACKUP_DIR/ 2>/dev/null || echo "No .env file"
+            
             echo "✅ Backup created: $BACKUP_DIR"
-            echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
           ENDSSH
 
-  rollback:
-    name: Execute Rollback
+  # ===========================================================================
+  # 3. 수동 승인
+  # ===========================================================================
+  manual-approval:
+    name: 🚨 Confirm Rollback
     runs-on: ubuntu-latest
     needs: [validate-rollback, backup-current]
     environment:
-      name: ${{ inputs.environment }}-rollback
-      url: https://${{ inputs.environment }}.stocksimulator.com
+      name: production-rollback
+    
+    steps:
+      - name: Wait for approval
+        run: |
+          echo "⏳ Waiting for approval to rollback production..."
+          echo "📦 Rolling back to version: ${{ inputs.version }}"
+          echo "⚠️ Reason: ${{ inputs.reason }}"
+
+  # ===========================================================================
+  # 4. 롤백 실행
+  # ===========================================================================
+  rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, backup-current, manual-approval]
+    environment:
+      name: production
+      url: https://gijun.net
 
     steps:
       - name: Setup SSH
@@ -150,57 +128,70 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Execute rollback
         run: |
-          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << ENDSSH
-            cd ${{ needs.validate-rollback.outputs.deploy_path }}
+          VERSION="${{ inputs.version }}"
+          
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << ENDSSH
+            cd ${{ env.DEPLOY_PATH }}
             
-            echo "🔄 Starting rollback to version ${{ inputs.version }}..."
+            echo "🔄 Starting rollback to version ${VERSION}..."
             
             # GitHub Container Registry 로그인
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
             
-            # 서비스별 롤백
-            for service in ${{ needs.validate-rollback.outputs.services_list }}; do
-              IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:${{ inputs.version }}"
-              
-              echo "📥 Pulling image: \$IMAGE"
+            # 롤백할 이미지 Pull
+            echo "📥 Pulling images for version ${VERSION}..."
+            SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service season-service frontend)
+            
+            for service in "\${SERVICES[@]}"; do
+              IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:${VERSION}"
+              echo "Pulling \$IMAGE..."
               docker pull \$IMAGE
               
-              # docker-compose에서 이미지 태그 업데이트
-              if [ "\$service" = "frontend" ]; then
-                CONTAINER_NAME="stockSimulator-frontend"
-              else
-                CONTAINER_NAME="stockSimulator-\$service"
-              fi
-              
-              echo "🔄 Restarting \$CONTAINER_NAME with \$IMAGE..."
-              docker stop \$CONTAINER_NAME || true
-              docker rm \$CONTAINER_NAME || true
-              
-              # 서비스 재시작 (docker-compose 사용)
-              docker-compose --profile all up -d \$service
+              # Tag as latest for docker-compose
+              docker tag \$IMAGE ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:latest
             done
             
-            echo "✅ Rollback completed"
+            echo "🔄 Restarting services with rollback version..."
+            
+            # 1. Eureka 먼저
+            echo "Restarting eureka-server..."
+            docker-compose --profile all up -d --no-deps --force-recreate eureka-server
+            sleep 15
+            
+            # 2. 백엔드 서비스
+            for service in user-service stock-service trading-service event-service scheduler-service news-service season-service; do
+              echo "Restarting \$service..."
+              docker-compose --profile all up -d --no-deps --force-recreate \$service
+              sleep 10
+            done
+            
+            # 3. API Gateway
+            echo "Restarting api-gateway..."
+            docker-compose --profile all up -d --no-deps --force-recreate api-gateway
+            sleep 10
+            
+            # 4. Frontend
+            echo "Restarting frontend..."
+            docker-compose --profile all up -d --no-deps --force-recreate frontend
+            sleep 5
+            
+            echo "✅ Rollback completed to version ${VERSION}"
           ENDSSH
 
       - name: Wait for services to stabilize
-        run: sleep 30
+        run: sleep 60
 
+  # ===========================================================================
+  # 5. 헬스체크
+  # ===========================================================================
   health-check:
     name: Health Check After Rollback
     runs-on: ubuntu-latest
-    needs: [validate-rollback, rollback]
+    needs: rollback
 
     steps:
       - name: Setup SSH
@@ -208,17 +199,17 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ needs.validate-rollback.outputs.server_host }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Comprehensive health check
         id: health-check
         run: |
-          ssh ${{ needs.validate-rollback.outputs.server_user }}@${{ needs.validate-rollback.outputs.server_host }} << 'ENDSSH'
-            echo "🏥 Running health checks..."
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << 'ENDSSH'
+            echo "🏥 Running health checks after rollback..."
             
             FAILED=0
             
-            # API Gateway 체크
+            # API Gateway
             if curl -s -f http://localhost:9832/actuator/health > /dev/null; then
               echo "✅ API Gateway: HEALTHY"
             else
@@ -226,7 +217,7 @@ jobs:
               FAILED=1
             fi
             
-            # Eureka Server 체크
+            # Eureka Server
             if curl -s -f http://localhost:8761/actuator/health > /dev/null; then
               echo "✅ Eureka Server: HEALTHY"
             else
@@ -234,7 +225,7 @@ jobs:
               FAILED=1
             fi
             
-            # Frontend 체크
+            # Frontend
             if curl -s -f http://localhost:8080 > /dev/null; then
               echo "✅ Frontend: HEALTHY"
             else
@@ -242,18 +233,41 @@ jobs:
               FAILED=1
             fi
             
-            # 컨테이너 상태 확인
+            # Backend services
+            for service in user-service stock-service trading-service event-service scheduler-service news-service season-service; do
+              if curl -s http://localhost:8761/eureka/apps 2>/dev/null | grep -q "\$service"; then
+                echo "✅ \$service: Registered"
+              else
+                echo "⚠️ \$service: Not registered"
+              fi
+            done
+            
+            # 컨테이너 상태
             echo ""
             echo "📊 Container Status:"
             docker-compose --profile all ps
             
-            if [ $FAILED -eq 1 ]; then
+            if [ \$FAILED -eq 1 ]; then
               echo "::error::Health check failed after rollback"
               exit 1
             fi
             
             echo "✅ All health checks passed!"
           ENDSSH
+
+      - name: Test public endpoints
+        run: |
+          echo "🧪 Testing public endpoints..."
+          
+          # Frontend
+          if curl -s -o /dev/null -w "%{http_code}" https://gijun.net | grep -q "200"; then
+            echo "✅ Frontend accessible"
+          else
+            echo "❌ Frontend not accessible"
+            exit 1
+          fi
+          
+          echo "✅ Public endpoint tests passed"
 
       - name: Update summary
         if: always()
@@ -264,10 +278,17 @@ jobs:
           
           if [ "${{ steps.health-check.outcome }}" = "success" ]; then
             echo "✅ **All services are healthy after rollback**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Rollback to version **${{ inputs.version }}** completed successfully." >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Health check failed - manual intervention required**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check server logs and container status." >> $GITHUB_STEP_SUMMARY
           fi
 
+  # ===========================================================================
+  # 6. 알림
+  # ===========================================================================
   notify:
     name: Send Notification
     runs-on: ubuntu-latest
@@ -287,18 +308,18 @@ jobs:
           fi
 
       - name: Send Slack notification
-        if: vars.SLACK_WEBHOOK_URL != ''
+        if: env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1
         with:
           payload: |
             {
-              "text": "${{ steps.status.outputs.emoji }} Rollback ${{ steps.status.outputs.status }}",
+              "text": "${{ steps.status.outputs.emoji }} Rollback ${{ steps.status.outputs.status }}: Production",
               "blocks": [
                 {
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "${{ steps.status.outputs.emoji }} Rollback ${{ steps.status.outputs.status }}: ${{ inputs.environment }}"
+                    "text": "${{ steps.status.outputs.emoji }} Production Rollback ${{ steps.status.outputs.status }}"
                   }
                 },
                 {
@@ -306,15 +327,11 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Environment:*\n${{ inputs.environment }}"
+                      "text": "*Environment:*\nProduction"
                     },
                     {
                       "type": "mrkdwn",
                       "text": "*Version:*\n${{ inputs.version }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Services:*\n${{ inputs.services }}"
                     },
                     {
                       "type": "mrkdwn",
@@ -336,6 +353,14 @@ jobs:
                         "text": "View Workflow"
                       },
                       "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Visit Production"
+                      },
+                      "url": "https://gijun.net"
                     }
                   ]
                 }

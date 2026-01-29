@@ -46,9 +46,12 @@ object KafkaTopics {
     const val USER_CREATED = "user.created"
     const val USER_UPDATED = "user.updated"
 
-    // Season 관련
-    const val SEASON_STARTED = "season.started"
-    const val SEASON_ENDED = "season.ended"
+    // Stock Listing 관련
+    const val STOCK_LISTED = "stock.listed"
+    const val STOCK_DELISTED = "stock.delisted"
+
+    // Investor 관련
+    const val INVESTOR_CREATED = "investor.created"
 }
 
 // ===== Trading Events =====
@@ -196,21 +199,39 @@ data class UserCreatedEvent(
     override val eventType: String = "USER_CREATED"
 }
 
-// ===== Season Events =====
+// ===== Stock Listing Events =====
 
-data class SeasonStartedEvent(
-    val seasonId: String,
-    val seasonName: String,
-    val startAt: Instant,
-    val endAt: Instant
+data class StockListedEvent(
+    val stockId: String,
+    val stockName: String,
+    val sector: String,
+    val basePrice: Long,
+    val totalShares: Long,
+    val marketCapGrade: String,
+    val listedAt: Instant = Instant.now()
 ) : DomainEvent() {
-    override val eventType: String = "SEASON_STARTED"
+    override val eventType: String = "STOCK_LISTED"
 }
 
-data class SeasonEndedEvent(
-    val seasonId: String,
-    val seasonName: String,
-    val endedAt: Instant = Instant.now()
+data class StockDelistedEvent(
+    val stockId: String,
+    val stockName: String,
+    val reason: String,
+    val finalPrice: Long,
+    val delistedAt: Instant = Instant.now()
 ) : DomainEvent() {
-    override val eventType: String = "SEASON_ENDED"
+    override val eventType: String = "STOCK_DELISTED"
+}
+
+// ===== Investor Events =====
+
+data class InvestorCreatedEvent(
+    val investorId: String,
+    val investorType: String,  // INDIVIDUAL, INSTITUTION
+    val investmentStyle: String,
+    val initialCapital: Long,
+    val parameters: Map<String, Any>,
+    val createdAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "INVESTOR_CREATED"
 }

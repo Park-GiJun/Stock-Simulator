@@ -25,8 +25,9 @@ subprojects {
     dependencies {
         // Kotlin
         "implementation"("org.jetbrains.kotlin:kotlin-reflect")
-        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
+        "implementation"("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
         // Jackson
         "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -41,7 +42,7 @@ subprojects {
         // Test
         "testImplementation"("org.springframework.boot:spring-boot-starter-test")
         "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5")
-        "testImplementation"("io.mockk:mockk:1.13.8")
+        "testImplementation"("io.mockk:mockk:1.13.12")
         "testImplementation"("com.ninja-squad:springmockk:4.0.2")
         "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
     }

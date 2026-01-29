@@ -66,11 +66,17 @@ enum class TradingFrequency(val displayName: String) {
     LOW("낮음")
 }
 
-// 시즌 상태
-enum class SeasonStatus(val displayName: String) {
-    UPCOMING("예정"),
-    ACTIVE("진행중"),
-    ENDED("종료")
+// 주식 상태
+enum class StockStatus(val displayName: String) {
+    LISTED("상장"),
+    SUSPENDED("거래정지"),
+    DELISTED("상장폐지")
+}
+
+// 투자자 유형
+enum class InvestorType(val displayName: String) {
+    INDIVIDUAL("개인"),
+    INSTITUTION("기관")
 }
 
 // 랭킹 유형

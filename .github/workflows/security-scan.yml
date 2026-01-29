@@ -32,7 +32,6 @@ jobs:
           - event-service
           - scheduler-service
           - news-service
-          - season-service
           - frontend
 
     steps:

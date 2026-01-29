@@ -597,36 +597,6 @@ services:
       kafka:
         condition: service_healthy
 
-  # Season Service
-  season-service:
-    image: stocksim/season-service:latest
-    container_name: stockSimulator-season-service
-    profiles: ["services", "all"]
-    build:
-      context: ./backend/season-service
-      dockerfile: Dockerfile
-    ports:
-      - "8087:8087"
-    environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/${POSTGRES_DB}?currentSchema=season
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    networks:
-      - stocksim-network
-    depends_on:
-      eureka-server:
-        condition: service_healthy
-      postgres-primary:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
   # ===========================================================================
   # Frontend
   # ===========================================================================
