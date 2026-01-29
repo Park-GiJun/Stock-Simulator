@@ -159,6 +159,7 @@ jobs:
       - name: Create production backup
         continue-on-error: true
         run: |
+          cd ${{ env.DEPLOY_PATH }}
           VERSION="${{ needs.validate.outputs.version }}"
           
           BACKUP_DIR="~/production-backups/$(date +'%Y%m%d_%H%M%S')_${VERSION}"
@@ -266,6 +267,8 @@ jobs:
       - name: Run comprehensive health checks
         id: health-check
         run: |
+          cd ${{ env.DEPLOY_PATH }}
+          
           echo "🏥 Running comprehensive production health checks..."
           
           FAILED=0
