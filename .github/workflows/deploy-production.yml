@@ -262,118 +262,107 @@ jobs:
     needs: deploy
 
     steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
-
       - name: Run comprehensive health checks
         id: health-check
         run: |
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << 'ENDSSH'
-            echo "🏥 Running comprehensive production health checks..."
-            
-            FAILED=0
-            
-            # Critical services
-            echo "=== Critical Services ==="
-            
-            # API Gateway
-            if curl -s -f http://localhost:9832/actuator/health | grep -q "UP"; then
-              echo "✅ API Gateway: UP"
+          echo "🏥 Running comprehensive production health checks..."
+          
+          FAILED=0
+          
+          # Critical services
+          echo "=== Critical Services ==="
+          
+          # API Gateway
+          if curl -s -f http://localhost:9832/actuator/health | grep -q "UP"; then
+            echo "✅ API Gateway: UP"
+          else
+            echo "❌ API Gateway: DOWN"
+            FAILED=1
+          fi
+          
+          # Eureka Server
+          if curl -s -f http://localhost:8761/actuator/health | grep -q "UP"; then
+            echo "✅ Eureka Server: UP"
+          else
+            echo "❌ Eureka Server: DOWN"
+            FAILED=1
+          fi
+          
+          # Frontend
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200"; then
+            echo "✅ Frontend: UP"
+          else
+            echo "❌ Frontend: DOWN"
+            FAILED=1
+          fi
+          
+          # Backend services
+          echo ""
+          echo "=== Backend Services ==="
+          for service in user-service stock-service trading-service event-service scheduler-service news-service; do
+            if curl -s http://localhost:8761/eureka/apps 2>/dev/null | grep -q "$service"; then
+              echo "✅ $service: Registered in Eureka"
             else
-              echo "❌ API Gateway: DOWN"
-              FAILED=1
+              echo "⚠️ $service: Not found in Eureka (may still be starting...)"
             fi
-            
-            # Eureka Server
-            if curl -s -f http://localhost:8761/actuator/health | grep -q "UP"; then
-              echo "✅ Eureka Server: UP"
-            else
-              echo "❌ Eureka Server: DOWN"
-              FAILED=1
-            fi
-            
-            # Frontend
-            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q "200"; then
-              echo "✅ Frontend: UP"
-            else
-              echo "❌ Frontend: DOWN"
-              FAILED=1
-            fi
-            
-            # Backend services
+          done
+          
+          # Infrastructure
+          echo ""
+          echo "=== Infrastructure ==="
+          
+          # PostgreSQL
+          if docker exec stockSimulator-postgres pg_isready -U stocksim > /dev/null 2>&1; then
+            echo "✅ PostgreSQL: UP"
+          else
+            echo "❌ PostgreSQL: DOWN"
+            FAILED=1
+          fi
+          
+          # Redis
+          if docker exec stockSimulator-redis redis-cli -a stocksim123 ping 2>/dev/null | grep -q "PONG"; then
+            echo "✅ Redis: UP"
+          else
+            echo "❌ Redis: DOWN"
+            FAILED=1
+          fi
+          
+          # MongoDB
+          if docker exec stockSimulator-mongo mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null | grep -q "ok"; then
+            echo "✅ MongoDB: UP"
+          else
+            echo "❌ MongoDB: DOWN"
+            FAILED=1
+          fi
+          
+          # Monitoring
+          echo ""
+          echo "=== Monitoring ==="
+          
+          if curl -s -f http://localhost:9091/-/healthy > /dev/null 2>&1; then
+            echo "✅ Prometheus: UP"
+          else
+            echo "⚠️ Prometheus: DOWN (non-critical)"
+          fi
+          
+          if curl -s -f http://localhost:3001/api/health > /dev/null 2>&1; then
+            echo "✅ Grafana: UP"
+          else
+            echo "⚠️ Grafana: DOWN (non-critical)"
+          fi
+          
+          if [ $FAILED -eq 1 ]; then
             echo ""
-            echo "=== Backend Services ==="
-            for service in user-service stock-service trading-service event-service scheduler-service news-service; do
-              if curl -s http://localhost:8761/eureka/apps 2>/dev/null | grep -q "\$service"; then
-                echo "✅ \$service: Registered in Eureka"
-              else
-                echo "⚠️ \$service: Not found in Eureka (may still be starting...)"
-              fi
-            done
-            
-            # Infrastructure
-            echo ""
-            echo "=== Infrastructure ==="
-            
-            # PostgreSQL
-            if docker exec stockSimulator-postgres pg_isready -U stocksim > /dev/null 2>&1; then
-              echo "✅ PostgreSQL: UP"
-            else
-              echo "❌ PostgreSQL: DOWN"
-              FAILED=1
-            fi
-            
-            # Redis
-            if docker exec stockSimulator-redis redis-cli -a stocksim123 ping 2>/dev/null | grep -q "PONG"; then
-              echo "✅ Redis: UP"
-            else
-              echo "❌ Redis: DOWN"
-              FAILED=1
-            fi
-            
-            # MongoDB
-            if docker exec stockSimulator-mongo mongosh --quiet --eval "db.runCommand({ ping: 1 })" 2>/dev/null | grep -q "ok"; then
-              echo "✅ MongoDB: UP"
-            else
-              echo "❌ MongoDB: DOWN"
-              FAILED=1
-            fi
-            
-            # Monitoring
-            echo ""
-            echo "=== Monitoring ==="
-            
-            if curl -s -f http://localhost:9091/-/healthy > /dev/null 2>&1; then
-              echo "✅ Prometheus: UP"
-            else
-              echo "⚠️ Prometheus: DOWN (non-critical)"
-            fi
-            
-            if curl -s -f http://localhost:3001/api/health > /dev/null 2>&1; then
-              echo "✅ Grafana: UP"
-            else
-              echo "⚠️ Grafana: DOWN (non-critical)"
-            fi
-            
-            if [ \$FAILED -eq 1 ]; then
-              echo ""
-              echo "❌ Critical health check failed in production"
-              exit 1
-            fi
-            
-            echo ""
-            echo "✅ All critical health checks passed!"
-            
-            echo ""
-            echo "📊 Container Status:"
-            docker-compose --profile all ps
-          ENDSSH
+            echo "❌ Critical health check failed in production"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All critical health checks passed!"
+          
+          echo ""
+          echo "📊 Container Status:"
+          docker-compose --profile all ps
 
   # ===========================================================================
   # 7. 외부 접근 테스트 (Public URL)
