@@ -106,7 +106,6 @@ jobs:
           - event-service
           - scheduler-service
           - news-service
-          - season-service
 
     steps:
       - name: Checkout code

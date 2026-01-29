@@ -75,7 +75,6 @@ jobs:
           - event-service
           - scheduler-service
           - news-service
-          - season-service
           - frontend
 
     steps:
@@ -227,7 +226,7 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
             
             echo "🐳 Pulling production images (${VERSION})..."
-            SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service season-service frontend)
+            SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service frontend)
             
             for service in "\${SERVICES[@]}"; do
               IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/\${service}:${VERSION}"
@@ -246,7 +245,7 @@ jobs:
             sleep 15
             
             # 2. 백엔드 서비스 순차 재시작
-            for service in user-service stock-service trading-service event-service scheduler-service news-service season-service; do
+            for service in user-service stock-service trading-service event-service scheduler-service news-service; do
               echo "Restarting \$service..."
               docker-compose --profile all up -d --no-deps --force-recreate \$service
               sleep 10
@@ -325,7 +324,7 @@ jobs:
             # Backend services
             echo ""
             echo "=== Backend Services ==="
-            for service in user-service stock-service trading-service event-service scheduler-service news-service season-service; do
+            for service in user-service stock-service trading-service event-service scheduler-service news-service; do
               if curl -s http://localhost:8761/eureka/apps 2>/dev/null | grep -q "\$service"; then
                 echo "✅ \$service: Registered in Eureka"
               else
