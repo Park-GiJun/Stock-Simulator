@@ -88,12 +88,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Grant execute permission for gradlew
+        if: matrix.service != 'frontend'
+        run: chmod +x gradlew
+
       - name: Build Backend JAR
         if: matrix.service != 'frontend'
-        working-directory: backend
-        run: |
-          chmod +x gradlew
-          ./gradlew clean :${{ matrix.service }}:bootJar -x test --no-daemon --no-build-cache
+        run: ./gradlew clean :backend:${{ matrix.service }}:bootJar -x test --no-daemon --no-build-cache
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
