@@ -203,7 +203,8 @@ jobs:
           
           # Pull latest code
           echo "📥 Pulling latest code..."
-          git fetch --tags
+          git tag -d ${VERSION} 2>/dev/null || true
+          git fetch --tags --force
           git checkout ${VERSION} || git checkout main
           
           echo "🔐 Logging into GitHub Container Registry..."
