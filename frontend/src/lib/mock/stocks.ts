@@ -232,6 +232,23 @@ export function getTopVolume(count: number = 5): StockListItem[] {
 		.slice(0, count);
 }
 
+// Export functions for API compatibility
+export function getMockStocks(): StockListItem[] {
+	return getStockListItems();
+}
+
+export function getMockStockById(stockId: string): Stock | undefined {
+	return getStockById(stockId);
+}
+
+export function generateMockCandles(stockId: string, days: number = 30): Candle[] {
+	return getMockCandleData(stockId, days);
+}
+
+export function generateMockOrderBook(stockId: string): OrderBook {
+	return getMockOrderBook(stockId);
+}
+
 // Mock Order Book
 export function getMockOrderBook(stockId: string): OrderBook {
 	const stock = getStockById(stockId);
