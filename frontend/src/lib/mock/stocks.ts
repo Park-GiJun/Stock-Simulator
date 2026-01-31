@@ -263,3 +263,42 @@ export function createMockResponse<T>(data: T, delay: number = 300): Promise<T> 
 		setTimeout(() => resolve(data), delay);
 	});
 }
+
+// Mock Candle Data for Charts
+export function getMockCandleData(stockId: string, days: number = 30): Candle[] {
+	const stock = getStockById(stockId);
+	const basePrice = stock?.currentPrice ?? 50000;
+	const volatility = stock?.volatility ?? 1;
+
+	const candles: Candle[] = [];
+	let currentPrice = basePrice * 0.9; // Start lower to show growth trend
+
+	const now = new Date();
+
+	for (let i = days; i >= 0; i--) {
+		const date = new Date(now);
+		date.setDate(date.getDate() - i);
+
+		// Random price movement based on volatility
+		const change = (Math.random() - 0.45) * volatility * 0.02 * currentPrice;
+		const open = currentPrice;
+		const close = currentPrice + change;
+		const high = Math.max(open, close) * (1 + Math.random() * volatility * 0.01);
+		const low = Math.min(open, close) * (1 - Math.random() * volatility * 0.01);
+		const volume = Math.floor(Math.random() * 500000 + 100000);
+
+		candles.push({
+			timestamp: date.toISOString(),
+			open: Math.round(open),
+			high: Math.round(high),
+			low: Math.round(low),
+			close: Math.round(close),
+			volume
+		});
+
+		currentPrice = close;
+	}
+
+	return candles;
+}
+

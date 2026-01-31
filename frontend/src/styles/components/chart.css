@@ -1,0 +1,222 @@
+/* ===== Stock Chart Component Styles ===== */
+
+/* ===== Chart Container ===== */
+.stock-chart {
+	width: 100%;
+	height: 100%;
+	min-height: 200px;
+}
+
+.stock-chart-wrapper {
+	position: relative;
+	width: 100%;
+	height: 250px;
+	background-color: var(--color-bg-primary);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.stock-chart-wrapper.compact {
+	height: 120px;
+}
+
+/* ===== Chart SVG ===== */
+.chart-svg {
+	width: 100%;
+	height: 100%;
+}
+
+.chart-line {
+	fill: none;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.chart-line.up {
+	stroke: var(--color-stock-up);
+}
+
+.chart-line.down {
+	stroke: var(--color-stock-down);
+}
+
+.chart-line.neutral {
+	stroke: var(--color-secondary);
+}
+
+.chart-area {
+	opacity: 0.1;
+}
+
+.chart-area.up {
+	fill: var(--color-stock-up);
+}
+
+.chart-area.down {
+	fill: var(--color-stock-down);
+}
+
+.chart-area.neutral {
+	fill: var(--color-secondary);
+}
+
+/* ===== Chart Grid ===== */
+.chart-grid-line {
+	stroke: var(--color-border);
+	stroke-width: 1;
+	stroke-dasharray: 4 4;
+}
+
+.chart-axis-label {
+	font-size: var(--font-size-xs);
+	fill: var(--color-text-disabled);
+	font-family: var(--font-mono);
+}
+
+/* ===== Chart Tooltip ===== */
+.chart-tooltip {
+	position: absolute;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: var(--color-bg-primary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+	font-size: var(--font-size-xs);
+	pointer-events: none;
+	z-index: var(--z-tooltip);
+	white-space: nowrap;
+}
+
+.chart-tooltip-price {
+	font-weight: 600;
+	font-family: var(--font-mono);
+}
+
+.chart-tooltip-time {
+	color: var(--color-text-secondary);
+	margin-top: var(--spacing-xs);
+}
+
+/* ===== Chart Header ===== */
+.chart-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-sm);
+}
+
+.chart-timeframe {
+	display: flex;
+	gap: var(--spacing-xs);
+}
+
+.chart-timeframe-btn {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition: all var(--transition-fast);
+}
+
+.chart-timeframe-btn:hover {
+	color: var(--color-text-primary);
+	background-color: var(--color-bg-tertiary);
+}
+
+.chart-timeframe-btn.active {
+	color: var(--color-primary);
+	background-color: var(--color-bg-accent);
+	border-color: var(--color-primary);
+}
+
+/* ===== Mini Chart (Ticker) ===== */
+.mini-chart {
+	width: 80px;
+	height: 32px;
+}
+
+.mini-chart .chart-line {
+	stroke-width: 1.5;
+}
+
+/* ===== Stock Ticker ===== */
+.stock-ticker {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: var(--color-bg-primary);
+	border-radius: var(--radius-md);
+	border: 1px solid var(--color-border);
+}
+
+.stock-ticker-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.stock-ticker-name {
+	font-weight: 600;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.stock-ticker-code {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.stock-ticker-price {
+	text-align: right;
+}
+
+.stock-ticker-current {
+	font-weight: 700;
+	font-family: var(--font-mono);
+	font-size: var(--font-size-md);
+}
+
+.stock-ticker-current.up {
+	color: var(--color-stock-up);
+}
+
+.stock-ticker-current.down {
+	color: var(--color-stock-down);
+}
+
+.stock-ticker-change {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--spacing-xs);
+	font-size: var(--font-size-xs);
+	font-family: var(--font-mono);
+}
+
+.stock-ticker-change.up {
+	color: var(--color-stock-up);
+}
+
+.stock-ticker-change.down {
+	color: var(--color-stock-down);
+}
+
+/* ===== Layout for Order Book + Chart ===== */
+.orderbook-chart-layout {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--spacing-md);
+}
+
+@media (max-width: 1024px) {
+	.orderbook-chart-layout {
+		grid-template-columns: 1fr;
+	}
+}

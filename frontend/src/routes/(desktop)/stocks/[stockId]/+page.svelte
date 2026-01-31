@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-svelte';
-	import { Button, Card } from '$lib/components';
-	import { getStockById, getMockOrderBook } from '$lib/mock/stocks.js';
+	import { Button, Card, StockChart } from '$lib/components';
+	import { getStockById, getMockOrderBook, getMockCandleData } from '$lib/mock/stocks.js';
 	import { SECTOR_NAMES, MARKET_CAP_NAMES } from '$lib/types/stock.js';
 
 	const stockId = $page.params.stockId;
 	const stock = getStockById(stockId);
 	const orderBook = getMockOrderBook(stockId);
+	const candleData = getMockCandleData(stockId, 30);
 
 	let orderSide = $state<'BUY' | 'SELL'>('BUY');
 	let orderQuantity = $state(1);
@@ -89,6 +90,8 @@
 					</div>
 				</Card>
 
+				<!-- Order Book + Chart Grid -->
+			<div class="orderbook-chart-layout">
 				<!-- Order Book -->
 				<Card>
 					{#snippet header()}
@@ -128,7 +131,19 @@
 						</table>
 					</div>
 				</Card>
+
+				<!-- Price Chart -->
+				<Card>
+					{#snippet header()}
+						<h3 class="card-title">주가 차트 (30일)</h3>
+					{/snippet}
+
+					<div class="p-md">
+						<StockChart data={candleData} width={400} height={300} />
+					</div>
+				</Card>
 			</div>
+		</div>
 
 			<!-- Order Panel -->
 			<aside>

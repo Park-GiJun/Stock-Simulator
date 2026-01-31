@@ -1,0 +1,187 @@
+/* ===== Badge Styles ===== */
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-xs);
+	padding: 2px var(--spacing-sm);
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	line-height: 1.4;
+	border-radius: var(--radius-full);
+	white-space: nowrap;
+}
+
+/* Variants */
+.badge-primary {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+}
+
+.badge-secondary {
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-secondary);
+}
+
+.badge-success {
+	background: rgba(16, 185, 129, 0.15);
+	color: var(--color-success);
+}
+
+.badge-error {
+	background: rgba(239, 68, 68, 0.15);
+	color: var(--color-error);
+}
+
+.badge-warning {
+	background: rgba(245, 158, 11, 0.15);
+	color: var(--color-warning);
+}
+
+.badge-info {
+	background: rgba(59, 130, 246, 0.15);
+	color: var(--color-info);
+}
+
+/* Outline variants */
+.badge-outline {
+	background: transparent;
+	border: 1px solid currentColor;
+}
+
+.badge-outline.badge-primary {
+	color: var(--color-primary);
+}
+
+.badge-outline.badge-success {
+	color: var(--color-success);
+}
+
+.badge-outline.badge-error {
+	color: var(--color-error);
+}
+
+.badge-outline.badge-warning {
+	color: var(--color-warning);
+}
+
+.badge-outline.badge-info {
+	color: var(--color-info);
+}
+
+/* Sizes */
+.badge-sm {
+	padding: 1px var(--spacing-xs);
+	font-size: 10px;
+}
+
+.badge-lg {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-sm);
+}
+
+/* Dot Badge */
+.badge-dot {
+	width: 8px;
+	height: 8px;
+	padding: 0;
+	border-radius: var(--radius-full);
+}
+
+.badge-dot.badge-sm {
+	width: 6px;
+	height: 6px;
+}
+
+.badge-dot.badge-lg {
+	width: 10px;
+	height: 10px;
+}
+
+/* Pill shape */
+.badge-pill {
+	border-radius: var(--radius-md);
+}
+
+/* With icon */
+.badge-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* Removable */
+.badge-remove {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	margin-left: var(--spacing-xs);
+	margin-right: calc(-1 * var(--spacing-xs));
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: currentColor;
+	opacity: 0.6;
+	cursor: pointer;
+	border-radius: var(--radius-full);
+	transition: opacity var(--transition-fast), background var(--transition-fast);
+}
+
+.badge-remove:hover {
+	opacity: 1;
+	background: rgba(0, 0, 0, 0.1);
+}
+
+/* Pulsing animation for status */
+.badge-pulse {
+	position: relative;
+}
+
+.badge-pulse::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: currentColor;
+	animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+	0%, 100% {
+		opacity: 0;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.3;
+		transform: scale(1.5);
+	}
+}
+
+/* Count badge */
+.badge-count {
+	min-width: 20px;
+	height: 20px;
+	padding: 0 6px;
+	font-family: var(--font-mono);
+}
+
+.badge-count.badge-sm {
+	min-width: 16px;
+	height: 16px;
+	padding: 0 4px;
+}
+
+/* Stock direction badges */
+.badge-stock-up {
+	background: rgba(239, 68, 68, 0.15);
+	color: var(--color-stock-up);
+}
+
+.badge-stock-down {
+	background: rgba(59, 130, 246, 0.15);
+	color: var(--color-stock-down);
+}

@@ -1,0 +1,324 @@
+---
+trigger: always_on
+---
+
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game with event-based price dynamics and dynamic market ecosystem. The project uses a SvelteKit frontend with a Kotlin/Spring Boot microservices backend.
+
+**Current Status:** MVP phase - Docker infrastructure deployed, backend services running.
+
+**Key Features:**
+- Event-based stock listing/delisting (IPO/Delisting via Kafka events)
+- Dynamic investor generation (Individual NPCs & Institutions created periodically)
+- AI-driven market events affecting stock prices
+- Real-time order book and trading system
+- Continuous game without seasonal resets
+
+## Tech Stack
+
+- **Frontend:** SvelteKit 2.x, Svelte 5, TypeScript, TailwindCSS 4.x, Vite
+- **Backend:** Kotlin 2.3.0, Spring Boot 3.5.10, Spring Cloud 2025, WebFlux, JPA + Kotlin JDSL 3.6.0, Redisson
+- **Package Manager:** pnpm (frontend), Gradle Kotlin DSL (backend)
+- **Infrastructure:** Docker Compose, Prometheus, Grafana
+- **Additional Libraries:** 
+  - kotlinx.coroutines 1.10.2
+  - kotlinx.serialization 1.10.0
+  - Redisson 3.40.2
+
+## Documentation Structure
+
+Read the appropriate documentation based on your task:
+
+### Core Knowledge (Read at start of every context)
+**Location**: `docs/`
+
+- **PROJECT_OVERVIEW.md** - 프로젝트 개요, 게임 메커니즘, 이벤트 기반 주가 변동
+- **TECH_STACK.md** - 기술 스택, 공통 명령어, Docker 인프라
+- **ARCHITECTURE.md** - 전체 아키텍처, 서비스 구성, 이벤트 플로우
+- **GIT_BRANCH_STRATEGY.md** - Git 브랜치 전략, 개발 워크플로우, 커밋 규칙
+
+### Domain-Specific Documentation (Read when needed)
+
+- **Backend** (`backend/doc/`): Read when developing backend services
+  - BACKEND_GUIDE.md - 백엔드 개발 가이드 (헥사고날 아키텍처)
+  - API_DESIGN.md - API 설계 가이드
+  - PRICE_MECHANISM.md - 주가 변동 메커니즘 상세 설계
+  - 백엔드_작업단계.md
+
+- **Frontend** (`frontend/doc/`): Read when developing frontend
+  - FRONTEND_GUIDE.md - SvelteKit 개발 가이드 (CSS 규칙, 라우팅, API)
+
+- **Infrastructure** (`infra/doc/`): Read when working on infrastructure
+  - INFRASTRUCTURE_GUIDE.md - 인프라 구축 가이드
+  - CI_CD_*.md - CI/CD 가이드
+
+## Common Commands
+
+### Frontend (from `frontend/` directory)
+
+```bash
+pnpm install          # Install dependencies
+pnpm run dev          # Development server
+pnpm run build        # Production build
+pnpm run preview      # Preview production build
+pnpm run check        # Type checking
+pnpm run format       # Format code
+pnpm run lint         # Lint code
+```
+
+### Backend (from project root)
+```bash
+# Build all modules
+./gradlew build -x test
+
+# Build specific service
+./gradlew :backend:eureka-server:build
+./gradlew :backend:user-service:build
+./gradlew :backend:api-gateway:build
+
+# Clean build
+./gradlew clean build -x test
+
+# Run tests
+./gradlew test
+```
+
+### Docker Compose
+```bash
+# Start all services
+docker-compose --profile all up -d
+
+# Start with rebuild
+docker-compose --profile all up -d --build
+
+# Stop all services
+docker-compose --profile all down
+
+# View logs
+docker logs stockSimulator-<service-name> 2>&1 | tail -50
+
+# Check container status
+docker-compose --profile all ps
+
+# Restart specific service
+docker-compose --profile all restart <service-name>
+
+# Reset Kafka (cluster ID mismatch)
+docker-compose --profile all down
+docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker-compose --profile all up -d
+```
+
+## Architecture
+
+### Project Structure
+
+```
+Stock-Simulator/
+├── doc/                    # Korean-language design documents
+├── frontend/               # SvelteKit application
+├── backend/                # Kotlin/Spring Boot MSA
+│   ├── common/            # Shared DTOs, exceptions, events
+│   ├── eureka-server/     # Service discovery (port 8761)
+│   ├── api-gateway/       # API Gateway (port 8080 → 9832)
+│   ├── user-service/      # Auth, users (port 8081)
+│   ├── stock-service/     # Stocks, prices (port 8082)
+│   ├── trading-service/   # Orders, portfolio (port 8083)
+│   ├── event-service/     # Game events (port 8084)
+│   ├── scheduler-service/ # Stock listing/delisting, investor generation (port 8085)
+│   └── news-service/      # News articles (port 8086)
+├── infra/                  # Prometheus, Grafana configs
+│   ├── grafana/provisioning/
+│   │   ├── dashboards/    # Dashboard JSON files
+│   │   └── datasources/   # Datasource configs
+│   └── prometheus/        # Prometheus config
+└── docker-compose.yml
+```
+
+### Backend Service Configuration
+
+Each service has two config files:
+- `application.yml` - Local development (localhost)
+- `application-docker.yml` - Docker environment (uses env variables)
+
+**Environment Variables (`.env` file):**
+```env
+# Infrastructure hosts
+EUREKA_HOST=172.30.1.79
+POSTGRES_HOST=172.30.1.79
+REDIS_HOST=172.30.1.79
+MONGO_HOST=172.30.1.79
+KAFKA_HOST=172.30.1.79
+ELASTICSEARCH_HOST=172.30.1.79
+
+# Credentials
+POSTGRES_USER=stocksim
+POSTGRES_PASSWORD=stocksim123
+REDIS_PASSWORD=stocksim123
+MONGO_USER=stocksim
+MONGO_PASSWORD=stocksim123
+
+# Spring profile
+SPRING_PROFILES_ACTIVE=docker
+```
+
+### Backend Architecture
+
+Each service follows **Hexagonal Architecture**:
+```
+service/
+└── src/main/kotlin/com/stocksimulator/{service}/
+    ├── domain/            # Entities, domain logic
+    ├── application/       # Use cases, services
+    └── adapter/
+        ├── in/web/        # REST controllers
+        └── out/persistence/ # JPA repositories
+```
+
+**Service Dependencies:**
+- All services register with Eureka, routed through API Gateway
+- **PostgreSQL**: Single DB with schema separation (users, stocks, trading, events, scheduler, news)
+  - Primary + Replica (Streaming Replication) for Write/Read separation
+- **MongoDB**: event (logs), news
+- **Redis/Redisson**: stock (prices), trading (orderbook), ranking
+- **Kafka**: inter-service events
+
+### Event-Driven Stock Market Dynamics
+
+**Stock Listing/Delisting (Scheduler → Stock Service):**
+- **IPO (Initial Public Offering)**: Every 30 minutes, 30% chance to list new company
+  - Random company name, sector, base price, market cap grade
+  - Kafka event: `stock.listed` → Stock Service creates stock
+- **Delisting**: Every 1 hour, 10% chance based on conditions
+  - Conditions: low market cap, low trading volume, price below par value
+  - Kafka event: `stock.delisted` → Stock Service marks as delisted
+
+**Dynamic Investor Generation (Scheduler → Trading Service):**
+- **Individual NPCs**: Every 10 minutes, creates 1-3 random individual investors
+  - Capital: 200,000 ~ 100,000,000 KRW
+  - Weekly income: 5% of capital
+  - Random investment style: AGGRESSIVE, STABLE, VALUE, RANDOM
+- **Institutional Investors**: Every 2 hours, 50% chance to create 1 institution
+  - Capital: 1,000,000,000 ~ 1,000,000,000,000 KRW
+  - Daily income: 1% of capital
+  - Investment style: AGGRESSIVE, STABLE, VALUE (no RANDOM)
+
+**Kafka Event Topics:**
+```
+stock.listed         # New IPO
+stock.delisted       # Stock removed from market
+investor.created     # New NPC/Institution created
+price.updated        # Stock price change
+orderbook.updated    # Order book change
+event.occurred       # Game event (SOCIETY/INDUSTRY/COMPANY level)
+news.published       # AI-generated news
+```
+
+## Docker Infrastructure
+
+| Service | Container | External Port | Credentials |
+|---------|-----------|---------------|-------------|
+| PostgreSQL | stockSimulator-postgres | 5432 | user: `stocksim`, pw: `stocksim123` |
+| PostgreSQL Replica | stockSimulator-postgres-replica | 5433 | same as primary |
+| MongoDB | stockSimulator-mongo | 27018 | user: `stocksim`, pw: `stocksim123` |
+| Redis | stockSimulator-redis | 6380 | pw: `stocksim123` |
+| Kafka | stockSimulator-kafka | 9093 | - |
+| Kafka UI | stockSimulator-kafka-ui | 8089 | http://localhost:8089 |
+| Elasticsearch | stockSimulator-elasticsearch | 9201 | - |
+| Prometheus | stockSimulator-prometheus | 9091 | http://localhost:9091 |
+| Grafana | stockSimulator-grafana | 3001 | admin/stocksim123 |
+| Eureka | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
+| API Gateway | stockSimulator-api-gateway | 9832 | - |
+
+## Monitoring
+
+### Prometheus Targets
+Check service health: `http://localhost:9091/targets`
+
+All services expose metrics at `/actuator/prometheus`
+
+### Grafana Dashboard
+- URL: http://localhost:3001
+- Login: admin / stocksim123
+- Dashboard: "Stock Simulator - Services Overview"
+  - Service status (UP/DOWN)
+  - Request rate per service
+  - Response time (p95)
+  - JVM memory usage
+  - CPU usage
+  - Thread count
+  - DB connection pool
+
+## Known Issues & Solutions
+
+### 1. Kafka Cluster ID Mismatch
+**Error:** `InconsistentClusterIdException`
+**Solution:**
+```bash
+docker-compose --profile all down
+docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker-compose --profile all up -d
+```
+
+### 2. Eureka Server Starting on Wrong Port
+**Cause:** Missing `application.yml` or `application-docker.yml`
+**Solution:** Ensure `SERVER_PORT` env variable is set in docker-compose.yml
+
+### 3. Services Can't Connect to Eureka
+**Cause:** Using `localhost` instead of Docker service name
+**Solution:** Use `application-docker.yml` with `eureka-server:8761`
+
+## Key Documentation
+
+Design specifications in `doc/`:
+- `모의주식게임_기획서_v1.0.md` - Feature spec (Note: Season system removed)
+- `모의주식게임_개발로드맵.md` - Development roadmap
+- `인프라_구축_진행상황.md` - Infrastructure setup progress
+- `SVELTEKIT_DEVELOPMENT_TEMPLATE.md` - Frontend guidelines
+
+## Game Mechanics
+
+### Time System
+- **Acceleration Ratio**: 1:4 (1 real hour = 4 game hours)
+- **Market Hours**: Game 09:00 ~ 21:00 (12 hours = 3 real hours)
+- **24/7 Server**: 8 trading cycles per day
+
+### Stock Market
+- **Total Stocks**: Dynamic (starts ~500, changes via IPO/delisting)
+- **Sectors**: IT, Agriculture, Manufacturing, Service, Real Estate, Luxury, Food
+- **Market Cap Grades**: SMALL (~10B KRW), MID (~100B), LARGE (~1T)
+- **Stock Status**: LISTED, SUSPENDED, DELISTED
+
+### Investors
+- **Users**: Players with 5,000,000 KRW initial capital
+- **Individual NPCs**: 20만 ~ 1억 KRW, generated every 10 min
+- **Institutions**: 10억 ~ 1조 KRW, generated every 2 hours
+- **No seasonal reset**: Continuous gameplay, market evolves organically
+
+## Code Style
+
+- **Formatting:** Prettier with tabs, single quotes, 100 char line width
+- **TypeScript:** Strict mode enabled
+- **Svelte:** Uses Svelte 5 runes syntax
+- **Kotlin:** Standard Kotlin conventions
+
+## Frontend Development Rules
+
+### Critical CSS Rules
+- **All styles must be in separate CSS files** (`src/styles/`) - NO `<style>` tags in Svelte components
+- Use CSS variables for all colors
+- Support dark/light mode via CSS variables
+
+### Mobile/Desktop Routing
+- Desktop routes: `/페이지명` (e.g., `/dashboard`)
+- Mobile routes: `/m/페이지명` (e.g., `/m/dashboard`)
+
+### API Communication
+- All responses follow `ApiResponse<T>` structure
+- Use `$lib/api/api.ts` for all API calls
+- Before backend: use mock data with `VITE_USE_MOCK=true`
