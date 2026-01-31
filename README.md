@@ -8,6 +8,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+> **Note**: 프론트엔드(SvelteKit) 및 인프라 구축(Docker, Prometheus, Grafana)은 **Claude AI**를 활용하여 개발되었습니다.
+
 ## 🎯 프로젝트 개요
 
 Stock Simulator는 **AI 기반의 동적 시장 생태계**를 제공하는 모의 주식 거래 게임입니다. 실시간 IPO/상장폐지, NPC 투자자 생성, AI 뉴스 이벤트가 주가에 영향을 주는 생동감 있는 주식 시장을 경험할 수 있습니다.
@@ -72,7 +74,7 @@ Docker Compose  +  Kafka  +  PostgreSQL  +  MongoDB  +  Redis
 | Kafka UI | 8089 | Kafka 모니터링 |
 | Elasticsearch | 9201 | 검색 엔진 |
 | Prometheus | 9091 | 메트릭 수집 |
-| Grafana | 3001 | 대시보드 (admin/stocksim123) |
+| Grafana | 3001 | 대시보드 |
 
 ## 📁 프로젝트 구조
 
@@ -137,25 +139,27 @@ Stock-Simulator/
 cp .env.example .env
 ```
 
-`.env` 파일 수정 (주요 항목):
+`.env` 파일 수정:
 ```env
-# 인프라 호스트 (Docker 환경)
-EUREKA_HOST=172.30.1.79
-POSTGRES_HOST=172.30.1.79
-REDIS_HOST=172.30.1.79
-MONGO_HOST=172.30.1.79
-KAFKA_HOST=172.30.1.79
+# 인프라 호스트 (환경에 맞게 수정)
+EUREKA_HOST=your-server-ip
+POSTGRES_HOST=your-server-ip
+REDIS_HOST=your-server-ip
+MONGO_HOST=your-server-ip
+KAFKA_HOST=your-server-ip
 
-# 데이터베이스 인증
-POSTGRES_USER=stocksim
-POSTGRES_PASSWORD=stocksim123
-MONGO_USER=stocksim
-MONGO_PASSWORD=stocksim123
-REDIS_PASSWORD=stocksim123
+# 데이터베이스 인증 (강력한 비밀번호로 변경 권장)
+POSTGRES_USER=your-db-user
+POSTGRES_PASSWORD=your-secure-password
+MONGO_USER=your-mongo-user
+MONGO_PASSWORD=your-secure-password
+REDIS_PASSWORD=your-secure-password
 
 # Spring 프로필
 SPRING_PROFILES_ACTIVE=docker
 ```
+
+> ⚠️ **보안 주의**: 프로덕션 환경에서는 반드시 강력한 비밀번호를 사용하고, `.env` 파일을 Git에 커밋하지 마세요.
 
 ### 2. Docker 컨테이너 실행
 
@@ -183,10 +187,12 @@ docker-compose --profile monitoring up -d  # 모니터링만
 ### 3. 서비스 확인
 
 - **Eureka Dashboard**: http://localhost:8761
-- **Grafana**: http://localhost:3001 (admin/stocksim123)
+- **Grafana**: http://localhost:3001
 - **Prometheus**: http://localhost:9091
 - **Kafka UI**: http://localhost:8089
 - **API Gateway**: http://localhost:9832
+
+> 기본 Grafana 계정은 `.env` 파일에서 설정한 값을 사용합니다.
 
 ## 💻 개발 가이드
 
@@ -301,8 +307,7 @@ pnpm run lint
 
 ### Grafana 대시보드
 
-**URL**: http://localhost:3001  
-**로그인**: admin / stocksim123
+**URL**: http://localhost:3001
 
 **"Stock Simulator - Services Overview" 대시보드 포함:**
 - ✅ 서비스 상태 (UP/DOWN)
@@ -347,14 +352,16 @@ docker-compose --profile all up -d
 
 ```bash
 # PostgreSQL 스키마 재생성
-docker exec -it stockSimulator-postgres psql -U stocksim -d stocksim -f /docker-entrypoint-initdb.d/init-schemas.sql
+docker exec -it stockSimulator-postgres psql -U <your-db-user> -d <your-db-name> -f /docker-entrypoint-initdb.d/init-schemas.sql
 
 # MongoDB 데이터 삭제
-docker exec -it stockSimulator-mongo mongosh -u stocksim -p stocksim123 --eval "use stocksim; db.dropDatabase();"
+docker exec -it stockSimulator-mongo mongosh -u <your-mongo-user> -p <your-mongo-password> --eval "use stocksim; db.dropDatabase();"
 
 # Redis 캐시 클리어
-docker exec -it stockSimulator-redis redis-cli -a stocksim123 FLUSHALL
+docker exec -it stockSimulator-redis redis-cli -a <your-redis-password> FLUSHALL
 ```
+
+> 위 명령어에서 `<your-db-user>`, `<your-mongo-user>` 등은 `.env` 파일에 설정한 값으로 대체하세요.
 
 ## 📚 주요 문서
 
@@ -410,8 +417,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Stock Simulator Team**
 
-- 기획/개발: [Your Name]
-- 문의: [your.email@example.com]
+- Backend Architecture & Development: Park Gijun
+- Frontend & Infrastructure (AI-Assisted): Claude AI (Anthropic)
+
+## 🤖 AI 활용
+
+이 프로젝트는 다음 부분에서 **Claude AI**를 활용하여 개발되었습니다:
+
+- **Frontend 전체**: SvelteKit 기반 UI/UX 구현
+- **Infrastructure 구성**: Docker Compose, Prometheus, Grafana 설정
+- **모니터링 시스템**: 메트릭 수집 및 대시보드 구성
+- **코드 리뷰 및 최적화**: 성능 개선 및 베스트 프랙티스 적용
 
 ## 🙏 감사의 글
 
@@ -419,9 +435,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [SvelteKit](https://kit.svelte.dev/)
 - [Kotlin](https://kotlinlang.org/)
 - [Docker](https://www.docker.com/)
+- [Claude AI](https://www.anthropic.com/claude) - Frontend & Infrastructure Development
 
 ---
 
 <div align="center">
-Made with ❤️ by Stock Simulator Team
+Made with ❤️ by Stock Simulator Team<br>
+Powered by Claude AI (Frontend & Infrastructure)
 </div>
