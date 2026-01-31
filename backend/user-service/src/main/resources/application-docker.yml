@@ -28,3 +28,12 @@ eureka:
 logging:
   mongodb:
     enabled: ${LOGGING_MONGODB_ENABLED:true}
+
+# SpringDoc / OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

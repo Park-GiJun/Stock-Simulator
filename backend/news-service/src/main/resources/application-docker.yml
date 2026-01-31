@@ -26,3 +26,12 @@ eureka:
   instance:
     hostname: news-service
     prefer-ip-address: false
+
+# SpringDoc / OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

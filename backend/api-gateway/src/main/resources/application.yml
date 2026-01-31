@@ -104,18 +104,3 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
-    urls:
-      - name: All Services
-        url: /v3/api-docs
-      - name: User Service
-        url: /user-service/v3/api-docs
-      - name: Stock Service
-        url: /stock-service/v3/api-docs
-      - name: Trading Service
-        url: /trading-service/v3/api-docs
-      - name: Event Service
-        url: /event-service/v3/api-docs
-      - name: News Service
-        url: /news-service/v3/api-docs
-      - name: Scheduler Service
-        url: /scheduler-service/v3/api-docs

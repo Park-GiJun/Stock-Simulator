@@ -514,8 +514,11 @@ jobs:
           fi
 
       - name: Send Slack notification
-        if: env.SLACK_WEBHOOK_URL != ''
+        if: secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
           payload: |
             {
@@ -561,6 +564,3 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
