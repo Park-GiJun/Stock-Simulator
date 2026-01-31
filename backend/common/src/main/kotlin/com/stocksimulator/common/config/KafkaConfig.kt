@@ -73,7 +73,7 @@ class KafkaConfig(
     @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
         return ConcurrentKafkaListenerContainerFactory<String, Any>().apply {
-            consumerFactory = consumerFactory()
+            setConsumerFactory(consumerFactory())
             setConcurrency(3)
             containerProperties.ackMode = org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
         }

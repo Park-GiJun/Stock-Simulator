@@ -18,12 +18,12 @@ Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game w
 ## Tech Stack
 
 - **Frontend:** SvelteKit 2.x, Svelte 5, TypeScript, TailwindCSS 4.x, Vite
-- **Backend:** Kotlin 2.3.0, Spring Boot 3.5.10, Spring Cloud 2025, WebFlux, JPA + Kotlin JDSL 3.6.0, Redisson
+- **Backend:** Kotlin 2.3.0, Spring Boot 4.0.1, Spring Cloud 2025.1.1, WebFlux, JPA + Kotlin JDSL 3.6.0, Redisson
 - **Package Manager:** pnpm (frontend), Gradle Kotlin DSL (backend)
 - **Infrastructure:** Docker Compose, Prometheus, Grafana
 - **Additional Libraries:** 
   - kotlinx.coroutines 1.10.2
-  - kotlinx.serialization 1.10.0
+  - kotlinx.serialization 1.9.0 (Spring Boot BOM managed)
   - Redisson 3.40.2
 
 ## Common Commands
