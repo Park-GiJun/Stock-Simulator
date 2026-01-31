@@ -23,6 +23,9 @@ dependencies {
     implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.4")
     implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.4")
 
+    // MongoDB (for logging)
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+
     // Redisson
     implementation("org.redisson:redisson:3.52.0")
 
