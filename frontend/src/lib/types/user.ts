@@ -1,21 +1,37 @@
-// User Types
+// User Types - Backend DTO와 매칭
 
+// Backend: UserResponse (GET /api/v1/users/me)
 export interface User {
-	userId: string;
+	userId: number; // Backend: Long
 	username: string;
 	email: string;
-	capital: number;
-	initialCapital: number;
-	createdAt: string;
+	role: string; // ROLE_USER, ROLE_ADMIN
 }
 
+// Backend: SignUpResponse
+export interface SignUpResponse {
+	userId: number;
+	email: string;
+	username: string;
+}
+
+// Backend: LoginResponse
+export interface LoginResponse {
+	userId: number;
+	email: string;
+	username: string;
+	role: string;
+	sessionId: string; // Redis Session ID (Cookie로도 전달됨)
+}
+
+// Frontend Auth State
 export interface AuthState {
 	isAuthenticated: boolean;
 	user: User | null;
-	token: string | null;
 	isLoading: boolean;
 }
 
+// Request DTOs
 export interface LoginRequest {
 	email: string;
 	password: string;
@@ -27,12 +43,19 @@ export interface SignupRequest {
 	password: string;
 }
 
-export interface AuthResponse {
-	user: User;
-	token: string;
+// UserProfile (확장된 사용자 정보 - 향후 구현)
+export interface UserProfile extends User {
+	investorType?: 'USER' | 'NPC' | 'INSTITUTION';
+	avatar?: string;
+	bio?: string;
+	rank?: number;
+	returnRate?: number;
+	capital?: number;
+	initialCapital?: number;
+	createdAt?: string;
 }
 
-// Portfolio & Holdings
+// Portfolio & Holdings (기존 유지 - Trading Service 연동 시 사용)
 export interface Holding {
 	stockId: string;
 	stockName: string;
@@ -54,7 +77,7 @@ export interface Portfolio {
 	totalProfitLossPercent: number;
 }
 
-// Order & Transaction
+// Order & Transaction (기존 유지 - Trading Service 연동 시 사용)
 export type OrderType = 'MARKET';
 export type OrderSide = 'BUY' | 'SELL';
 export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED';
@@ -67,7 +90,7 @@ export interface Order {
 	orderType: OrderType;
 	side: OrderSide;
 	quantity: number;
-	price: number | null; // null for market orders
+	price: number | null;
 	status: OrderStatus;
 	filledQuantity: number;
 	filledPrice: number | null;
@@ -93,7 +116,7 @@ export interface Transaction {
 	timestamp: string;
 }
 
-// User Stats
+// User Stats (기존 유지 - 향후 구현)
 export interface UserStats {
 	totalTrades: number;
 	winRate: number;

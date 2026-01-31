@@ -13,6 +13,18 @@
 @import './styles/components/table.css';
 @import './styles/components/skeleton.css';
 @import './styles/components/form.css';
+@import './styles/components/chart.css';
+@import './styles/components/toast.css';
+@import './styles/components/orderbook.css';
+@import './styles/components/trade.css';
+@import './styles/components/tabs.css';
+@import './styles/components/search.css';
+@import './styles/components/tooltip.css';
+@import './styles/components/dropdown.css';
+@import './styles/components/badge.css';
+@import './styles/components/avatar.css';
+@import './styles/components/progress.css';
+@import './styles/components/pagination.css';
 
 /* ===== Layout Styles ===== */
 @import './styles/layouts/sidebar.css';

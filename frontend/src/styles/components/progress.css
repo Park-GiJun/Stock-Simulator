@@ -1,0 +1,206 @@
+/* ===== Progress Bar Styles ===== */
+
+.progress {
+	position: relative;
+	width: 100%;
+	height: 8px;
+	background: var(--color-bg-tertiary);
+	border-radius: var(--radius-full);
+	overflow: hidden;
+}
+
+/* Sizes */
+.progress-xs {
+	height: 4px;
+}
+
+.progress-sm {
+	height: 6px;
+}
+
+.progress-md {
+	height: 8px;
+}
+
+.progress-lg {
+	height: 12px;
+}
+
+.progress-xl {
+	height: 16px;
+}
+
+/* Progress Bar */
+.progress-bar {
+	height: 100%;
+	border-radius: inherit;
+	transition: width 0.3s ease;
+}
+
+/* Colors */
+.progress-primary .progress-bar {
+	background: var(--color-primary);
+}
+
+.progress-success .progress-bar {
+	background: var(--color-success);
+}
+
+.progress-warning .progress-bar {
+	background: var(--color-warning);
+}
+
+.progress-error .progress-bar {
+	background: var(--color-error);
+}
+
+.progress-info .progress-bar {
+	background: var(--color-info);
+}
+
+/* Stock colors */
+.progress-stock-up .progress-bar {
+	background: var(--color-stock-up);
+}
+
+.progress-stock-down .progress-bar {
+	background: var(--color-stock-down);
+}
+
+/* Gradient */
+.progress-gradient .progress-bar {
+	background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+}
+
+/* Striped */
+.progress-striped .progress-bar {
+	background-image: linear-gradient(
+		45deg,
+		rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%,
+		transparent 50%,
+		rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%,
+		transparent 75%,
+		transparent
+	);
+	background-size: 1rem 1rem;
+}
+
+/* Animated striped */
+.progress-animated .progress-bar {
+	animation: progressStripes 1s linear infinite;
+}
+
+@keyframes progressStripes {
+	0% {
+		background-position: 1rem 0;
+	}
+	100% {
+		background-position: 0 0;
+	}
+}
+
+/* Indeterminate */
+.progress-indeterminate .progress-bar {
+	width: 30% !important;
+	animation: progressIndeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes progressIndeterminate {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(400%);
+	}
+}
+
+/* With label */
+.progress-labeled {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}
+
+.progress-label {
+	display: flex;
+	justify-content: space-between;
+	font-size: var(--font-size-sm);
+}
+
+.progress-label-text {
+	color: var(--color-text-secondary);
+}
+
+.progress-label-value {
+	font-weight: 600;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}
+
+/* Inline label (inside bar) */
+.progress-inline-label {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	color: var(--color-text-primary);
+	white-space: nowrap;
+}
+
+.progress-lg .progress-inline-label,
+.progress-xl .progress-inline-label {
+	font-size: var(--font-size-sm);
+}
+
+/* Segmented progress */
+.progress-segmented {
+	display: flex;
+	gap: 2px;
+}
+
+.progress-segment {
+	flex: 1;
+	height: 100%;
+	background: var(--color-bg-tertiary);
+	border-radius: var(--radius-sm);
+}
+
+.progress-segment.filled {
+	background: var(--color-primary);
+}
+
+/* Circular progress */
+.progress-circular {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.progress-circular-svg {
+	transform: rotate(-90deg);
+}
+
+.progress-circular-track {
+	fill: none;
+	stroke: var(--color-bg-tertiary);
+}
+
+.progress-circular-bar {
+	fill: none;
+	stroke: var(--color-primary);
+	stroke-linecap: round;
+	transition: stroke-dashoffset 0.3s ease;
+}
+
+.progress-circular-label {
+	position: absolute;
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}

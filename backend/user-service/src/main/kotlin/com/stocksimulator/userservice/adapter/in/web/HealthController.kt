@@ -21,7 +21,7 @@ class HealthController {
             status = "UP",
             service = "user-service",
             timestamp = LocalDateTime.now().toString(),
-            message = "User Service is running!"
+            message = "UserModel Service is running!"
         )
         
         logger.info("✅ Health check response: $response")

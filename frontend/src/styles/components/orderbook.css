@@ -1,0 +1,246 @@
+/* ===== OrderBook Component Styles ===== */
+
+.orderbook {
+	display: flex;
+	flex-direction: column;
+	background: var(--color-bg-primary);
+	border-radius: var(--radius-lg);
+	border: 1px solid var(--color-border);
+	overflow: hidden;
+}
+
+.orderbook-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background: var(--color-bg-tertiary);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.orderbook-title {
+	font-weight: 600;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+}
+
+.orderbook-spread {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.orderbook-spread-value {
+	font-weight: 600;
+	color: var(--color-text-primary);
+	margin-left: var(--spacing-xs);
+}
+
+/* Column Headers */
+.orderbook-columns {
+	display: grid;
+	grid-template-columns: 1fr 80px 80px;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-md);
+	background: var(--color-bg-secondary);
+	border-bottom: 1px solid var(--color-border);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+	text-transform: uppercase;
+}
+
+.orderbook-col {
+	text-align: right;
+}
+
+.orderbook-col:first-child {
+	text-align: left;
+}
+
+/* OrderBook Body */
+.orderbook-body {
+	display: flex;
+	flex-direction: column;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+/* Ask Section (Sell orders) */
+.orderbook-asks {
+	display: flex;
+	flex-direction: column-reverse;
+}
+
+/* Bid Section (Buy orders) */
+.orderbook-bids {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Center Price */
+.orderbook-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background: var(--color-bg-tertiary);
+	border-top: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.orderbook-center-price {
+	font-size: var(--font-size-lg);
+	font-weight: 700;
+	font-family: var(--font-mono);
+}
+
+.orderbook-center-price.up {
+	color: var(--color-stock-up);
+}
+
+.orderbook-center-price.down {
+	color: var(--color-stock-down);
+}
+
+.orderbook-center-price.unchanged {
+	color: var(--color-text-primary);
+}
+
+.orderbook-center-change {
+	font-size: var(--font-size-sm);
+	margin-left: var(--spacing-sm);
+}
+
+/* OrderBook Row */
+.orderbook-row {
+	display: grid;
+	grid-template-columns: 1fr 80px 80px;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-md);
+	position: relative;
+	cursor: pointer;
+	transition: background var(--transition-fast);
+}
+
+.orderbook-row:hover {
+	background: var(--color-bg-hover);
+}
+
+/* Background bar */
+.orderbook-row::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	z-index: 0;
+	transition: width var(--transition-fast);
+}
+
+.orderbook-row.ask::before {
+	background: rgba(239, 68, 68, 0.1);
+}
+
+.orderbook-row.bid::before {
+	background: rgba(59, 130, 246, 0.1);
+}
+
+/* Row cells */
+.orderbook-cell {
+	position: relative;
+	z-index: 1;
+	font-size: var(--font-size-sm);
+	font-family: var(--font-mono);
+	text-align: right;
+}
+
+.orderbook-cell:first-child {
+	text-align: left;
+}
+
+.orderbook-price {
+	font-weight: 600;
+}
+
+.orderbook-price.ask {
+	color: var(--color-stock-up);
+}
+
+.orderbook-price.bid {
+	color: var(--color-stock-down);
+}
+
+.orderbook-quantity {
+	color: var(--color-text-primary);
+}
+
+.orderbook-total {
+	color: var(--color-text-secondary);
+}
+
+/* Compact Mode */
+.orderbook.compact .orderbook-body {
+	max-height: 300px;
+}
+
+.orderbook.compact .orderbook-row {
+	padding: 2px var(--spacing-sm);
+}
+
+.orderbook.compact .orderbook-cell {
+	font-size: var(--font-size-xs);
+}
+
+/* Horizontal Mode (Side by side) */
+.orderbook.horizontal .orderbook-body {
+	flex-direction: row;
+}
+
+.orderbook.horizontal .orderbook-asks,
+.orderbook.horizontal .orderbook-bids {
+	flex: 1;
+}
+
+.orderbook.horizontal .orderbook-center {
+	display: none;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .orderbook-row.ask::before {
+	background: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme='dark'] .orderbook-row.bid::before {
+	background: rgba(59, 130, 246, 0.15);
+}
+
+/* Animation for new orders */
+@keyframes orderFlash {
+	0% {
+		background: rgba(212, 175, 55, 0.3);
+	}
+	100% {
+		background: transparent;
+	}
+}
+
+.orderbook-row.new {
+	animation: orderFlash 0.5s ease-out;
+}
+
+/* Scrollbar styling */
+.orderbook-body::-webkit-scrollbar {
+	width: 6px;
+}
+
+.orderbook-body::-webkit-scrollbar-track {
+	background: var(--color-bg-secondary);
+}
+
+.orderbook-body::-webkit-scrollbar-thumb {
+	background: var(--color-border-dark);
+	border-radius: var(--radius-full);
+}
+
+.orderbook-body::-webkit-scrollbar-thumb:hover {
+	background: var(--color-text-disabled);
+}
