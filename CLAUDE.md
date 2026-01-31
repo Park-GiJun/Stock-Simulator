@@ -26,6 +26,33 @@ Stock-Simulator (모의 주식 게임) is an AI-driven mock stock trading game w
   - kotlinx.serialization 1.10.0
   - Redisson 3.40.2
 
+## Documentation Structure
+
+Read the appropriate documentation based on your task:
+
+### Core Knowledge (Read at start of every context)
+**Location**: `docs/`
+
+- **PROJECT_OVERVIEW.md** - 프로젝트 개요, 게임 메커니즘, 이벤트 기반 주가 변동
+- **TECH_STACK.md** - 기술 스택, 공통 명령어, Docker 인프라
+- **ARCHITECTURE.md** - 전체 아키텍처, 서비스 구성, 이벤트 플로우
+- **GIT_BRANCH_STRATEGY.md** - Git 브랜치 전략, 개발 워크플로우, 커밋 규칙
+
+### Domain-Specific Documentation (Read when needed)
+
+- **Backend** (`backend/doc/`): Read when developing backend services
+  - BACKEND_GUIDE.md - 백엔드 개발 가이드 (헥사고날 아키텍처)
+  - API_DESIGN.md - API 설계 가이드
+  - PRICE_MECHANISM.md - 주가 변동 메커니즘 상세 설계
+  - 백엔드_작업단계.md
+
+- **Frontend** (`frontend/doc/`): Read when developing frontend
+  - FRONTEND_GUIDE.md - SvelteKit 개발 가이드 (CSS 규칙, 라우팅, API)
+
+- **Infrastructure** (`infra/doc/`): Read when working on infrastructure
+  - INFRASTRUCTURE_GUIDE.md - 인프라 구축 가이드
+  - CI_CD_*.md - CI/CD 가이드
+
 ## Common Commands
 
 ### Frontend (from `frontend/` directory)
