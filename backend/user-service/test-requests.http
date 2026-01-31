@@ -1,0 +1,193 @@
+### 회원가입 API 테스트
+
+# 1. 정상 회원가입
+POST http://localhost:8081/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "username": "테스트유저",
+  "password": "Test1234!"
+}
+
+###
+
+# 2. 두 번째 사용자 회원가입 (로그인 테스트용)
+POST http://localhost:8081/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "email": "user2@example.com",
+  "username": "유저2",
+  "password": "User1234!"
+}
+
+###
+
+### 로그인 API 테스트
+
+# 3. 정상 로그인
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test1234!"
+}
+
+> {%
+    client.test("로그인 성공", function() {
+        client.assert(response.status === 200);
+        client.assert(response.body.success === true);
+        client.assert(response.headers.valueOf("Set-Cookie").includes("SESSION"));
+    });
+    
+    // Session Cookie 저장 (자동으로 저장됨)
+    client.log("Session ID: " + response.body.data.sessionId);
+%}
+
+###
+
+# 4. 비밀번호 오류
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "WrongPassword123!"
+}
+
+###
+
+# 5. 존재하지 않는 이메일
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "notexist@example.com",
+  "password": "Test1234!"
+}
+
+###
+
+### 현재 사용자 정보 조회 API 테스트
+
+# 6. 현재 사용자 정보 조회 (로그인 후)
+# ⚠️ 먼저 로그인 (#3)을 실행하여 Session Cookie를 받아야 합니다
+GET http://localhost:8081/api/v1/users/me
+
+###
+
+# 7. 현재 사용자 정보 조회 (로그인 안 함)
+GET http://localhost:8081/api/v1/users/me
+# Cookie 없이 요청 -> 401 Unauthorized
+
+###
+
+### 로그아웃 API 테스트
+
+# 8. 로그아웃 (로그인 후)
+POST http://localhost:8081/api/v1/users/logout
+
+> {%
+    client.test("로그아웃 성공", function() {
+        client.assert(response.status === 200);
+        client.assert(response.body.success === true);
+    });
+%}
+
+###
+
+# 9. 로그아웃 후 사용자 정보 조회 (실패해야 함)
+GET http://localhost:8081/api/v1/users/me
+# 로그아웃 후 -> 401 Unauthorized
+
+###
+
+### API Gateway를 통한 요청 테스트 (Docker 환경)
+
+# 10. Gateway를 통한 회원가입
+POST http://localhost:9832/user-service/api/v1/users/signup
+Content-Type: application/json
+
+{
+  "email": "gateway@example.com",
+  "username": "게이트웨이유저",
+  "password": "Gateway123!"
+}
+
+###
+
+# 11. Gateway를 통한 로그인
+POST http://localhost:9832/user-service/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "gateway@example.com",
+  "password": "Gateway123!"
+}
+
+###
+
+# 12. Gateway를 통한 현재 사용자 조회
+GET http://localhost:9832/user-service/api/v1/users/me
+
+###
+
+### 세션 만료 테스트
+
+# 13. Redis에서 세션 확인 (터미널에서 실행)
+# docker exec -it stockSimulator-redis redis-cli -a stocksim123
+# KEYS stock-simulator:session:*
+# GET stock-simulator:session:sessions:{sessionId}
+
+###
+
+### Validation 테스트
+
+# 14. 이메일 형식 오류
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "Test1234!"
+}
+
+###
+
+# 15. 빈 비밀번호
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": ""
+}
+
+###
+
+### 동시 로그인 테스트
+
+# 16. 첫 번째 로그인 (Chrome)
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test1234!"
+}
+
+###
+
+# 17. 두 번째 로그인 (다른 브라우저/Postman)
+# 동일한 사용자로 여러 세션 생성 가능 확인
+POST http://localhost:8081/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test1234!"
+}
+
+###
