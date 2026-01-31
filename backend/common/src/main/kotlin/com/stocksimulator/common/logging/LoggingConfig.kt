@@ -1,5 +1,6 @@
 package com.stocksimulator.common.logging
 
+import jakarta.annotation.PostConstruct
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -10,7 +11,6 @@ import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver
 import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext
-import javax.annotation.PostConstruct
 
 /**
  * 로깅 시스템 설정
