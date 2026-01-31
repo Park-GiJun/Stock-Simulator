@@ -204,9 +204,17 @@ jobs:
           
           # Pull latest code
           echo "📥 Pulling latest code..."
+          
+          # Stash any local changes
+          git stash push -m "Auto-stash before deployment ${VERSION}"
+          
+          # Fetch tags
           git tag -d ${VERSION} 2>/dev/null || true
           git fetch --tags --force
-          git checkout ${VERSION} || git checkout main
+          git fetch origin
+          
+          # Checkout version tag or master branch
+          git checkout ${VERSION} || git checkout master || git checkout main
           
           echo "🔐 Logging into GitHub Container Registry..."
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
