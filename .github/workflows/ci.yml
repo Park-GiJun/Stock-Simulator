@@ -2,9 +2,9 @@ name: CI - Continuous Integration
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [develop]  # develop 브랜치만 직접 push시 CI 실행
   pull_request:
-    branches: [main, master, develop]
+    branches: [main, master]  # PR 생성/업데이트시 CI 실행
 
 env:
   JAVA_VERSION: '25'
