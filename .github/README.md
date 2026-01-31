@@ -1,435 +1,427 @@
-# GitHub Actions 워크플로우 가이드
+# 📈 Stock Simulator
 
-## 📚 목차
+> AI 기반 이벤트 주도형 모의 주식 거래 게임
 
-- [빠른 시작](#-빠른-시작)
-- [워크플로우 목록](#-워크플로우-목록)
-- [설정 가이드](#-설정-가이드)
-- [배포 가이드](#-배포-가이드)
-- [트러블슈팅](#-트러블슈팅)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-7F52FF?logo=kotlin)](https://kotlinlang.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-6DB33F?logo=spring)](https://spring.io/projects/spring-boot)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-2.49-FF3E00?logo=svelte)](https://kit.svelte.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
----
+## 🎯 프로젝트 개요
 
-## 🚀 빠른 시작
+Stock Simulator는 **AI 기반의 동적 시장 생태계**를 제공하는 모의 주식 거래 게임입니다. 실시간 IPO/상장폐지, NPC 투자자 생성, AI 뉴스 이벤트가 주가에 영향을 주는 생동감 있는 주식 시장을 경험할 수 있습니다.
 
-### 1단계: SSH Key 생성
+### ✨ 핵심 기능
+
+- 🏢 **동적 기업 생태계**: 30분마다 IPO, 1시간마다 상장폐지 (조건 기반)
+- 🤖 **AI 투자자**: 개인 투자자(10분), 기관 투자자(2시간) 자동 생성
+- 📰 **AI 뉴스 시스템**: 사회/산업/기업 레벨 이벤트로 주가 변동
+- 📊 **실시간 호가창**: Redis 기반 실시간 주문 체결
+- ⏱️ **시간 가속**: 현실 1시간 = 게임 4시간 (하루 3시간에 24시간 게임 진행)
+- 🔄 **연속 게임**: 시즌 리셋 없이 지속적으로 진화하는 시장
+
+### 🎮 게임 메커니즘
+
+| 항목 | 설명 |
+|------|------|
+| **시간 비율** | 1:4 (현실 1시간 = 게임 4시간) |
+| **거래 시간** | 게임 09:00~21:00 (실제 3시간) |
+| **초기 자본** | 5,000,000원 |
+| **총 종목 수** | 동적 (초기 ~500개, IPO/상장폐지로 변동) |
+| **산업 분야** | IT, 농업, 제조, 서비스, 부동산, 명품, 식품 |
+| **시가총액** | SMALL(~100억), MID(~1000억), LARGE(~1조) |
+
+## 🏗️ 기술 스택
+
+### Frontend
+```
+SvelteKit 2.49  +  Svelte 5  +  TypeScript  +  TailwindCSS 4.1
+```
+- **패키지 매니저**: pnpm
+- **빌드 도구**: Vite 7.2
+- **UI 라이브러리**: Lucide Icons
+- **모니터링**: prom-client
+
+### Backend
+```
+Kotlin 2.3.0  +  Spring Boot 4.0.1  +  Spring Cloud 2025.1.1
+```
+- **아키텍처**: Microservices (Hexagonal Architecture)
+- **빌드 도구**: Gradle Kotlin DSL
+- **주요 라이브러리**:
+  - Spring WebFlux (비동기 처리)
+  - Spring Data JPA + Kotlin JDSL 3.6.0
+  - kotlinx.coroutines 1.10.2
+  - Redisson 3.40.2 (Redis 클라이언트)
+
+### Infrastructure
+```
+Docker Compose  +  Kafka  +  PostgreSQL  +  MongoDB  +  Redis
+```
+
+| 서비스 | 포트 | 용도 |
+|--------|------|------|
+| API Gateway | 9832 | API 라우팅 |
+| Eureka | 8761 | 서비스 디스커버리 |
+| PostgreSQL | 5432 | 관계형 데이터 (Primary) |
+| PostgreSQL Replica | 5433 | 읽기 전용 복제본 |
+| MongoDB | 27018 | 로그, 뉴스 |
+| Redis | 6380 | 캐시, 호가창, 랭킹 |
+| Kafka | 9093 | 이벤트 스트리밍 |
+| Kafka UI | 8089 | Kafka 모니터링 |
+| Elasticsearch | 9201 | 검색 엔진 |
+| Prometheus | 9091 | 메트릭 수집 |
+| Grafana | 3001 | 대시보드 (admin/stocksim123) |
+
+## 📁 프로젝트 구조
+
+```
+Stock-Simulator/
+├── frontend/                    # SvelteKit 애플리케이션
+│   ├── src/
+│   │   ├── lib/
+│   │   │   ├── api/            # API 클라이언트
+│   │   │   ├── components/     # 재사용 컴포넌트
+│   │   │   └── styles/         # 글로벌 CSS (CSS 변수)
+│   │   └── routes/
+│   │       ├── (desktop)/      # 데스크톱 라우트
+│   │       └── m/              # 모바일 라우트
+│   └── package.json
+│
+├── backend/                     # Kotlin/Spring Boot MSA
+│   ├── common/                 # 공유 모듈 (DTO, 이벤트, 예외)
+│   ├── eureka-server/          # 서비스 디스커버리
+│   ├── api-gateway/            # API 게이트웨이
+│   ├── user-service/           # 인증, 사용자 관리
+│   ├── stock-service/          # 주식, 가격 관리
+│   ├── trading-service/        # 주문, 포트폴리오 관리
+│   ├── event-service/          # 게임 이벤트 관리
+│   ├── scheduler-service/      # IPO/상장폐지, 투자자 생성
+│   └── news-service/           # AI 뉴스 생성
+│
+├── infra/                       # 인프라 설정
+│   ├── grafana/provisioning/   # Grafana 대시보드
+│   └── prometheus/             # Prometheus 설정
+│
+├── doc/                         # 한글 설계 문서
+├── docker-compose.yml
+├── .env.example
+└── build.gradle.kts
+```
+
+### Backend 서비스 아키텍처 (Hexagonal)
+
+```
+{service}/
+└── src/main/kotlin/com/stocksimulator/{service}/
+    ├── domain/              # 엔티티, 도메인 로직
+    ├── application/         # 유스케이스, 서비스
+    └── adapter/
+        ├── in/web/         # REST 컨트롤러
+        └── out/persistence/ # JPA 리포지토리
+```
+
+## 🚀 시작하기
+
+### 사전 요구사항
+
+- **Docker** & **Docker Compose**
+- **Java 21+** (백엔드 개발 시)
+- **Node.js 20+** & **pnpm** (프론트엔드 개발 시)
+- **Kotlin 2.3.0+** (백엔드 개발 시)
+
+### 1. 환경 변수 설정
 
 ```bash
-# 서버에서 실행
-ssh gijunpark@172.30.1.79
-ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_actions
-cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
-cat ~/.ssh/github_actions  # 내용 복사
+cp .env.example .env
 ```
 
-### 2단계: GitHub Secrets 설정
+`.env` 파일 수정 (주요 항목):
+```env
+# 인프라 호스트 (Docker 환경)
+EUREKA_HOST=172.30.1.79
+POSTGRES_HOST=172.30.1.79
+REDIS_HOST=172.30.1.79
+MONGO_HOST=172.30.1.79
+KAFKA_HOST=172.30.1.79
 
-1. Repository → Settings → Secrets and variables → Actions
-2. New repository secret → `SSH_PRIVATE_KEY` (private key 내용 붙여넣기)
+# 데이터베이스 인증
+POSTGRES_USER=stocksim
+POSTGRES_PASSWORD=stocksim123
+MONGO_USER=stocksim
+MONGO_PASSWORD=stocksim123
+REDIS_PASSWORD=stocksim123
 
-### 3단계: GitHub Environments 생성
+# Spring 프로필
+SPRING_PROFILES_ACTIVE=docker
+```
 
-1. Repository → Settings → Environments
-2. 다음 3개 환경 생성 (모두 Required reviewers 설정):
-   - `production`
-   - `production-approval`
-   - `production-rollback`
-
-### 4단계: 첫 배포
+### 2. Docker 컨테이너 실행
 
 ```bash
-git tag -a v1.0.0 -m "First production release"
-git push origin v1.0.0
-# GitHub Actions에서 승인 후 배포 완료!
-```
+# 전체 서비스 시작
+docker-compose --profile all up -d
 
-자세한 설명은 [QUICKSTART.md](QUICKSTART.md) 참조
+# 빌드와 함께 시작
+docker-compose --profile all up -d --build
 
----
-
-## 📋 워크플로우 목록
-
-### 1. CI - Continuous Integration
-**파일:** `.github/workflows/ci.yml`  
-**트리거:** 모든 브랜치 push, Pull Request  
-**설명:** 코드 품질 검사 및 빌드
-
-```yaml
-Jobs:
-  - test-backend: 백엔드 단위 테스트 (PostgreSQL, MongoDB, Redis)
-  - build-backend: 모든 백엔드 서비스 JAR 빌드
-  - lint-frontend: ESLint, TypeScript 타입 체크
-  - build-frontend: SvelteKit 프로덕션 빌드
-  - ci-summary: CI 결과 요약
-```
-
-### 2. Deploy to Production
-**파일:** `.github/workflows/deploy-production.yml`  
-**트리거:** Git tag (v*.*.*), Manual workflow_dispatch  
-**설명:** 프로덕션 배포 (수동 승인 필요)
-
-```yaml
-Jobs:
-  1. validate: 버전 형식 검증
-  2. build-and-push: Docker 이미지 빌드 & ghcr.io에 푸시
-  3. manual-approval: 🚨 수동 승인 대기
-  4. backup-production: DB 및 설정 백업
-  5. deploy: Rolling update 배포
-  6. health-check: 헬스체크
-  7. smoke-test: 외부 URL 테스트
-  8. rollback-on-failure: 실패시 자동 롤백
-  9. deployment-summary: 배포 결과 요약
-```
-
-### 3. Rollback Deployment
-**파일:** `.github/workflows/rollback.yml`  
-**트리거:** Manual workflow_dispatch  
-**설명:** 이전 버전으로 롤백
-
-```yaml
-Jobs:
-  1. validate-rollback: 이미지 존재 확인
-  2. backup-current: 현재 상태 백업
-  3. manual-approval: 🚨 수동 승인 대기
-  4. rollback: 롤백 실행
-  5. health-check: 헬스체크 & 외부 URL 테스트
-```
-
-### 4. Security Scan
-**파일:** `.github/workflows/security-scan.yml`  
-**트리거:** Push, PR, 주 1회 자동, Manual  
-**설명:** 보안 취약점 스캔
-
-```yaml
-Jobs:
-  - trivy-container-scan: Docker 이미지 취약점 스캔
-  - trivy-code-scan: 코드 취약점 스캔
-  - dependency-check-backend: OWASP Dependency Check
-  - dependency-check-frontend: npm audit
-  - codeql-analysis: CodeQL 정적 분석
-```
-
----
-
-## 🔧 설정 가이드
-
-### 필수 GitHub Secrets
-
-| Secret 이름 | 설명 | 예시 |
-|------------|------|------|
-| `SSH_PRIVATE_KEY` | 서버 SSH private key (필수) | `-----BEGIN OPENSSH...` |
-| `SLACK_WEBHOOK_URL` | Slack 알림 Webhook (선택) | `https://hooks.slack.com/...` |
-
-### GitHub Environments
-
-3개 환경 모두 **Required reviewers** 설정 필요:
-
-1. **production**
-   - 프로덕션 배포 최종 단계
-   - URL: https://gijun.net
-
-2. **production-approval**
-   - 프로덕션 배포 수동 승인 단계
-
-3. **production-rollback**
-   - 롤백 수동 승인 단계
-
-### 서버 환경
-
-```bash
-# 서버 정보
-Host: 172.30.1.79
-User: gijunpark
-Path: ~/Stock-Simulator
-
-# 필수 디렉토리
-~/Stock-Simulator/          # 프로젝트 루트
-~/production-backups/       # 배포 전 백업
-~/rollback-backups/         # 롤백 전 백업
-
-# 필수 파일
-~/Stock-Simulator/.env      # 환경변수 설정
-```
-
----
-
-## 📦 배포 가이드
-
-### 배포 플로우
-
-```mermaid
-graph TD
-    A[코드 Push] --> B[CI 자동 실행]
-    B --> C{CI 성공?}
-    C -->|No| D[배포 중단]
-    C -->|Yes| E[Git Tag 생성]
-    E --> F[Docker 이미지 빌드]
-    F --> G[🚨 Manual Approval]
-    G --> H[프로덕션 백업]
-    H --> I[Rolling Update]
-    I --> J[헬스체크]
-    J --> K{성공?}
-    K -->|Yes| L[✅ 배포 완료]
-    K -->|No| M[자동 롤백]
-```
-
-### Git Tag로 배포 (권장)
-
-```bash
-# 1. 코드 커밋
-git add .
-git commit -m "feat: 새 기능 추가"
-git push origin main
-
-# 2. 태그 생성
-git tag -a v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
-
-# 3. GitHub Actions 확인
-# https://github.com/<your-repo>/actions
-
-# 4. Manual Approval 승인
-# production-approval environment에서 승인
-
-# 5. 배포 완료 확인
-# https://gijun.net
-```
-
-### Manual Dispatch로 배포
-
-1. GitHub → Actions → **Deploy to Production**
-2. **Run workflow** 클릭
-3. Version 입력 (예: `v1.0.0`)
-4. **Run workflow** 클릭
-5. Manual Approval 승인
-6. 배포 진행
-
-### 버전 규칙
-
-- **형식:** `vX.Y.Z` (Semantic Versioning)
-- **예시:**
-  - `v1.0.0` - 첫 배포
-  - `v1.0.1` - 버그 수정
-  - `v1.1.0` - 새 기능 추가
-  - `v2.0.0` - 호환성 없는 변경
-
----
-
-## 🔄 롤백 가이드
-
-### 롤백이 필요한 경우
-
-- 배포 후 심각한 버그 발견
-- 서비스 장애 발생
-- 성능 문제 발생
-
-### 롤백 실행
-
-1. GitHub → Actions → **Rollback Deployment**
-2. **Run workflow** 클릭
-3. 입력 필드:
-   - **version**: 롤백할 버전 (예: `v1.0.0`)
-   - **reason**: 롤백 사유 (예: "Critical bug in payment")
-4. **Run workflow** 클릭
-5. Manual Approval 승인
-6. 롤백 진행
-
-### 롤백 후 확인
-
-```bash
-# 서버 접속
-ssh gijunpark@172.30.1.79
-cd ~/Stock-Simulator
-
-# 컨테이너 상태 확인
+# 상태 확인
 docker-compose --profile all ps
 
 # 로그 확인
-docker logs stockSimulator-frontend -f
-docker logs stockSimulator-api-gateway -f
-
-# 외부 접근 테스트
-curl https://gijun.net
-curl https://api.gijun.net/actuator/health
+docker logs stockSimulator-<service-name> 2>&1 | tail -50
 ```
 
----
-
-## 🔍 모니터링
-
-### GitHub Actions 로그
-
-- Repository → **Actions** → 워크플로우 선택
-- 각 Job 클릭하여 상세 로그 확인
-- Summary에서 배포 결과 요약
-
-### 서버 모니터링
-
-#### Grafana Dashboard
-- URL: http://172.30.1.79:3001
-- 로그인: admin / stocksim123
-- Dashboard: "Stock Simulator - Services Overview"
-
-#### Prometheus Metrics
-- URL: http://172.30.1.79:9091
-- Targets: http://172.30.1.79:9091/targets
-
-#### Eureka Service Registry
-- URL: http://172.30.1.79:8761
-- 모든 마이크로서비스 등록 상태 확인
-
-### 서버 로그 확인
-
+**프로필별 실행:**
 ```bash
-# 전체 서비스 상태
-docker-compose --profile all ps
-
-# 특정 서비스 로그
-docker logs stockSimulator-<service-name> -f
-
-# 최근 50줄 로그
-docker logs stockSimulator-<service-name> --tail=50
-
-# 로그 필터링 (에러만)
-docker logs stockSimulator-<service-name> 2>&1 | grep ERROR
+docker-compose --profile infra up -d       # 인프라만
+docker-compose --profile services up -d    # 마이크로서비스만
+docker-compose --profile monitoring up -d  # 모니터링만
 ```
 
----
+### 3. 서비스 확인
 
-## 🆘 트러블슈팅
+- **Eureka Dashboard**: http://localhost:8761
+- **Grafana**: http://localhost:3001 (admin/stocksim123)
+- **Prometheus**: http://localhost:9091
+- **Kafka UI**: http://localhost:8089
+- **API Gateway**: http://localhost:9832
 
-### CI 실패
+## 💻 개발 가이드
 
-#### Backend Tests 실패
+### Frontend 개발
+
 ```bash
-# 로컬에서 테스트 실행
-cd backend
+cd frontend
+
+# 의존성 설치
+pnpm install
+
+# 개발 서버 실행 (http://localhost:5173)
+pnpm run dev
+
+# 프로덕션 빌드
+pnpm run build
+
+# 타입 체크
+pnpm run check
+
+# 코드 포맷팅
+pnpm run format
+
+# 린트
+pnpm run lint
+```
+
+**중요 규칙:**
+- ✅ 모든 스타일은 `src/styles/` 내 별도 CSS 파일로 관리
+- ❌ Svelte 컴포넌트 내 `<style>` 태그 사용 금지
+- 📱 모바일 라우트: `/m/페이지명`, 데스크톱: `/페이지명`
+- 🎨 CSS 변수로 다크/라이트 모드 지원
+
+### Backend 개발
+
+```bash
+# 전체 빌드
+./gradlew build -x test
+
+# 특정 서비스 빌드
+./gradlew :backend:user-service:build
+
+# 클린 빌드
+./gradlew clean build -x test
+
+# 테스트 실행
 ./gradlew test
 
-# 특정 서비스만 테스트
-./gradlew :user-service:test
+# 특정 서비스 실행 (로컬)
+./gradlew :backend:user-service:bootRun
 ```
 
-#### Frontend Build 실패
-```bash
-# 로컬에서 빌드 테스트
-cd frontend
-pnpm install
-pnpm run check
-pnpm run build
+**서비스별 설정 파일:**
+- `application.yml`: 로컬 개발 (localhost)
+- `application-docker.yml`: Docker 환경 (환경 변수 사용)
+
+## 🎪 이벤트 기반 시장 동역학
+
+### Kafka 이벤트 토픽
+
+| 토픽 | 발행자 | 구독자 | 설명 |
+|------|--------|--------|------|
+| `stock.listed` | Scheduler | Stock Service | IPO (신규 상장) |
+| `stock.delisted` | Scheduler | Stock Service | 상장폐지 |
+| `investor.created` | Scheduler | Trading Service | NPC/기관 투자자 생성 |
+| `price.updated` | Stock Service | 전체 | 주가 변동 |
+| `orderbook.updated` | Trading Service | 전체 | 호가창 변경 |
+| `event.occurred` | Event Service | Stock Service | 게임 이벤트 발생 |
+| `news.published` | News Service | 전체 | AI 뉴스 발행 |
+
+### IPO & 상장폐지 스케줄
+
+```
+┌─────────────────────────────────────────┐
+│  Scheduler Service (매 30분)            │
+│  ├─ 30% 확률로 IPO 실행                 │
+│  │  ├─ 랜덤 기업명, 섹터, 초기가 생성   │
+│  │  └─ Kafka: stock.listed             │
+│  └─ Stock Service가 종목 등록           │
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│  Scheduler Service (매 1시간)           │
+│  ├─ 10% 확률로 상장폐지 조건 검사       │
+│  │  ├─ 조건: 낮은 시가총액/거래량      │
+│  │  └─ Kafka: stock.delisted           │
+│  └─ Stock Service가 종목 상태 변경      │
+└─────────────────────────────────────────┘
 ```
 
-### 배포 실패
+### 투자자 생성 스케줄
 
-#### SSH 연결 실패
-- GitHub Secret `SSH_PRIVATE_KEY` 확인
-- 서버 방화벽 설정 확인
-- SSH 포트 열려있는지 확인 (기본 22)
+```
+┌─────────────────────────────────────────┐
+│  개인 투자자 (매 10분)                   │
+│  ├─ 1~3명 생성                          │
+│  ├─ 자본금: 20만 ~ 1억원                │
+│  ├─ 주간 수입: 자본금의 5%              │
+│  └─ 스타일: AGGRESSIVE/STABLE/VALUE/RANDOM │
+└─────────────────────────────────────────┘
 
-```bash
-# 로컬에서 SSH 테스트
-ssh gijunpark@172.30.1.79
+┌─────────────────────────────────────────┐
+│  기관 투자자 (매 2시간, 50% 확률)       │
+│  ├─ 1개 기관 생성                       │
+│  ├─ 자본금: 10억 ~ 1조원                │
+│  ├─ 일간 수입: 자본금의 1%              │
+│  └─ 스타일: AGGRESSIVE/STABLE/VALUE     │
+└─────────────────────────────────────────┘
 ```
 
-#### Docker 이미지 Pull 실패
-- GitHub Token 권한 확인
-- GitHub Container Registry 접근 가능한지 확인
+## 📊 모니터링
 
-```bash
-# 서버에서 수동 로그인 테스트
-echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
-```
+### Grafana 대시보드
 
-#### 헬스체크 실패
-- 서비스가 정상적으로 시작되었는지 확인
-- 대기 시간 충분한지 확인 (현재 60초)
-- Eureka에 서비스 등록되었는지 확인
+**URL**: http://localhost:3001  
+**로그인**: admin / stocksim123
 
-```bash
-# 헬스체크 수동 확인
-curl http://localhost:8761/actuator/health
-curl http://localhost:9832/actuator/health
-curl http://localhost:8080
+**"Stock Simulator - Services Overview" 대시보드 포함:**
+- ✅ 서비스 상태 (UP/DOWN)
+- 📈 서비스별 요청률
+- ⏱️ 응답 시간 (p95)
+- 💾 JVM 메모리 사용량
+- 🖥️ CPU 사용률
+- 🧵 스레드 수
+- 🔌 DB 커넥션 풀 상태
 
-# Eureka 등록 확인
-curl http://localhost:8761/eureka/apps
-```
+### Prometheus Metrics
 
-### 롤백 실패
+모든 서비스는 `/actuator/prometheus` 엔드포인트로 메트릭 노출  
+**타겟 확인**: http://localhost:9091/targets
 
-#### 이미지가 없는 경우
-- 해당 버전의 이미지가 ghcr.io에 존재하는지 확인
-- GitHub Packages에서 이미지 목록 확인
+## 🔧 문제 해결
 
-#### 수동 복구
+### 1. Kafka Cluster ID Mismatch
 
-```bash
-# 서버 접속
-ssh gijunpark@172.30.1.79
-cd ~/Stock-Simulator
+**증상**: `InconsistentClusterIdException` 에러
 
-# 최신 백업 확인
-ls -lt ~/production-backups/
-
-# 백업에서 복구
-BACKUP_DIR=~/production-backups/<latest-backup>
-cp $BACKUP_DIR/.env .env
-docker-compose --profile all down
-docker-compose --profile all up -d
-```
-
-### 일반적인 문제
-
-#### Kafka Cluster ID Mismatch
+**해결**:
 ```bash
 docker-compose --profile all down
 docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
 docker-compose --profile all up -d
 ```
 
-#### PostgreSQL 연결 실패
-```bash
-# PostgreSQL 상태 확인
-docker exec stockSimulator-postgres pg_isready -U stocksim
+### 2. Eureka 서버 포트 오류
 
-# 로그 확인
-docker logs stockSimulator-postgres
+**증상**: Eureka가 8080 포트에서 시작됨
+
+**해결**: `docker-compose.yml`에 `SERVER_PORT` 환경 변수 확인
+
+### 3. 서비스 Eureka 연결 실패
+
+**증상**: `Connection refused: localhost:8761`
+
+**해결**: `application-docker.yml`에서 `eureka-server:8761` 사용 확인
+
+### 4. 데이터베이스 초기화
+
+```bash
+# PostgreSQL 스키마 재생성
+docker exec -it stockSimulator-postgres psql -U stocksim -d stocksim -f /docker-entrypoint-initdb.d/init-schemas.sql
+
+# MongoDB 데이터 삭제
+docker exec -it stockSimulator-mongo mongosh -u stocksim -p stocksim123 --eval "use stocksim; db.dropDatabase();"
+
+# Redis 캐시 클리어
+docker exec -it stockSimulator-redis redis-cli -a stocksim123 FLUSHALL
 ```
 
-#### Redis 연결 실패
-```bash
-# Redis 상태 확인
-docker exec stockSimulator-redis redis-cli -a stocksim123 ping
+## 📚 주요 문서
 
-# 로그 확인
-docker logs stockSimulator-redis
-```
+`doc/` 디렉토리의 설계 문서:
+- `모의주식게임_기획서_v1.0.md` - 기능 명세서
+- `모의주식게임_개발로드맵.md` - 개발 로드맵
+- `인프라_구축_진행상황.md` - 인프라 구축 진행상황
+- `SVELTEKIT_DEVELOPMENT_TEMPLATE.md` - 프론트엔드 개발 가이드
+
+## 🗺️ 로드맵
+
+- [x] **Phase 1**: Docker 인프라 구축
+  - [x] PostgreSQL (Primary + Replica)
+  - [x] MongoDB, Redis, Kafka
+  - [x] Prometheus, Grafana
+- [x] **Phase 2**: Backend MSA 구현
+  - [x] Eureka, API Gateway
+  - [x] 7개 마이크로서비스
+- [ ] **Phase 3**: 이벤트 시스템
+  - [x] IPO/상장폐지 스케줄러
+  - [x] 투자자 생성 스케줄러
+  - [ ] AI 뉴스 생성
+- [ ] **Phase 4**: Frontend 구현
+  - [ ] 인증/대시보드
+  - [ ] 주식 목록/상세
+  - [ ] 호가창/거래
+  - [ ] 포트폴리오/랭킹
+- [ ] **Phase 5**: AI 통합
+  - [ ] OpenAI GPT 기반 뉴스 생성
+  - [ ] NPC 투자 전략 AI
+- [ ] **Phase 6**: 배포
+  - [ ] CI/CD 파이프라인
+  - [ ] 프로덕션 환경 구성
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+**코드 스타일:**
+- Kotlin: [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html)
+- TypeScript: Prettier (tabs, single quotes, 100 chars)
+- Svelte 5 Runes 문법 사용
+
+## 📝 라이선스
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 제작자
+
+**Stock Simulator Team**
+
+- 기획/개발: [Your Name]
+- 문의: [your.email@example.com]
+
+## 🙏 감사의 글
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [SvelteKit](https://kit.svelte.dev/)
+- [Kotlin](https://kotlinlang.org/)
+- [Docker](https://www.docker.com/)
 
 ---
 
-## 📞 지원
-
-### 도움이 필요하신가요?
-
-- **GitHub Issues**: 버그 리포트 및 기능 요청
-- **GitHub Discussions**: 질문 및 토론
-- **Documentation**: [SETUP_GUIDE.md](SETUP_GUIDE.md), [QUICKSTART.md](QUICKSTART.md)
-
-### 유용한 링크
-
-- [GitHub Actions 문서](https://docs.github.com/en/actions)
-- [Docker Compose 문서](https://docs.docker.com/compose/)
-- [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)
-- [SvelteKit 문서](https://kit.svelte.dev/docs)
-
----
-
-## 📜 변경 이력
-
-### v1.0.0 (2026-01-29)
-- ✨ CI 워크플로우 추가
-- ✨ Production 배포 워크플로우 추가 (수동 승인 필요)
-- ✨ Rollback 워크플로우 추가
-- ✨ Security Scan 워크플로우 유지
-- 📝 설정 가이드 작성
-- 🔧 단일 프로덕션 서버 환경으로 최적화
+<div align="center">
+Made with ❤️ by Stock Simulator Team
+</div>
