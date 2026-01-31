@@ -5,8 +5,54 @@ import {
 	activeRequests,
 	pageViews,
 	errorsTotal,
-	ssrRenderDuration
+	ssrRenderDuration,
+	suspiciousRequestsTotal
 } from '$lib/server/metrics';
+
+// Patterns for detecting malicious/suspicious requests
+const SUSPICIOUS_PATTERNS = {
+	env_files: /\.(env|environment|envs|envrc)($|\.)/i,
+	config_files: /\.(yml|yaml|json|ini|conf|config|xml|properties)($|\.)/i,
+	backup_files: /\.(bak|backup|old|save|sql|tar\.gz|zip)$/i,
+	sensitive_paths: /\/(\.aws|\.azure|\.gcloud|\.git|\.docker|\.github|\.gitlab|\.circleci|\.bitbucket)\//i,
+	secrets: /(secret|credential|token|password|api[_-]?key|stripe|payment|oauth)/i,
+	php_files: /\.(php|asp|aspx|jsp)$/i,
+	admin_paths: /\/(admin|administrator|phpinfo|diagnostic|probe|check|test)\.php$/i,
+	docker_files: /(docker-compose|Dockerfile|\.dockerignore|\.dockerenv)/i
+};
+
+/**
+ * Detect if a request is suspicious (security scanning, hacking attempt, etc.)
+ */
+function isSuspiciousRequest(pathname: string): { suspicious: boolean; patternType?: string } {
+	// Check each pattern
+	if (SUSPICIOUS_PATTERNS.env_files.test(pathname)) {
+		return { suspicious: true, patternType: 'env_files' };
+	}
+	if (SUSPICIOUS_PATTERNS.config_files.test(pathname)) {
+		return { suspicious: true, patternType: 'config_files' };
+	}
+	if (SUSPICIOUS_PATTERNS.backup_files.test(pathname)) {
+		return { suspicious: true, patternType: 'backup_files' };
+	}
+	if (SUSPICIOUS_PATTERNS.sensitive_paths.test(pathname)) {
+		return { suspicious: true, patternType: 'sensitive_paths' };
+	}
+	if (SUSPICIOUS_PATTERNS.secrets.test(pathname)) {
+		return { suspicious: true, patternType: 'secrets' };
+	}
+	if (SUSPICIOUS_PATTERNS.php_files.test(pathname)) {
+		return { suspicious: true, patternType: 'php_files' };
+	}
+	if (SUSPICIOUS_PATTERNS.admin_paths.test(pathname)) {
+		return { suspicious: true, patternType: 'admin_paths' };
+	}
+	if (SUSPICIOUS_PATTERNS.docker_files.test(pathname)) {
+		return { suspicious: true, patternType: 'docker_files' };
+	}
+
+	return { suspicious: false };
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const start = performance.now();
@@ -17,6 +63,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// Skip metrics endpoint to avoid recursion
 	if (route === '/metrics') {
 		return resolve(event);
+	}
+
+	// Check if request is suspicious
+	const { suspicious, patternType } = isSuspiciousRequest(route);
+
+	// Track suspicious requests separately
+	if (suspicious && patternType) {
+		suspiciousRequestsTotal.inc({ method, pattern_type: patternType });
+		
+		// Log suspicious request (optional)
+		console.warn('[SECURITY] Suspicious request detected:', {
+			method,
+			path: route,
+			pattern: patternType,
+			ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+			userAgent: request.headers.get('user-agent')
+		});
+		
+		// Return early for suspicious requests - don't track in normal metrics
+		return new Response('Not Found', { status: 404 });
 	}
 
 	// Track active requests
@@ -45,7 +111,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const statusCode = response.status.toString();
 		const duration = (performance.now() - start) / 1000;
 
-		// Track request metrics
+		// Track request metrics (only for legitimate requests)
 		httpRequestsTotal.inc({
 			method,
 			route: normalizeRoute(route),

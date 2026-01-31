@@ -19,6 +19,14 @@ export const httpRequestsTotal = new client.Counter({
 	registers: [register]
 });
 
+// Suspicious request counter (separate from normal metrics)
+export const suspiciousRequestsTotal = new client.Counter({
+	name: 'sveltekit_suspicious_requests_total',
+	help: 'Total number of suspicious/malicious requests (e.g., scanning for .env, config files)',
+	labelNames: ['method', 'pattern_type'] as const,
+	registers: [register]
+});
+
 // HTTP request duration histogram
 export const httpRequestDuration = new client.Histogram({
 	name: 'sveltekit_http_request_duration_seconds',
