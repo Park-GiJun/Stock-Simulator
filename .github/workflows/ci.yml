@@ -2,12 +2,12 @@ name: CI - Continuous Integration
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25'
   NODE_VERSION: '20'
   PNPM_VERSION: '8'
 
