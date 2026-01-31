@@ -33,13 +33,13 @@ class UserQueryHandler(
         // 1. 이메일로 사용자 조회
         val user = userPersistencePort.findByEmail(command.email)
             ?: run {
-                log.warn("사용자를 찾을 수 없음", mapOf("email" to command.email))
+                log.warn("사용자를 찾을 수 없음", metadata = mapOf("email" to command.email))
                 throw ResourceNotFoundException(ErrorCode.USER_NOT_FOUND, "이메일 또는 비밀번호가 일치하지 않습니다")
             }
 
         // 2. 비밀번호 검증
         if (!passwordEncoder.matches(command.password, user.password)) {
-            log.warn("비밀번호 불일치", mapOf("userId" to user.userId))
+            log.warn("비밀번호 불일치", metadata = mapOf("userId" to user.userId))
             throw InvalidInputException(ErrorCode.INVALID_PASSWORD, "이메일 또는 비밀번호가 일치하지 않습니다")
         }
 
@@ -62,7 +62,7 @@ class UserQueryHandler(
 
         val user = userPersistencePort.findById(userId)
             ?: run {
-                log.warn("사용자를 찾을 수 없음", mapOf("userId" to userId))
+                log.warn("사용자를 찾을 수 없음", metadata = mapOf("userId" to userId))
                 throw ResourceNotFoundException(ErrorCode.USER_NOT_FOUND)
             }
 

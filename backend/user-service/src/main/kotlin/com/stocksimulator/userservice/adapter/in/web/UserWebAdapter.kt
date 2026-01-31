@@ -158,7 +158,7 @@ class UserWebAdapter(
         // Session에서 userId 추출
         val userId = webSession.getAttribute<Long>("userId")
             ?: run {
-                log.warn("인증되지 않은 요청", mapOf("sessionId" to webSession.id))
+                log.warn("인증되지 않은 요청", metadata = mapOf("sessionId" to webSession.id))
                 return@mono ApiResponse.error<UserResponse>("인증이 필요합니다", "A001")
                     .toResponseEntity(HttpStatus.UNAUTHORIZED)
             }

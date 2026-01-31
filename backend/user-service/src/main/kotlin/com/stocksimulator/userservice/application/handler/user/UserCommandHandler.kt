@@ -36,13 +36,13 @@ class UserCommandHandler(
 
         // 1. 이메일 중복 검증
         userPersistencePort.findByEmail(command.email)?.let {
-            log.warn("이메일 중복", mapOf("email" to command.email))
+            log.warn("이메일 중복", metadata = mapOf("email" to command.email))
             throw DuplicateResourceException(ErrorCode.DUPLICATE_EMAIL)
         }
 
         // 2. 닉네임 중복 검증
         userPersistencePort.findByUsername(command.username)?.let {
-            log.warn("닉네임 중복", mapOf("username" to command.username))
+            log.warn("닉네임 중복", metadata = mapOf("username" to command.username))
             throw DuplicateResourceException(ErrorCode.DUPLICATE_NICKNAME)
         }
 
