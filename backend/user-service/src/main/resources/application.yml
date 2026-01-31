@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: user-service
+  session:
+    store-type: redis
+    timeout: 30m
+    redis:
+      namespace: stock-simulator:session
+      flush-mode: on_save
   datasource:
     url: jdbc:postgresql://localhost:5432/stocksimulator?currentSchema=users
     username: stocksim

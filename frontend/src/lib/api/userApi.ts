@@ -1,120 +1,81 @@
-// User API - Authentication and user related API functions
+// User API - Session-based Authentication (Redis Session)
 import { api, useMock, type ApiResponse } from './api.js';
-import type { User, UserProfile } from '$lib/types/user.js';
+import type {
+	User,
+	LoginRequest,
+	SignupRequest,
+	SignUpResponse,
+	LoginResponse
+} from '$lib/types/user.js';
 import { getMockUser } from '$lib/mock/user.js';
-import { browser } from '$app/environment';
 
-// Types
-export interface LoginRequest {
-	email: string;
-	password: string;
-}
-
-export interface RegisterRequest {
-	email: string;
-	password: string;
-	username: string;
-}
-
-export interface AuthResponse {
-	user: User;
-	accessToken: string;
-	refreshToken: string;
-}
-
-export interface UpdateProfileRequest {
-	username?: string;
-	avatarUrl?: string;
-}
-
-// API Endpoints
+// API Endpoints (API Gateway를 통한 요청)
 const ENDPOINTS = {
-	login: '/api/auth/login',
-	register: '/api/auth/register',
-	logout: '/api/auth/logout',
-	refresh: '/api/auth/refresh',
-	me: '/api/users/me',
-	profile: '/api/users/profile',
-	updateProfile: '/api/users/profile'
+	signup: '/user-service/api/v1/users/signup',
+	login: '/user-service/api/v1/users/login',
+	logout: '/user-service/api/v1/users/logout',
+	me: '/user-service/api/v1/users/me'
 };
 
-// Token management
-export function setTokens(accessToken: string, refreshToken: string): void {
-	if (!browser) return;
-	localStorage.setItem('accessToken', accessToken);
-	localStorage.setItem('refreshToken', refreshToken);
+/**
+ * 회원가입
+ * @param data 회원가입 데이터 (email, username, password)
+ * @returns SignUpResponse (userId, email, username)
+ */
+export async function signup(data: SignupRequest): Promise<ApiResponse<SignUpResponse>> {
+	if (useMock()) {
+		const mockResponse: SignUpResponse = {
+			userId: Math.floor(Math.random() * 10000),
+			username: data.username,
+			email: data.email
+		};
+		return {
+			success: true,
+			data: mockResponse,
+			error: null,
+			timestamp: new Date().toISOString()
+		};
+	}
+
+	return api.post<SignUpResponse>(ENDPOINTS.signup, data);
 }
 
-export function clearTokens(): void {
-	if (!browser) return;
-	localStorage.removeItem('accessToken');
-	localStorage.removeItem('refreshToken');
-}
-
-export function getAccessToken(): string | null {
-	if (!browser) return null;
-	return localStorage.getItem('accessToken');
-}
-
-// API Functions
-export async function login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+/**
+ * 로그인 (Session 생성)
+ * @param credentials 로그인 정보 (email, password)
+ * @returns LoginResponse (userId, email, username, role, sessionId)
+ * 
+ * ⭐ Session Cookie는 브라우저가 자동으로 저장/관리
+ */
+export async function login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
 	if (useMock()) {
 		const mockUser = getMockUser();
-		const response: AuthResponse = {
-			user: mockUser,
-			accessToken: 'mock-access-token',
-			refreshToken: 'mock-refresh-token'
+		const mockResponse: LoginResponse = {
+			userId: Number(mockUser.userId) || 1,
+			username: mockUser.username,
+			email: mockUser.email,
+			role: 'ROLE_USER',
+			sessionId: 'mock-session-id'
 		};
-		setTokens(response.accessToken, response.refreshToken);
 		return {
 			success: true,
-			data: response,
+			data: mockResponse,
 			error: null,
 			timestamp: new Date().toISOString()
 		};
 	}
 
-	const response = await api.post<AuthResponse>(ENDPOINTS.login, credentials);
-	if (response.success && response.data) {
-		setTokens(response.data.accessToken, response.data.refreshToken);
-	}
-	return response;
+	// Cookie는 credentials: 'include'로 자동 전송/저장
+	return api.post<LoginResponse>(ENDPOINTS.login, credentials);
 }
 
-export async function register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-	if (useMock()) {
-		const mockUser: User = {
-			userId: `user-${Date.now()}`,
-			username: data.username,
-			email: data.email,
-			capital: 5000000,
-			initialCapital: 5000000,
-			createdAt: new Date().toISOString()
-		};
-		const response: AuthResponse = {
-			user: mockUser,
-			accessToken: 'mock-access-token',
-			refreshToken: 'mock-refresh-token'
-		};
-		setTokens(response.accessToken, response.refreshToken);
-		return {
-			success: true,
-			data: response,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	const response = await api.post<AuthResponse>(ENDPOINTS.register, data);
-	if (response.success && response.data) {
-		setTokens(response.data.accessToken, response.data.refreshToken);
-	}
-	return response;
-}
-
+/**
+ * 로그아웃 (Session 무효화)
+ * @returns void
+ * 
+ * ⭐ Backend에서 Redis Session 삭제, Cookie 만료
+ */
 export async function logout(): Promise<ApiResponse<void>> {
-	clearTokens();
-
 	if (useMock()) {
 		return {
 			success: true,
@@ -124,101 +85,33 @@ export async function logout(): Promise<ApiResponse<void>> {
 		};
 	}
 
+	// Cookie는 credentials: 'include'로 자동 전송
 	return api.post<void>(ENDPOINTS.logout);
 }
 
+/**
+ * 현재 사용자 정보 조회
+ * @returns User (userId, email, username, role)
+ * 
+ * ⭐ Session Cookie가 자동으로 전송되어 인증됨
+ */
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
 	if (useMock()) {
-		const token = getAccessToken();
-		if (!token) {
-			return {
-				success: false,
-				data: null,
-				error: '로그인이 필요합니다.',
-				timestamp: new Date().toISOString()
-			};
-		}
+		const mockUser = getMockUser();
+		const user: User = {
+			userId: Number(mockUser.userId) || 1,
+			username: mockUser.username,
+			email: mockUser.email,
+			role: 'ROLE_USER'
+		};
 		return {
 			success: true,
-			data: getMockUser(),
+			data: user,
 			error: null,
 			timestamp: new Date().toISOString()
 		};
 	}
 
+	// Cookie는 credentials: 'include'로 자동 전송
 	return api.get<User>(ENDPOINTS.me);
-}
-
-export async function getProfile(): Promise<ApiResponse<UserProfile>> {
-	if (useMock()) {
-		const user = getMockUser();
-		const profile: UserProfile = {
-			...user,
-			investorType: 'USER',
-			rank: 15,
-			returnRate: 17.0
-		};
-		return {
-			success: true,
-			data: profile,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	return api.get<UserProfile>(ENDPOINTS.profile);
-}
-
-export async function updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<User>> {
-	if (useMock()) {
-		const user = getMockUser();
-		return {
-			success: true,
-			data: { ...user, ...data },
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	return api.patch<User>(ENDPOINTS.updateProfile, data);
-}
-
-export async function refreshToken(): Promise<ApiResponse<AuthResponse>> {
-	if (!browser) {
-		return {
-			success: false,
-			data: null,
-			error: 'Not in browser',
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	const refreshToken = localStorage.getItem('refreshToken');
-	if (!refreshToken) {
-		return {
-			success: false,
-			data: null,
-			error: 'No refresh token',
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	if (useMock()) {
-		return {
-			success: true,
-			data: {
-				user: getMockUser(),
-				accessToken: 'mock-access-token-new',
-				refreshToken: 'mock-refresh-token-new'
-			},
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	const response = await api.post<AuthResponse>(ENDPOINTS.refresh, { refreshToken });
-	if (response.success && response.data) {
-		setTokens(response.data.accessToken, response.data.refreshToken);
-	}
-	return response;
 }

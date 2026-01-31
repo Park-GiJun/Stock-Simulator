@@ -50,12 +50,6 @@ function buildUrl(endpoint: string, params?: Record<string, string | number | bo
 	return url.toString();
 }
 
-// Get auth token from localStorage
-function getAuthToken(): string | null {
-	if (!browser) return null;
-	return localStorage.getItem('accessToken');
-}
-
 // Base fetch wrapper
 async function request<T>(
 	endpoint: string,
@@ -71,12 +65,6 @@ async function request<T>(
 		...fetchOptions.headers
 	};
 
-	// Add auth header if token exists
-	const token = getAuthToken();
-	if (token) {
-		(headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-	}
-
 	try {
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), config.timeout);
@@ -84,6 +72,7 @@ async function request<T>(
 		const response = await fetch(url, {
 			...fetchOptions,
 			headers,
+			credentials: 'include', // ⭐ Cookie 자동 전송/저장 (Session 기반 인증)
 			signal: controller.signal
 		});
 
