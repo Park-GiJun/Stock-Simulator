@@ -1,6 +1,11 @@
 dependencies {
+    implementation(project(":backend:common"))
+    
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+    // MongoDB (for logging)
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
     // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")

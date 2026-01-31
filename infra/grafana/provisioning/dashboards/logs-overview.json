@@ -1,0 +1,327 @@
+{
+  "dashboard": {
+    "title": "Stock Simulator - Logs Overview",
+    "uid": "logs-overview",
+    "tags": ["logs", "loki", "stock-simulator"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "logs",
+        "title": "All Service Logs",
+        "gridPos": {
+          "h": 12,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "{service=~\"user-service|stock-service|trading-service|event-service|scheduler-service|news-service|api-gateway\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "showCommonLabels": false,
+          "wrapLogMessage": false,
+          "prettifyLogMessage": false,
+          "enableLogDetails": true,
+          "dedupStrategy": "none",
+          "sortOrder": "Descending"
+        }
+      },
+      {
+        "id": 2,
+        "type": "logs",
+        "title": "Error Logs",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "{service=~\".*-service\"} |= \"ERROR\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 3,
+        "type": "logs",
+        "title": "Warning Logs",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "{service=~\".*-service\"} |= \"WARN\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "Log Rate (logs/sec)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 20
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "sum(rate({service=~\".*-service\"}[$__interval]))",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "orientation": "auto",
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "logs/s",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Error Count (Last 5m)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 20
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "sum(count_over_time({service=~\".*-service\"} |= \"ERROR\" [5m]))",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "orientation": "auto",
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "Warning Count (Last 5m)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 20
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "sum(count_over_time({service=~\".*-service\"} |= \"WARN\" [5m]))",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "orientation": "auto",
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 20, "color": "orange"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": "bargauge",
+        "title": "Logs by Service (Last 5m)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 20
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "sum by (service) (count_over_time({service=~\".*-service\"}[5m]))",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": "logs",
+        "title": "User Service Logs",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "{service=\"user-service\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 9,
+        "type": "logs",
+        "title": "API Gateway Logs",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "expr": "{service=\"api-gateway\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "service",
+          "type": "query",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "query": {
+            "label": "service",
+            "refId": "LokiVariableQuery",
+            "stream": "",
+            "type": 1
+          },
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "current": {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          }
+        }
+      ]
+    },
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    }
+  },
+  "overwrite": true
+}
