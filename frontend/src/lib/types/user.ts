@@ -9,6 +9,14 @@ export interface User {
 	createdAt: string;
 }
 
+export interface UserProfile extends User {
+	investorType: 'USER' | 'NPC' | 'INSTITUTION';
+	avatar?: string;
+	bio?: string;
+	rank?: number;
+	returnRate?: number;
+}
+
 export interface AuthState {
 	isAuthenticated: boolean;
 	user: User | null;

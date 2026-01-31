@@ -1,0 +1,249 @@
+/* ===== Tabs Component Styles ===== */
+
+.tabs {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Tab List */
+.tabs-list {
+	display: flex;
+	gap: var(--spacing-xs);
+	border-bottom: 1px solid var(--color-border);
+	overflow-x: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.tabs-list::-webkit-scrollbar {
+	display: none;
+}
+
+/* Tab Variants */
+.tabs.variant-line .tabs-list {
+	gap: 0;
+}
+
+.tabs.variant-pills .tabs-list {
+	border-bottom: none;
+	background: var(--color-bg-tertiary);
+	padding: var(--spacing-xs);
+	border-radius: var(--radius-lg);
+}
+
+.tabs.variant-segment .tabs-list {
+	border-bottom: none;
+	background: var(--color-bg-tertiary);
+	padding: 2px;
+	border-radius: var(--radius-md);
+}
+
+/* Tab Button */
+.tabs-tab {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-sm) var(--spacing-md);
+	border: none;
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	position: relative;
+}
+
+.tabs-tab:hover {
+	color: var(--color-text-primary);
+}
+
+.tabs-tab:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: -2px;
+}
+
+.tabs-tab.active {
+	color: var(--color-primary);
+}
+
+/* Line Variant */
+.tabs.variant-line .tabs-tab {
+	padding: var(--spacing-sm) var(--spacing-lg);
+	margin-bottom: -1px;
+}
+
+.tabs.variant-line .tabs-tab::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: transparent;
+	transition: background var(--transition-fast);
+}
+
+.tabs.variant-line .tabs-tab.active::after {
+	background: var(--color-primary);
+}
+
+.tabs.variant-line .tabs-tab:hover::after {
+	background: var(--color-border-dark);
+}
+
+.tabs.variant-line .tabs-tab.active:hover::after {
+	background: var(--color-primary);
+}
+
+/* Pills Variant */
+.tabs.variant-pills .tabs-tab {
+	border-radius: var(--radius-md);
+}
+
+.tabs.variant-pills .tabs-tab:hover {
+	background: var(--color-bg-hover);
+}
+
+.tabs.variant-pills .tabs-tab.active {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+}
+
+/* Segment Variant */
+.tabs.variant-segment .tabs-tab {
+	flex: 1;
+	border-radius: var(--radius-sm);
+}
+
+.tabs.variant-segment .tabs-tab.active {
+	background: var(--color-bg-primary);
+	color: var(--color-text-primary);
+	box-shadow: var(--shadow-sm);
+}
+
+/* Tab Icon */
+.tabs-tab-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Tab Badge */
+.tabs-tab-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 var(--spacing-xs);
+	background: var(--color-bg-tertiary);
+	border-radius: var(--radius-full);
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+}
+
+.tabs-tab.active .tabs-tab-badge {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+/* Tab Panel */
+.tabs-panel {
+	padding: var(--spacing-md) 0;
+}
+
+.tabs-panel[hidden] {
+	display: none;
+}
+
+/* Size Variants */
+.tabs.size-sm .tabs-tab {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-xs);
+}
+
+.tabs.size-lg .tabs-tab {
+	padding: var(--spacing-md) var(--spacing-lg);
+	font-size: var(--font-size-md);
+}
+
+/* Full Width */
+.tabs.full-width .tabs-list {
+	width: 100%;
+}
+
+.tabs.full-width .tabs-tab {
+	flex: 1;
+}
+
+/* Vertical Tabs */
+.tabs.vertical {
+	flex-direction: row;
+}
+
+.tabs.vertical .tabs-list {
+	flex-direction: column;
+	border-bottom: none;
+	border-right: 1px solid var(--color-border);
+	padding-right: var(--spacing-md);
+	min-width: 150px;
+}
+
+.tabs.vertical .tabs-tab {
+	justify-content: flex-start;
+}
+
+.tabs.vertical.variant-line .tabs-tab {
+	margin-bottom: 0;
+	margin-right: -1px;
+}
+
+.tabs.vertical.variant-line .tabs-tab::after {
+	bottom: auto;
+	left: auto;
+	top: 0;
+	right: 0;
+	width: 2px;
+	height: 100%;
+}
+
+.tabs.vertical .tabs-panel {
+	flex: 1;
+	padding: 0 var(--spacing-md);
+}
+
+/* Disabled Tab */
+.tabs-tab:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.tabs-tab:disabled:hover {
+	color: var(--color-text-secondary);
+	background: transparent;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+	.tabs.variant-line .tabs-tab {
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	.tabs.vertical {
+		flex-direction: column;
+	}
+
+	.tabs.vertical .tabs-list {
+		flex-direction: row;
+		border-right: none;
+		border-bottom: 1px solid var(--color-border);
+		padding-right: 0;
+		min-width: auto;
+	}
+
+	.tabs.vertical .tabs-panel {
+		padding: var(--spacing-md) 0;
+	}
+}
