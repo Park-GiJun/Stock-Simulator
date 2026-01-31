@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!--
+        로그 패턴 설명:
+        %d        = 날짜시간
+        %t / %thread = 스레드 이름
+        %X{traceId}  = MDC에 저장된 요청 추적 ID
+        %-5level  = 로그 레벨 (INFO, WARN 등)
+        %logger   = 로거 이름 (클래스명)
+        %m / %msg = 메시지
+    -->
+
+    <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="user-service"/>
+
+    <!-- ==================== LOCAL/DEV Profile ==================== -->
+    <springProfile name="default | dev">
+
+        <!-- 콘솔 패턴: 날짜 [스레드] [traceId] LEVEL [클래스] : 메시지 -->
+        <property name="DEV_CONSOLE_PATTERN"
+                  value="%clr(%d{HH:mm:ss.SSS}){faint} %clr([%15.15t]){magenta} %clr([%8.8X{traceId:--------}]){yellow} %clr(%-5level) %clr([${SERVICE_NAME}]){blue} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${DEV_CONSOLE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- ========== API 로깅 (핵심: 요청/응답) ========== -->
+        <logger name="API_LOG" level="DEBUG"/>
+
+        <!-- ========== 애플리케이션 로그 ========== -->
+        <logger name="com.stocksimulator.userservice" level="DEBUG"/>
+        <logger name="com.stocksimulator.common" level="DEBUG"/>
+
+        <!-- ========== Spring Security ========== -->
+        <logger name="org.springframework.security" level="DEBUG"/>
+
+        <!-- ========== Spring / Framework (최소화) ========== -->
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.springframework.cloud" level="INFO"/>
+
+        <!-- ========== SQL 로깅 (개발 시 유용) ========== -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+        <logger name="com.linecorp.kotlinjdsl" level="DEBUG"/>
+
+        <!-- ========== Hikari / Connection Pool ========== -->
+        <logger name="com.zaxxer.hikari" level="INFO"/>
+
+        <!-- ========== Kafka ========== -->
+        <logger name="org.apache.kafka" level="INFO"/>
+
+        <!-- ========== Root ========== -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ==================== DOCKER Profile ==================== -->
+    <springProfile name="docker">
+
+        <!-- 콘솔 패턴 (Docker 환경에서는 stdout만 사용) -->
+        <property name="DOCKER_CONSOLE_PATTERN"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%15.15t] [%8.8X{traceId:--------}] %-5level [${SERVICE_NAME}] [%-36.36logger{36}] : %m%n%wEx"/>
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${DOCKER_CONSOLE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- ========== Logger 설정 ========== -->
+
+        <!-- API 로깅 -->
+        <logger name="API_LOG" level="INFO"/>
+
+        <!-- 애플리케이션 로그 -->
+        <logger name="com.stocksimulator.userservice" level="INFO"/>
+        <logger name="com.stocksimulator.common" level="INFO"/>
+
+        <!-- Spring Security -->
+        <logger name="org.springframework.security" level="WARN"/>
+
+        <!-- Spring Framework -->
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.cloud" level="WARN"/>
+
+        <!-- SQL 최소화 -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+        <logger name="com.linecorp.kotlinjdsl" level="WARN"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
+
+        <!-- Hikari -->
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+
+        <!-- Kafka -->
+        <logger name="org.apache.kafka" level="WARN"/>
+
+        <!-- Root -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ==================== PRODUCTION Profile ==================== -->
+    <springProfile name="prd">
+
+        <!-- 파일 패턴: 날짜 [스레드] [traceId] LEVEL [클래스] : 메시지 -->
+        <property name="PRD_FILE_PATTERN"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:---------}] %-5level [${SERVICE_NAME}] [%logger{36}] : %msg%n"/>
+
+        <property name="PRD_CONSOLE_PATTERN"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%15.15t] [%8.8X{traceId:--------}] %-5level [${SERVICE_NAME}] [%-36.36logger{36}] : %m%n%wEx"/>
+
+        <!-- Console Appender (prd에서도 stdout 유지) -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${PRD_CONSOLE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- 1. Application Log (전체 로그) -->
+        <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/${SERVICE_NAME}/application.log</file>
+            <encoder>
+                <pattern>${PRD_FILE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>logs/${SERVICE_NAME}/application-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>50MB</maxFileSize>
+                <totalSizeCap>500MB</totalSizeCap>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 2. Error Log (ERROR/WARN 별도 분리) -->
+        <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/${SERVICE_NAME}/error.log</file>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>WARN</level>
+            </filter>
+            <encoder>
+                <pattern>${PRD_FILE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>logs/${SERVICE_NAME}/error-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>50MB</maxFileSize>
+                <totalSizeCap>300MB</totalSizeCap>
+                <maxHistory>60</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 3. API Log (요청/응답 전용) -->
+        <appender name="API_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/${SERVICE_NAME}/api.log</file>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:---------}] %-5level : %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>logs/${SERVICE_NAME}/api-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>50MB</maxFileSize>
+                <totalSizeCap>500MB</totalSizeCap>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <!-- ========== Logger 설정 ========== -->
+
+        <!-- API 요청/응답 로그 → api.log + application.log -->
+        <logger name="API_LOG" level="DEBUG" additivity="false">
+            <appender-ref ref="API_FILE"/>
+            <appender-ref ref="APP_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Global Exception Handler 로그 → error.log + application.log -->
+        <logger name="com.stocksimulator.common.exception.GlobalExceptionHandler"
+                level="DEBUG" additivity="false">
+            <appender-ref ref="ERROR_FILE"/>
+            <appender-ref ref="APP_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Controller/Service 로그 → application.log -->
+        <logger name="com.stocksimulator.userservice.adapter.in.web" level="INFO" additivity="false">
+            <appender-ref ref="APP_FILE"/>
+        </logger>
+
+        <logger name="com.stocksimulator.userservice.application" level="INFO" additivity="false">
+            <appender-ref ref="APP_FILE"/>
+        </logger>
+
+        <!-- SQL 최소화 -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+        <logger name="com.linecorp.kotlinjdsl" level="WARN"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
+
+        <!-- Spring 프레임워크 최소화 -->
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.springframework.cloud" level="WARN"/>
+
+        <!-- Kafka 최소화 -->
+        <logger name="org.apache.kafka" level="WARN"/>
+
+        <!-- 애플리케이션 전체 기본 -->
+        <logger name="com.stocksimulator.userservice" level="INFO"/>
+        <logger name="com.stocksimulator.common" level="INFO"/>
+
+        <!-- Root -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="APP_FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </root>
+    </springProfile>
+</configuration>

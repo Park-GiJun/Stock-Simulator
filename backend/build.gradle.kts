@@ -12,13 +12,13 @@ subprojects {
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.1")
         }
     }
 
     configure<JavaPluginExtension> {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion.set(JavaLanguageVersion.of(25))
         }
     }
 
@@ -27,7 +27,7 @@ subprojects {
         "implementation"("org.jetbrains.kotlin:kotlin-reflect")
         "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
         "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
-        "implementation"("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+        "implementation"("org.jetbrains.kotlinx:kotlinx-serialization-json") // BOM managed by Spring Boot 4.0
 
         // Jackson
         "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -50,7 +50,8 @@ subprojects {
     tasks.withType<KotlinCompile> {
         compilerOptions {
             freeCompilerArgs.add("-Xjsr305=strict")
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            freeCompilerArgs.add("-Xannotation-default-target=param-property")  // Kotlin 2.2.x 권장 설정
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)  // Kotlin 2.3.0 - Java 25 지원
         }
     }
 
