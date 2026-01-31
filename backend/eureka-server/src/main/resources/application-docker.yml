@@ -2,6 +2,11 @@
 server:
   port: 8761
 
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongo}:27017/stocksimulator?authSource=admin
+
 eureka:
   instance:
     hostname: ${EUREKA_HOST:eureka-server}
@@ -11,3 +16,7 @@ eureka:
     fetch-registry: false
     service-url:
       defaultZone: http://${EUREKA_HOST:eureka-server}:${EUREKA_PORT:8761}/eureka/
+
+logging:
+  mongodb:
+    enabled: ${LOGGING_MONGODB_ENABLED:true}

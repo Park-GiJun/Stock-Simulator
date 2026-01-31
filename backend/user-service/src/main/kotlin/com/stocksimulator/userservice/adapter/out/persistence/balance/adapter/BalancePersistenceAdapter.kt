@@ -4,7 +4,9 @@ import com.stocksimulator.userservice.adapter.out.persistence.balance.entity.Bal
 import com.stocksimulator.userservice.adapter.out.persistence.balance.repository.BalanceJpaRepository
 import com.stocksimulator.userservice.application.port.out.balance.BalancePersistencePort
 import com.stocksimulator.userservice.domain.BalanceModel
+import org.springframework.stereotype.Component
 
+@Component
 class BalancePersistenceAdapter(
     private val balanceJpaRepository: BalanceJpaRepository
 ) : BalancePersistencePort {

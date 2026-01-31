@@ -3,6 +3,7 @@ package com.stocksimulator.userservice.adapter.`in`.web
 import com.stocksimulator.common.dto.ApiResponse
 import com.stocksimulator.common.dto.toCreatedResponseEntity
 import com.stocksimulator.common.dto.toResponseEntity
+import com.stocksimulator.common.logging.CustomLogger
 import com.stocksimulator.userservice.adapter.`in`.web.dto.LoginRequest
 import com.stocksimulator.userservice.adapter.`in`.web.dto.LoginResponse
 import com.stocksimulator.userservice.adapter.`in`.web.dto.SignUpRequest
@@ -17,7 +18,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -36,7 +36,7 @@ class UserWebAdapter(
     private val loginUseCase: LoginUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val log = CustomLogger(UserWebAdapter::class.java)
 
     /**
      * 회원가입 API
@@ -52,7 +52,7 @@ class UserWebAdapter(
     fun signUp(
         @Valid @RequestBody request: SignUpRequest
     ): Mono<ResponseEntity<ApiResponse<SignUpResponse>>> = mono {
-        logger.info("회원가입 요청: email={}, username={}", request.email, request.username)
+        log.info("회원가입 요청", mapOf("email" to request.email, "username" to request.username))
         
         // Request DTO → Command 변환
         val command = SignUpCommand(
@@ -71,7 +71,7 @@ class UserWebAdapter(
             username = result.username
         )
         
-        logger.info("회원가입 완료: userId={}, email={}", result.userId, result.email)
+        log.info("회원가입 완료", mapOf("userId" to result.userId, "email" to result.email))
         
         // ApiResponse 래핑 및 HTTP 201 Created 응답
         ApiResponse.created(response, "회원가입이 완료되었습니다").toCreatedResponseEntity()
@@ -93,7 +93,7 @@ class UserWebAdapter(
         @Valid @RequestBody request: LoginRequest,
         webSession: WebSession
     ): Mono<ResponseEntity<ApiResponse<LoginResponse>>> = mono {
-        logger.info("로그인 요청: email={}", request.email)
+        log.info("로그인 요청", mapOf("email" to request.email))
 
         // Request DTO → Command 변환
         val command = LoginCommand(
@@ -106,7 +106,7 @@ class UserWebAdapter(
 
         // Session에 userId 저장
         webSession.attributes["userId"] = result.userId
-        logger.info("세션 생성: sessionId={}, userId={}", webSession.id, result.userId)
+        log.info("세션 생성", mapOf("sessionId" to webSession.id, "userId" to result.userId))
 
         // Result → Response 변환
         val response = LoginResponse(
@@ -117,7 +117,7 @@ class UserWebAdapter(
             sessionId = webSession.id
         )
 
-        logger.info("로그인 완료: userId={}, sessionId={}", result.userId, webSession.id)
+        log.info("로그인 완료", mapOf("userId" to result.userId, "sessionId" to webSession.id))
 
         // ApiResponse 래핑 및 HTTP 200 OK 응답
         ApiResponse.success(response, "로그인에 성공했습니다").toResponseEntity()
@@ -137,7 +137,7 @@ class UserWebAdapter(
     fun logout(webSession: WebSession): Mono<ResponseEntity<ApiResponse<Void>>> {
         return webSession.invalidate().then(
             mono {
-                logger.info("로그아웃 완료: sessionId={}", webSession.id)
+                log.info("로그아웃 완료", mapOf("sessionId" to webSession.id))
                 ApiResponse.success<Void>("로그아웃되었습니다").toResponseEntity()
             }
         )
@@ -158,12 +158,12 @@ class UserWebAdapter(
         // Session에서 userId 추출
         val userId = webSession.getAttribute<Long>("userId")
             ?: run {
-                logger.warn("인증되지 않은 요청: sessionId={}", webSession.id)
+                log.warn("인증되지 않은 요청", mapOf("sessionId" to webSession.id))
                 return@mono ApiResponse.error<UserResponse>("인증이 필요합니다", "A001")
                     .toResponseEntity(HttpStatus.UNAUTHORIZED)
             }
 
-        logger.info("현재 사용자 조회: userId={}", userId)
+        log.info("현재 사용자 조회", mapOf("userId" to userId))
 
         // UseCase 호출 (동기 방식)
         val result = getCurrentUserUseCase.getCurrentUser(userId)
@@ -176,7 +176,7 @@ class UserWebAdapter(
             role = result.role.name
         )
 
-        logger.info("현재 사용자 조회 완료: userId={}", result.userId)
+        log.info("현재 사용자 조회 완료", mapOf("userId" to result.userId))
 
         // ApiResponse 래핑 및 HTTP 200 OK 응답
         ApiResponse.success(response).toResponseEntity()

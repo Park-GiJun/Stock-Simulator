@@ -1,0 +1,104 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Spring Boot 서비스 로그 수집
+  - job_name: spring-services
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=stock-simulator"]
+    relabel_configs:
+      # 컨테이너 이름을 라벨로 추가
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-(.*)'
+        target_label: 'service'
+      # Spring Boot 서비스만 필터링
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*(user-service|stock-service|trading-service|event-service|scheduler-service|news-service|api-gateway|eureka-server).*'
+        action: keep
+      # 로그 경로 설정
+      - source_labels: ['__meta_docker_container_name']
+        target_label: '__path__'
+        replacement: /var/lib/docker/containers/*/*.log
+    pipeline_stages:
+      # Docker JSON 로그 파싱
+      - docker: {}
+      # Spring Boot 로그 파싱 (타임스탬프, 레벨, 클래스명 추출)
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<level>\w+)\s+\d+\s+---\s+\[(?P<service_name>[^\]]+)\]\s+\[(?P<thread>[^\]]+)\]\s+(?P<class>[^\s]+)\s+:\s+(?P<message>.*)$'
+      # 타임스탬프 파싱
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      # 라벨 설정
+      - labels:
+          level:
+          service_name:
+          class:
+
+  # MongoDB 로그 수집 (CustomLogger 로그)
+  - job_name: mongodb-logs
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=stock-simulator"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-mongo'
+        action: keep
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'service'
+        replacement: 'mongodb'
+      - source_labels: ['__meta_docker_container_name']
+        target_label: '__path__'
+        replacement: /var/lib/docker/containers/*/*.log
+
+  # 인프라 서비스 로그
+  - job_name: infrastructure
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=stock-simulator"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-(postgres|redis|kafka|zookeeper|elasticsearch).*'
+        action: keep
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-(.*)'
+        target_label: 'service'
+      - source_labels: ['__meta_docker_container_name']
+        target_label: '__path__'
+        replacement: /var/lib/docker/containers/*/*.log
+
+  # Monitoring 서비스 로그
+  - job_name: monitoring
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=stock-simulator"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-(prometheus|grafana|loki).*'
+        action: keep
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/stockSimulator-(.*)'
+        target_label: 'service'
+      - source_labels: ['__meta_docker_container_name']
+        target_label: '__path__'
+        replacement: /var/lib/docker/containers/*/*.log

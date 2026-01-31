@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: api-gateway
+  data:
+    mongodb:
+      uri: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator?authSource=admin
   cloud:
     gateway:
       discovery:
@@ -90,6 +93,8 @@ management:
 logging:
   level:
     org.springframework.cloud.gateway: INFO
+  mongodb:
+    enabled: true
 
 # SpringDoc / Swagger Configuration
 springdoc:

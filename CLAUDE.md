@@ -201,6 +201,8 @@ news.published       # AI-generated news
 | Elasticsearch | stockSimulator-elasticsearch | 9201 | - |
 | Prometheus | stockSimulator-prometheus | 9091 | http://localhost:9091 |
 | Grafana | stockSimulator-grafana | 3001 | admin/stocksim123 |
+| Loki | stockSimulator-loki | 3100 | - |
+| Promtail | stockSimulator-promtail | - | - |
 | Eureka | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
 | API Gateway | stockSimulator-api-gateway | 9832 | - |
 
@@ -214,14 +216,47 @@ All services expose metrics at `/actuator/prometheus`
 ### Grafana Dashboard
 - URL: http://localhost:3001
 - Login: admin / stocksim123
-- Dashboard: "Stock Simulator - Services Overview"
-  - Service status (UP/DOWN)
-  - Request rate per service
-  - Response time (p95)
-  - JVM memory usage
-  - CPU usage
-  - Thread count
-  - DB connection pool
+- Dashboards:
+  - **"Stock Simulator - Services Overview"**: Metrics (Prometheus)
+    - Service status (UP/DOWN)
+    - Request rate per service
+    - Response time (p95)
+    - JVM memory usage
+    - CPU usage
+    - Thread count
+    - DB connection pool
+  - **"Stock Simulator - Logs Overview"**: Logs (Loki)
+    - All service logs in real-time
+    - Error/Warning logs
+    - Log rate statistics
+    - Logs by service
+
+### Loki (Log Aggregation)
+- **Loki URL**: http://localhost:3100
+- **Log Sources**:
+  - All Spring Boot services (via Promtail)
+  - MongoDB logs
+  - Infrastructure logs (Postgres, Redis, Kafka, etc.)
+- **Features**:
+  - Real-time log streaming
+  - Full-text search
+  - Label-based filtering (service, level, class)
+  - Integration with Prometheus metrics
+
+**Log Query Examples:**
+```logql
+# All logs from user-service
+{service="user-service"}
+
+# Error logs from all services
+{service=~".*-service"} |= "ERROR"
+
+# Logs with specific metadata
+{service="user-service"} | json | userId="123"
+
+# Log rate per service
+sum by (service) (rate({service=~".*-service"}[1m]))
+```
 
 ## Known Issues & Solutions
 

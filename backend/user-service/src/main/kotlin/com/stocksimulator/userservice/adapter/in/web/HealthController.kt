@@ -1,6 +1,6 @@
 package com.stocksimulator.userservice.adapter.`in`.web
 
-import org.slf4j.LoggerFactory
+import com.stocksimulator.common.logging.CustomLogger
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -11,11 +11,11 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1/health")
 class HealthController {
 
-    private val logger = LoggerFactory.getLogger(HealthController::class.java)
+    private val log = CustomLogger(HealthController::class.java)
 
     @GetMapping
     fun healthCheck(): ResponseEntity<HealthResponse> {
-        logger.info("🏥 Health check requested at ${LocalDateTime.now()}")
+        log.info("🏥 Health check requested", mapOf("timestamp" to LocalDateTime.now()))
         
         val response = HealthResponse(
             status = "UP",
@@ -24,13 +24,13 @@ class HealthController {
             message = "UserModel Service is running!"
         )
         
-        logger.info("✅ Health check response: $response")
+        log.info("✅ Health check response", mapOf("status" to response.status, "service" to response.service))
         return ResponseEntity.ok(response)
     }
 
     @GetMapping("/ping")
     fun ping(): ResponseEntity<String> {
-        logger.info("🏓 Ping requested at ${LocalDateTime.now()}")
+        log.info("🏓 Ping requested", mapOf("timestamp" to LocalDateTime.now()))
         return ResponseEntity.ok("pong")
     }
 

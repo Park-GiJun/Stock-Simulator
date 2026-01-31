@@ -36,4 +36,10 @@ dependencies {
 
     // Swagger / OpenAPI
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8")
+
+    // MongoDB for custom logging
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    
+    // Logback for structured logging
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 }

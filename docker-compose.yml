@@ -30,6 +30,7 @@ volumes:
   elasticsearch_data:
   prometheus_data:
   grafana_data:
+  loki_data:
 
 services:
   # ===========================================================================
@@ -238,6 +239,41 @@ services:
       - stocksim-network
     depends_on:
       - prometheus
+      - loki
+
+  # Loki (Log Aggregation)
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: stockSimulator-loki
+    profiles: ["monitoring", "all"]
+    command: -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infra/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/tmp/loki
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Promtail (Log Collector)
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: stockSimulator-promtail
+    profiles: ["monitoring", "all"]
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./infra/loki/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - stocksim-network
+    depends_on:
+      - loki
 
   # ===========================================================================
   # Monitoring Exporters

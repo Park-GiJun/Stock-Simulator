@@ -3,6 +3,9 @@ server:
   port: 8080
 
 spring:
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongo}:27017/stocksimulator?authSource=admin
   cloud:
     gateway:
       discovery:
@@ -17,3 +20,7 @@ eureka:
   instance:
     hostname: api-gateway
     prefer-ip-address: false
+
+logging:
+  mongodb:
+    enabled: ${LOGGING_MONGODB_ENABLED:true}

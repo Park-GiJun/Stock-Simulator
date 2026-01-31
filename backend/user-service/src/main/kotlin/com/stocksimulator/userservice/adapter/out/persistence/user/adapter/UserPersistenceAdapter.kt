@@ -6,7 +6,9 @@ import com.stocksimulator.userservice.adapter.out.persistence.user.entity.UserJp
 import com.stocksimulator.userservice.adapter.out.persistence.user.repository.UserJpaRepository
 import com.stocksimulator.userservice.application.port.out.user.UserPersistencePort
 import com.stocksimulator.userservice.domain.UserModel
+import org.springframework.stereotype.Component
 
+@Component
 class UserPersistenceAdapter(
     private val userJpaRepository: UserJpaRepository
 ) : UserPersistencePort {

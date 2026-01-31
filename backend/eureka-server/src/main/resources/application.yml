@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: eureka-server
+  data:
+    mongodb:
+      uri: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator?authSource=admin
 
 eureka:
   client:
@@ -40,3 +43,5 @@ logging:
   level:
     com.netflix.eureka: INFO
     com.netflix.discovery: INFO
+  mongodb:
+    enabled: true
