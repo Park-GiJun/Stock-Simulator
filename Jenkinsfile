@@ -100,11 +100,14 @@ pipeline {
                     sh """
                         cd /deploy
                         
+                        # Login to registry
+                        echo ${DOCKER_CREDENTIALS_PSW} | docker login ${REGISTRY} -u ${DOCKER_CREDENTIALS_USR} --password-stdin
+                        
                         # Update .env file with version
                         sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${VERSION}/" .env || echo "IMAGE_TAG=${VERSION}" >> .env
                         
-                        # Pull new images
-                        docker-compose --profile all pull
+                        # Pull new images (ignore errors for local-build images)
+                        docker-compose --profile all pull --ignore-pull-failures
                         
                         # Rolling update
                         echo "🔄 Starting rolling update..."
