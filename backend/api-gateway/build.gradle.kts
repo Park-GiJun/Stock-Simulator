@@ -14,6 +14,8 @@ dependencies {
     // Swagger / OpenAPI for Gateway
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.4")
     
-    // CompileOnly for autoconfiguration exclusion
-    compileOnly("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.6.0")
+    // JPA & Kotlin JDSL (to prevent autoconfiguration errors)
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.6.0")
+    runtimeOnly("org.postgresql:postgresql")
 }
