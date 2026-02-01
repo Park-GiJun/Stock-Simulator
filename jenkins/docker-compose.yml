@@ -18,6 +18,7 @@ services:
       - /usr/bin/docker:/usr/bin/docker
       - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
       - ../:/workspace
+      - /home/gijunpark/Stock-Simulator:/deploy
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - DOCKER_HOST=unix:///var/run/docker.sock

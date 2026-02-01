@@ -5,7 +5,6 @@ pipeline {
         REGISTRY = 'ghcr.io'
         IMAGE_PREFIX = 'park-gijun/stocksim'
         DOCKER_CREDENTIALS = credentials('github-token')
-        DEPLOY_PATH = '/home/gijunpark/Stock-Simulator'
     }
     
     parameters {
@@ -79,31 +78,31 @@ pipeline {
                     echo "🚀 Deploying to production..."
                     
                     sh """
-                        cd ${DEPLOY_PATH}
+                        cd /deploy
                         
-                        # Update .env file
+                        # Update .env file with version
                         sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${VERSION}/" .env || echo "IMAGE_TAG=${VERSION}" >> .env
                         
                         # Pull new images
-                        docker-compose --profile all pull
+                        docker compose --profile all pull
                         
                         # Rolling update
                         echo "🔄 Starting rolling update..."
                         
                         # 1. Eureka first
-                        docker-compose --profile all up -d --no-deps --force-recreate eureka-server
+                        docker compose --profile all up -d --no-deps --force-recreate eureka-server
                         sleep 15
                         
                         # 2. Backend services
-                        docker-compose --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                        docker compose --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
                         sleep 10
                         
                         # 3. API Gateway
-                        docker-compose --profile all up -d --no-deps --force-recreate api-gateway
+                        docker compose --profile all up -d --no-deps --force-recreate api-gateway
                         sleep 10
                         
                         # 4. Frontend
-                        docker-compose --profile all up -d --no-deps --force-recreate frontend
+                        docker compose --profile all up -d --no-deps --force-recreate frontend
                         
                         echo "✅ Deployment complete"
                     """
