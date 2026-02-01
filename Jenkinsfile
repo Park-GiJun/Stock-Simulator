@@ -107,25 +107,25 @@ pipeline {
                         sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${VERSION}/" .env || echo "IMAGE_TAG=${VERSION}" >> .env
                         
                         # Pull new images (ignore errors for local-build images)
-                        docker-compose --profile all pull --ignore-pull-failures
+                        docker-compose -p stock-simulator --profile all pull --ignore-pull-failures
                         
                         # Rolling update
                         echo "🔄 Starting rolling update..."
                         
                         # 1. Eureka first
-                        docker-compose --profile all up -d --no-deps --force-recreate eureka-server
+                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
                         sleep 15
                         
                         # 2. Backend services
-                        docker-compose --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
                         sleep 10
                         
                         # 3. API Gateway
-                        docker-compose --profile all up -d --no-deps --force-recreate api-gateway
+                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
                         sleep 10
                         
                         # 4. Frontend
-                        docker-compose --profile all up -d --no-deps --force-recreate frontend
+                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
                         
                         echo "✅ Deployment complete"
                     """
