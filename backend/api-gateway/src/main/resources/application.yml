@@ -13,54 +13,56 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-      routes:
-        # User Service Routes
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/user-service/**
-          filters:
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-        
-        # Stock Service Routes
-        - id: stock-service
-          uri: lb://stock-service
-          predicates:
-            - Path=/stock-service/**
-          filters:
-            - RewritePath=/stock-service/(?<segment>.*), /$\{segment}
-        
-        # Trading Service Routes
-        - id: trading-service
-          uri: lb://trading-service
-          predicates:
-            - Path=/trading-service/**
-          filters:
-            - RewritePath=/trading-service/(?<segment>.*), /$\{segment}
-        
-        # Event Service Routes
-        - id: event-service
-          uri: lb://event-service
-          predicates:
-            - Path=/event-service/**
-          filters:
-            - RewritePath=/event-service/(?<segment>.*), /$\{segment}
-        
-        # News Service Routes
-        - id: news-service
-          uri: lb://news-service
-          predicates:
-            - Path=/news-service/**
-          filters:
-            - RewritePath=/news-service/(?<segment>.*), /$\{segment}
-        
-        # Scheduler Service Routes
-        - id: scheduler-service
-          uri: lb://scheduler-service
-          predicates:
-            - Path=/scheduler-service/**
-          filters:
-            - RewritePath=/scheduler-service/(?<segment>.*), /$\{segment}
+      server:
+        webflux:
+          routes:
+            # User Service Routes
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/user-service/**
+              filters:
+                - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            
+            # Stock Service Routes
+            - id: stock-service
+              uri: lb://stock-service
+              predicates:
+                - Path=/stock-service/**
+              filters:
+                - RewritePath=/stock-service/(?<segment>.*), /$\{segment}
+            
+            # Trading Service Routes
+            - id: trading-service
+              uri: lb://trading-service
+              predicates:
+                - Path=/trading-service/**
+              filters:
+                - RewritePath=/trading-service/(?<segment>.*), /$\{segment}
+            
+            # Event Service Routes
+            - id: event-service
+              uri: lb://event-service
+              predicates:
+                - Path=/event-service/**
+              filters:
+                - RewritePath=/event-service/(?<segment>.*), /$\{segment}
+            
+            # News Service Routes
+            - id: news-service
+              uri: lb://news-service
+              predicates:
+                - Path=/news-service/**
+              filters:
+                - RewritePath=/news-service/(?<segment>.*), /$\{segment}
+            
+            # Scheduler Service Routes
+            - id: scheduler-service
+              uri: lb://scheduler-service
+              predicates:
+                - Path=/scheduler-service/**
+              filters:
+                - RewritePath=/scheduler-service/(?<segment>.*), /$\{segment}
 
 eureka:
   client:
