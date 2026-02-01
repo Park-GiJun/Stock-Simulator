@@ -6,6 +6,7 @@ export interface User {
 	username: string;
 	email: string;
 	role: string; // ROLE_USER, ROLE_ADMIN
+	capital?: number; // Optional - 포트폴리오 연동 시 사용
 }
 
 // Backend: SignUpResponse

@@ -93,7 +93,7 @@
 				<div class="sidebar-user-info">
 					<span class="sidebar-user-name">{$currentUser.username}</span>
 					<span class="sidebar-user-capital">
-						₩{$currentUser.capital.toLocaleString()}
+						₩{$currentUser.capital?.toLocaleString() ?? '0'}
 					</span>
 				</div>
 			</div>
