@@ -19,16 +19,16 @@ import org.springframework.context.annotation.Configuration
  * application.yml에서 springdoc 관련 설정을 추가하면 됩니다.
  */
 @Configuration
-class SwaggerConfig(
+open class SwaggerConfig {
+
     @Value("\${spring.application.name:service}")
-    private val applicationName: String,
+    private lateinit var applicationName: String
 
     @Value("\${server.port:8080}")
-    private val serverPort: Int,
+    private var serverPort: Int = 8080
 
     @Value("\${springdoc.version:1.0.0}")
-    private val apiVersion: String = "1.0.0"
-) {
+    private var apiVersion: String = "1.0.0"
 
     @Bean
     fun openAPI(): OpenAPI {

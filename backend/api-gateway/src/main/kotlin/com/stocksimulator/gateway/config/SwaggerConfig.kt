@@ -1,12 +1,10 @@
 package com.stocksimulator.gateway.config
 
+import jakarta.annotation.PostConstruct
 import org.springdoc.core.properties.AbstractSwaggerUiConfigProperties
 import org.springdoc.core.properties.SwaggerUiConfigProperties
-import org.springframework.cloud.gateway.route.RouteDefinition
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Lazy
 
 /**
  * API Gateway의 Swagger UI 설정
@@ -14,20 +12,18 @@ import org.springframework.context.annotation.Lazy
  * 각 마이크로서비스의 OpenAPI 문서를 통합하여 표시
  */
 @Configuration
-class SwaggerConfig {
+class SwaggerConfig(
+    private val swaggerUiConfigProperties: SwaggerUiConfigProperties,
+    private val routeDefinitionLocator: RouteDefinitionLocator
+) {
 
     /**
      * 각 서비스의 OpenAPI 문서 URL을 동적으로 설정
      * 
      * Swagger UI에서 드롭다운으로 각 서비스별 API 문서를 선택할 수 있도록 함
      */
-    @Bean
-    @Lazy(false)
-    fun swaggerUiConfigProperties(
-        routeDefinitionLocator: RouteDefinitionLocator
-    ): SwaggerUiConfigProperties {
-        val config = SwaggerUiConfigProperties()
-        
+    @PostConstruct
+    fun configureSwaggerUrls() {
         // 각 서비스의 API 문서 URL을 추가
         val urls = mutableSetOf<AbstractSwaggerUiConfigProperties.SwaggerUrl>()
         
@@ -50,8 +46,6 @@ class SwaggerConfig {
             urls.add(swaggerUrl)
         }
         
-        config.urls = urls
-        
-        return config
+        swaggerUiConfigProperties.urls = urls
     }
 }

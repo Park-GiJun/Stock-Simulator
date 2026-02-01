@@ -11,9 +11,9 @@ spring:
       namespace: stock-simulator:session
       flush-mode: on_save
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=users
-    username: ${POSTGRES_USER:stocksim}
-    password: ${POSTGRES_PASSWORD:stocksim123}
+    url: jdbc:postgresql://210.121.177.150:5432/stocksimulator?currentSchema=users
+    username: stocksim
+    password: stocksim123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -23,27 +23,30 @@ spring:
       hibernate:
         format_sql: true
         default_schema: users
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:stocksim123}
+      host: 210.121.177.150
+      port: 6380
+      password: stocksim123
     mongodb:
-      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${POSTGRES_DB:stocksimulator}?authSource=admin
+      uri: mongodb://stocksim:stocksim123@210.121.177.150:27018/stocksimulator?authSource=admin
   kafka:
-    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+    bootstrap-servers: 210.121.177.150:9093
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 eureka:
   client:
+    enabled: true
     service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    hostname: localhost
 
 management:
   endpoints:
