@@ -24,10 +24,14 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
     networks:
       - jenkins
+      - stocksim-network
 
 networks:
   jenkins:
     driver: bridge
+  stocksim-network:
+    external: true
+    name: stock-simulator_stocksim-network
 
 volumes:
   jenkins_home:
