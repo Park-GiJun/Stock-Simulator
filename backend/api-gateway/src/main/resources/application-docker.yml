@@ -3,9 +3,6 @@ server:
   port: 8080
 
 spring:
-  data:
-    mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://stocksim:stocksim123@mongodb:27017/stocksimulator?authSource=admin}
   cloud:
     gateway:
       discovery:
@@ -68,7 +65,3 @@ eureka:
   instance:
     hostname: api-gateway
     prefer-ip-address: false
-
-logging:
-  mongodb:
-    enabled: ${LOGGING_MONGODB_ENABLED:true}

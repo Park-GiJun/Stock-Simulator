@@ -423,21 +423,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATA_MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${POSTGRES_DB}?authSource=admin
-      - SPRING_DATA_MONGODB_HOST=mongodb
-      - SPRING_DATA_MONGODB_PORT=27017
-      - SPRING_DATA_MONGODB_DATABASE=${POSTGRES_DB}
-      - SPRING_DATA_MONGODB_USERNAME=${MONGO_USER}
-      - SPRING_DATA_MONGODB_PASSWORD=${MONGO_PASSWORD}
-      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=admin
-      - JAVA_TOOL_OPTIONS=-Dspring.data.mongodb.uri=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${POSTGRES_DB}?authSource=admin -Dspring.data.mongodb.host=mongodb -Dspring.data.mongodb.port=27017
       - CORS_ALLOWED_ORIGINS=${FRONTEND_URL},http://localhost:5173,http://localhost:3000
     networks:
       - stocksim-network
     depends_on:
       eureka-server:
-        condition: service_healthy
-      mongodb:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
