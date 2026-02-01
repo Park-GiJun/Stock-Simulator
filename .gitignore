@@ -63,3 +63,7 @@ docker-data/
 coverage/
 .nyc_output/
 test-results/
+
+# Jenkins
+jenkins/jenkins_home/
+
