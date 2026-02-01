@@ -30,7 +30,7 @@ interface RequestOptions extends RequestInit {
 
 // API Configuration
 const config = {
-	baseUrl: browser ? (import.meta.env.VITE_API_URL ?? 'http://localhost:9832') : '',
+	baseUrl: browser ? (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:9832') : '',
 	timeout: 30000,
 	useMock: import.meta.env.VITE_USE_MOCK === 'true'
 };
