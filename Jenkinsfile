@@ -109,16 +109,33 @@ pipeline {
                         # Pull new images (ignore errors for local-build images)
                         docker-compose -p stock-simulator --profile all pull --ignore-pull-failures
                         
+                        # 기존 고아 컨테이너 정리 (이전 배포 실패 시 남은 컨테이너 제거)
+                        echo "🧹 Cleaning up orphan containers..."
+                        docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
+                        
                         # Rolling update
                         echo "🔄 Starting rolling update..."
                         
+                        # 0. 인프라 서비스 먼저 기동 (DB, Redis, Kafka 등)
+                        docker-compose -p stock-simulator --profile all up -d postgres postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
+                        echo "⏳ Waiting for infrastructure to be ready..."
+                        sleep 20
+                        
                         # 1. Eureka first
                         docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
-                        sleep 15
+                        echo "⏳ Waiting for Eureka to start..."
+                        for i in \$(seq 1 12); do
+                            if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
+                                echo "✅ Eureka is ready!"
+                                break
+                            fi
+                            echo "  Attempt \$i/12 - Eureka not ready yet, waiting 10s..."
+                            sleep 10
+                        done
                         
                         # 2. Backend services
                         docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
-                        sleep 10
+                        sleep 15
                         
                         # 3. API Gateway
                         docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
@@ -142,21 +159,40 @@ pipeline {
                     echo "🏥 Running health checks..."
                     
                     sh """
-                        sleep 30
+                        echo "⏳ Waiting for services to stabilize..."
+                        sleep 15
                         
-                        # Check Eureka
-                        if curl -sf http://localhost:8761/actuator/health; then
-                            echo "\\n✅ Eureka is healthy"
-                        else
-                            echo "❌ Eureka health check failed"
+                        # Check Eureka (retry up to 6 times, 10s interval)
+                        EUREKA_OK=false
+                        for i in \$(seq 1 6); do
+                            if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
+                                echo "✅ Eureka is healthy"
+                                EUREKA_OK=true
+                                break
+                            fi
+                            echo "  Eureka attempt \$i/6 - not ready, waiting 10s..."
+                            sleep 10
+                        done
+                        if [ "\$EUREKA_OK" = "false" ]; then
+                            echo "❌ Eureka health check failed after 6 attempts"
+                            docker logs stockSimulator-eureka-server --tail 30 2>&1 || true
                             exit 1
                         fi
                         
-                        # Check API Gateway
-                        if curl -sf http://localhost:9832/actuator/health; then
-                            echo "\\n✅ API Gateway is healthy"
-                        else
-                            echo "❌ API Gateway health check failed"
+                        # Check API Gateway (retry up to 6 times, 10s interval)
+                        GATEWAY_OK=false
+                        for i in \$(seq 1 6); do
+                            if curl -sf http://stockSimulator-api-gateway:8080/actuator/health > /dev/null 2>&1; then
+                                echo "✅ API Gateway is healthy"
+                                GATEWAY_OK=true
+                                break
+                            fi
+                            echo "  Gateway attempt \$i/6 - not ready, waiting 10s..."
+                            sleep 10
+                        done
+                        if [ "\$GATEWAY_OK" = "false" ]; then
+                            echo "❌ API Gateway health check failed after 6 attempts"
+                            docker logs stockSimulator-api-gateway --tail 30 2>&1 || true
                             exit 1
                         fi
                     """
