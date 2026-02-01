@@ -98,17 +98,11 @@ pipeline {
                     echo "🚀 Deploying to production..."
                     
                     sh """
-                        # Remove old infra directory to prevent conflicts
-                        echo "🧹 Cleaning old infra directory..."
-                        rm -rf /deploy/infra
-                        
                         # Copy infrastructure configuration files to /deploy
-                        echo "📋 Copying infrastructure configuration files..."
+                        echo "📋 Copying infrastructure and config files..."
+                        cp -rf docker-compose.yml /deploy/
+                        cp -rf .env /deploy/
                         cp -rf infra /deploy/
-                        
-                        # Debug: Check if files are copied correctly
-                        echo "🔍 Checking copied files..."
-                        ls -la /deploy/infra/prometheus/
                         
                         cd /deploy
                         
@@ -124,34 +118,6 @@ pipeline {
                         # 기존 고아 컨테이너 정리 (이전 배포 실패 시 남은 컨테이너 제거)
                         echo "🧹 Cleaning up orphan containers..."
                         docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
-                        
-                        # Verify prometheus.yml is a file, not a directory
-                        echo "🔍 Final verification of prometheus.yml..."
-                        if [ -d /deploy/infra/prometheus/prometheus.yml ]; then
-                            echo "❌ ERROR: prometheus.yml is a directory! Removing..."
-                            rm -rf /deploy/infra/prometheus/prometheus.yml
-                        fi
-                        
-                        if [ ! -f /deploy/infra/prometheus/prometheus.yml ]; then
-                            echo "❌ ERROR: prometheus.yml file does not exist!"
-                            ls -la /deploy/infra/prometheus/
-                            exit 1
-                        fi
-                        
-                        echo "✅ prometheus.yml is a valid file"
-                        ls -lh /deploy/infra/prometheus/prometheus.yml
-                        
-                        # Create absolute path bind for docker-compose
-                        echo "🔗 Creating absolute path links..."
-                        # Ensure docker-compose uses absolute path by being in /deploy directory
-                        
-                        # Clean Docker builder cache and system cache
-                        echo "🧹 Cleaning Docker system cache..."
-                        docker system prune -f --volumes 2>/dev/null || true
-                        
-                        # Remove prometheus image to force fresh pull
-                        echo "🗑️ Removing prometheus image to clear any cached metadata..."
-                        docker rmi prom/prometheus:v2.48.0 2>/dev/null || true
                         
                         # Rolling update
                         echo "🔄 Starting rolling update..."
