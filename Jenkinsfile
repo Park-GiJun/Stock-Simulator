@@ -21,37 +21,51 @@ pipeline {
             }
         }
         
-        stage('🐳 Build & Push Docker Images - Direct') {
+        stage('🔨 Build with Gradle') {
             steps {
                 script {
-                    echo "🏗️ Building Docker images directly (no Gradle pre-build)..."
+                    echo "🏗️ Building all backend services with Gradle..."
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build -x test --no-daemon
+                    '''
+                }
+            }
+        }
+        
+        stage('🐳 Build & Push Docker Images') {
+            steps {
+                script {
+                    echo "🐳 Building and pushing Docker images..."
                     
                     sh """
                         echo ${DOCKER_CREDENTIALS_PSW} | docker login ${REGISTRY} -u ${DOCKER_CREDENTIALS_USR} --password-stdin
                     """
                     
-                    def services = [
-                        'eureka-server': 'backend/eureka-server',
-                        'api-gateway': 'backend/api-gateway',
-                        'user-service': 'backend/user-service',
-                        'stock-service': 'backend/stock-service',
-                        'trading-service': 'backend/trading-service',
-                        'event-service': 'backend/event-service',
-                        'scheduler-service': 'backend/scheduler-service',
-                        'news-service': 'backend/news-service',
-                        'frontend': 'frontend'
-                    ]
+                    def services = ['eureka-server', 'api-gateway', 'user-service', 'stock-service', 'trading-service', 'event-service', 'scheduler-service', 'news-service']
                     
-                    services.each { service, context ->
+                    services.each { service ->
                         echo "🐳 Building ${service}..."
                         sh """
-                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} -f ${context}/Dockerfile ${context}
+                            cd backend/${service}
+                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} .
                             docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
                             docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
                             docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-                            echo "✅ ${service} pushed successfully"
+                            cd ../..
                         """
                     }
+                    
+                    // Frontend
+                    echo "🐳 Building frontend..."
+                    sh """
+                        cd frontend
+                        docker build -t ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} .
+                        docker tag ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                        docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION}
+                        docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                        cd ..
+                    """
                 }
             }
         }
