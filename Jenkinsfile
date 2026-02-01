@@ -1,6 +1,11 @@
 pipeline {
     agent any
     
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    
     environment {
         REGISTRY = 'ghcr.io'
         IMAGE_PREFIX = 'park-gijun/stocksim'
@@ -10,6 +15,8 @@ pipeline {
     parameters {
         string(name: 'VERSION', defaultValue: 'v1.4.1', description: 'Version to deploy (e.g., v1.4.1)')
         choice(name: 'ENVIRONMENT', choices: ['production', 'staging'], description: 'Deployment environment')
+        booleanParam(name: 'CLEAN_BUILD', defaultValue: false, description: '클린 빌드 (캐시 무시)')
+        booleanParam(name: 'SKIP_BUILD', defaultValue: false, description: '빌드 스킵 (이미지만 배포)')
     }
     
     stages {
@@ -21,18 +28,25 @@ pipeline {
         }
         
         stage('🔨 Build with Gradle') {
+            when {
+                expression { !params.SKIP_BUILD }
+            }
             steps {
                 script {
-                    echo "🏗️ Building all backend services with Gradle..."
-                    sh '''
+                    def buildCmd = params.CLEAN_BUILD ? 'clean build' : 'build'
+                    echo "🏗️ Building all backend services (clean: ${params.CLEAN_BUILD})..."
+                    sh """
                         chmod +x gradlew
-                        ./gradlew clean build -x test --no-daemon
-                    '''
+                        ./gradlew ${buildCmd} -x test --no-daemon --build-cache --parallel
+                    """
                 }
             }
         }
         
         stage('🐳 Build & Push Docker Images') {
+            when {
+                expression { !params.SKIP_BUILD }
+            }
             steps {
                 script {
                     echo "🐳 Building and pushing Docker images..."
@@ -43,28 +57,34 @@ pipeline {
                     
                     def services = ['eureka-server', 'api-gateway', 'user-service', 'stock-service', 'trading-service', 'event-service', 'scheduler-service', 'news-service']
                     
+                    // 병렬로 Docker 빌드
+                    def parallelStages = [:]
+                    
                     services.each { service ->
-                        echo "🐳 Building ${service}..."
+                        parallelStages[service] = {
+                            sh """
+                                cd backend/${service}
+                                docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} .
+                                docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                                docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
+                                docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                                cd ../..
+                            """
+                        }
+                    }
+                    
+                    parallelStages['frontend'] = {
                         sh """
-                            cd backend/${service}
-                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} .
-                            docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-                            docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
-                            docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-                            cd ../..
+                            cd frontend
+                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} .
+                            docker tag ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                            docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION}
+                            docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                            cd ..
                         """
                     }
                     
-                    // Frontend
-                    echo "🐳 Building frontend..."
-                    sh """
-                        cd frontend
-                        docker build -t ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} .
-                        docker tag ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
-                        docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION}
-                        docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
-                        cd ..
-                    """
+                    parallel parallelStages
                 }
             }
         }
@@ -111,6 +131,9 @@ pipeline {
         }
         
         stage('🏥 Health Check') {
+            when {
+                expression { params.ENVIRONMENT == 'production' }
+            }
             steps {
                 script {
                     echo "🏥 Running health checks..."
@@ -119,16 +142,16 @@ pipeline {
                         sleep 30
                         
                         # Check Eureka
-                        if curl -f http://localhost:8761/actuator/health; then
-                            echo "✅ Eureka is healthy"
+                        if curl -sf http://localhost:8761/actuator/health; then
+                            echo "\\n✅ Eureka is healthy"
                         else
                             echo "❌ Eureka health check failed"
                             exit 1
                         fi
                         
                         # Check API Gateway
-                        if curl -f http://localhost:9832/actuator/health; then
-                            echo "✅ API Gateway is healthy"
+                        if curl -sf http://localhost:9832/actuator/health; then
+                            echo "\\n✅ API Gateway is healthy"
                         else
                             echo "❌ API Gateway health check failed"
                             exit 1
