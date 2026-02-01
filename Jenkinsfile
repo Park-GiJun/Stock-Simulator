@@ -102,6 +102,11 @@ pipeline {
                         echo "📋 Copying infrastructure configuration files..."
                         cp -rf infra /deploy/
                         
+                        # Debug: Check if files are copied correctly
+                        echo "🔍 Checking copied files..."
+                        ls -la /deploy/infra/prometheus/
+                        file /deploy/infra/prometheus/prometheus.yml
+                        
                         cd /deploy
                         
                         # Login to registry
