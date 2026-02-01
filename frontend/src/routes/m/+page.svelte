@@ -31,7 +31,7 @@
 			</div>
 			<div class="mobile-user-info">
 				<div class="mobile-user-name">{$currentUser.username}</div>
-				<div class="mobile-user-capital">₩{$currentUser.capital.toLocaleString()}</div>
+				<div class="mobile-user-capital">₩{$currentUser.capital?.toLocaleString() ?? '0'}</div>
 				<div class="mobile-user-return positive">+17.0%</div>
 			</div>
 		</div>

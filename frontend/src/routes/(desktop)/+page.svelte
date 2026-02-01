@@ -55,7 +55,7 @@
 					<div class="card-stat-icon">
 						<DollarSign size={24} />
 					</div>
-					<div class="card-stat-value">₩{$currentUser.capital.toLocaleString()}</div>
+					<div class="card-stat-value">₩{$currentUser.capital?.toLocaleString() ?? '0'}</div>
 					<div class="card-stat-label">보유 자산</div>
 					<div class="card-stat-change up">
 						<TrendingUp size={12} />
