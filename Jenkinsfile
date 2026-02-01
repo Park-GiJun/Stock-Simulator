@@ -117,7 +117,7 @@ pipeline {
                         echo "🔄 Starting rolling update..."
                         
                         # 0. 인프라 서비스 먼저 기동 (DB, Redis, Kafka 등)
-                        docker-compose -p stock-simulator --profile all up -d postgres postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
+                        docker-compose -p stock-simulator --profile all up -d postgres-primary postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
                         echo "⏳ Waiting for infrastructure to be ready..."
                         sleep 20
                         
