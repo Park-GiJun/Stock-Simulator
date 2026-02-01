@@ -226,10 +226,11 @@ jobs:
             IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:${VERSION}"
             echo "Pulling $IMAGE..."
             docker pull $IMAGE
-            
-            # Tag as latest for docker-compose
-            docker tag $IMAGE ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:latest
           done
+          
+          echo "📝 Updating .env file with new image tag..."
+          # .env 파일에 IMAGE_TAG 설정
+          sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${VERSION}/" .env || echo "IMAGE_TAG=${VERSION}" >> .env
           
           echo "🔄 Performing rolling update..."
           

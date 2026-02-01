@@ -391,12 +391,9 @@ services:
 
   # Eureka Server (Service Discovery)
   eureka-server:
-    image: stocksim/eureka-server:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/eureka-server:${IMAGE_TAG:-latest}
     container_name: stockSimulator-eureka-server
     profiles: ["services", "all"]
-    build:
-      context: ./backend/eureka-server
-      dockerfile: Dockerfile
     ports:
       - "8761:8761"
     environment:
@@ -418,12 +415,9 @@ services:
 
   # API Gateway
   api-gateway:
-    image: stocksim/api-gateway:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/api-gateway:${IMAGE_TAG:-latest}
     container_name: stockSimulator-api-gateway
     profiles: ["services", "all"]
-    build:
-      context: ./backend/api-gateway
-      dockerfile: Dockerfile
     ports:
       - "9832:8080"
     environment:
@@ -444,12 +438,9 @@ services:
 
   # User Service
   user-service:
-    image: stocksim/user-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/user-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-user-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/user-service
-      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     environment:
@@ -474,12 +465,9 @@ services:
 
   # Stock Service
   stock-service:
-    image: stocksim/stock-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/stock-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-stock-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/stock-service
-      dockerfile: Dockerfile
     ports:
       - "8082:8082"
     environment:
@@ -504,12 +492,9 @@ services:
 
   # Trading Service
   trading-service:
-    image: stocksim/trading-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/trading-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-trading-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/trading-service
-      dockerfile: Dockerfile
     ports:
       - "8083:8083"
     environment:
@@ -536,12 +521,9 @@ services:
 
   # Event Service
   event-service:
-    image: stocksim/event-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/event-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-event-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/event-service
-      dockerfile: Dockerfile
     ports:
       - "8084:8084"
     environment:
@@ -566,12 +548,9 @@ services:
 
   # Scheduler Service
   scheduler-service:
-    image: stocksim/scheduler-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/scheduler-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-scheduler-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/scheduler-service
-      dockerfile: Dockerfile
     ports:
       - "8085:8085"
     environment:
@@ -598,12 +577,9 @@ services:
 
   # News Service
   news-service:
-    image: stocksim/news-service:latest
+    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/news-service:${IMAGE_TAG:-latest}
     container_name: stockSimulator-news-service
     profiles: ["services", "all"]
-    build:
-      context: ./backend/news-service
-      dockerfile: Dockerfile
     ports:
       - "8086:8086"
     environment:
