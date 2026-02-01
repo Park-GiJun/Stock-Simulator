@@ -98,6 +98,10 @@ pipeline {
                     echo "🚀 Deploying to production..."
                     
                     sh """
+                        # Copy infrastructure configuration files to /deploy
+                        echo "📋 Copying infrastructure configuration files..."
+                        cp -rf infra /deploy/
+                        
                         cd /deploy
                         
                         # Login to registry
