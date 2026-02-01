@@ -94,7 +94,18 @@ jobs:
 
       - name: Build Backend JAR
         if: matrix.service != 'frontend'
-        run: ./gradlew clean :backend:${{ matrix.service }}:bootJar -x test --no-daemon --no-build-cache
+        run: |
+          echo "🔨 Building ${{ matrix.service }}..."
+          ./gradlew clean :backend:${{ matrix.service }}:bootJar -x test --no-daemon --stacktrace
+          
+          # JAR 파일 존재 확인
+          JAR_PATH="backend/${{ matrix.service }}/build/libs/*.jar"
+          if ! ls $JAR_PATH 1> /dev/null 2>&1; then
+            echo "❌ JAR file not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "✅ JAR build successful"
+          ls -lh backend/${{ matrix.service }}/build/libs/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -128,6 +139,11 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             ${{ matrix.service == 'frontend' && 'VITE_API_URL=https://api.gijun.net' || '' }}
+      
+      - name: Verify image push
+        run: |
+          echo "✅ Successfully pushed ${{ matrix.service }}:${{ needs.validate.outputs.version }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:${{ needs.validate.outputs.version }}"
 
   # ===========================================================================
   # 3. 수동 승인 단계
@@ -222,11 +238,22 @@ jobs:
           echo "🐳 Pulling production images (${VERSION})..."
           SERVICES=(eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service frontend)
           
+          FAILED_SERVICES=()
           for service in "${SERVICES[@]}"; do
             IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${service}:${VERSION}"
             echo "Pulling $IMAGE..."
-            docker pull $IMAGE
+            if ! docker pull $IMAGE; then
+              echo "❌ Failed to pull $service"
+              FAILED_SERVICES+=("$service")
+            else
+              echo "✅ Successfully pulled $service"
+            fi
           done
+          
+          if [ ${#FAILED_SERVICES[@]} -ne 0 ]; then
+            echo "❌ Failed to pull images for: ${FAILED_SERVICES[*]}"
+            exit 1
+          fi
           
           echo "📝 Updating .env file with new image tag..."
           # .env 파일에 IMAGE_TAG 설정
