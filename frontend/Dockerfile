@@ -12,8 +12,11 @@ RUN pnpm install
 # 소스 복사 및 빌드
 COPY . .
 
-ARG VITE_API_URL=http://localhost:8080
-ENV VITE_API_URL=$VITE_API_URL
+# 환경변수 설정 (빌드 시점)
+ARG VITE_API_BASE_URL=https://api.gijun.net
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_USE_MOCK=false
+ENV VITE_USE_MOCK=$VITE_USE_MOCK
 
 RUN pnpm run build
 
