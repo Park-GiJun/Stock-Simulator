@@ -21,81 +21,36 @@ pipeline {
             }
         }
         
-        stage('🔨 Build Backend Services') {
+        stage('🐳 Build & Push Docker Images - Direct') {
             steps {
                 script {
-                    echo "🏗️ Building all backend services..."
-                    sh '''
-                        chmod +x gradlew
-                        ./gradlew clean build -x test --no-daemon
-                    '''
-                }
-            }
-        }
-        
-        stage('🐳 Build & Push Docker Images') {
-            parallel {
-                stage('Eureka Server') {
-                    steps {
-                        script {
-                            buildAndPush('eureka-server')
-                        }
-                    }
-                }
-                stage('API Gateway') {
-                    steps {
-                        script {
-                            buildAndPush('api-gateway')
-                        }
-                    }
-                }
-                stage('User Service') {
-                    steps {
-                        script {
-                            buildAndPush('user-service')
-                        }
-                    }
-                }
-                stage('Stock Service') {
-                    steps {
-                        script {
-                            buildAndPush('stock-service')
-                        }
-                    }
-                }
-                stage('Trading Service') {
-                    steps {
-                        script {
-                            buildAndPush('trading-service')
-                        }
-                    }
-                }
-                stage('Event Service') {
-                    steps {
-                        script {
-                            buildAndPush('event-service')
-                        }
-                    }
-                }
-                stage('Scheduler Service') {
-                    steps {
-                        script {
-                            buildAndPush('scheduler-service')
-                        }
-                    }
-                }
-                stage('News Service') {
-                    steps {
-                        script {
-                            buildAndPush('news-service')
-                        }
-                    }
-                }
-                stage('Frontend') {
-                    steps {
-                        script {
-                            buildAndPush('frontend', 'frontend')
-                        }
+                    echo "🏗️ Building Docker images directly (no Gradle pre-build)..."
+                    
+                    sh """
+                        echo ${DOCKER_CREDENTIALS_PSW} | docker login ${REGISTRY} -u ${DOCKER_CREDENTIALS_USR} --password-stdin
+                    """
+                    
+                    def services = [
+                        'eureka-server': 'backend/eureka-server',
+                        'api-gateway': 'backend/api-gateway',
+                        'user-service': 'backend/user-service',
+                        'stock-service': 'backend/stock-service',
+                        'trading-service': 'backend/trading-service',
+                        'event-service': 'backend/event-service',
+                        'scheduler-service': 'backend/scheduler-service',
+                        'news-service': 'backend/news-service',
+                        'frontend': 'frontend'
+                    ]
+                    
+                    services.each { service, context ->
+                        echo "🐳 Building ${service}..."
+                        sh """
+                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} -f ${context}/Dockerfile ${context}
+                            docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                            docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
+                            docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                            echo "✅ ${service} pushed successfully"
+                        """
                     }
                 }
             }
@@ -109,7 +64,7 @@ pipeline {
                 script {
                     echo "🚀 Deploying to production..."
                     
-                    sh '''
+                    sh """
                         cd ${DEPLOY_PATH}
                         
                         # Update .env file
@@ -137,7 +92,7 @@ pipeline {
                         docker-compose --profile all up -d --no-deps --force-recreate frontend
                         
                         echo "✅ Deployment complete"
-                    '''
+                    """
                 }
             }
         }
@@ -147,7 +102,7 @@ pipeline {
                 script {
                     echo "🏥 Running health checks..."
                     
-                    sh '''
+                    sh """
                         sleep 30
                         
                         # Check Eureka
@@ -165,7 +120,7 @@ pipeline {
                             echo "❌ API Gateway health check failed"
                             exit 1
                         fi
-                    '''
+                    """
                 }
             }
         }
@@ -179,29 +134,6 @@ pipeline {
         }
         failure {
             echo "❌ Pipeline failed!"
-            // Optionally trigger rollback
-        }
-        always {
-            cleanWs()
         }
     }
-}
-
-def buildAndPush(String service, String context = null) {
-    def serviceContext = context ?: "backend/${service}"
-    def dockerFile = context ? "${context}/Dockerfile" : "backend/${service}/Dockerfile"
-    
-    echo "🐳 Building ${service}..."
-    
-    sh """
-        docker login ${REGISTRY} -u \${DOCKER_CREDENTIALS_USR} -p \${DOCKER_CREDENTIALS_PSW}
-        
-        docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} -f ${dockerFile} ${serviceContext}
-        docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-        
-        docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
-        docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-        
-        echo "✅ ${service} pushed successfully"
-    """
 }
