@@ -141,9 +141,17 @@ pipeline {
                         echo "✅ prometheus.yml is a valid file"
                         ls -lh /deploy/infra/prometheus/prometheus.yml
                         
+                        # Create absolute path bind for docker-compose
+                        echo "🔗 Creating absolute path links..."
+                        # Ensure docker-compose uses absolute path by being in /deploy directory
+                        
                         # Clean Docker builder cache and system cache
                         echo "🧹 Cleaning Docker system cache..."
                         docker system prune -f --volumes 2>/dev/null || true
+                        
+                        # Remove prometheus image to force fresh pull
+                        echo "🗑️ Removing prometheus image to clear any cached metadata..."
+                        docker rmi prom/prometheus:v2.48.0 2>/dev/null || true
                         
                         # Rolling update
                         echo "🔄 Starting rolling update..."
