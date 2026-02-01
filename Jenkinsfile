@@ -101,7 +101,6 @@ pipeline {
                         # Copy infrastructure configuration files to /deploy
                         echo "📋 Copying infrastructure and config files..."
                         cp -rf docker-compose.yml /deploy/
-                        cp -rf .env /deploy/
                         cp -rf infra /deploy/
                         
                         cd /deploy
