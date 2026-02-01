@@ -13,8 +13,9 @@ pipeline {
     }
     
     parameters {
-        string(name: 'VERSION', defaultValue: 'v1.4.1', description: 'Version to deploy (e.g., v1.4.1)')
+        string(name: 'VERSION', defaultValue: 'v1.4.2', description: 'Version to deploy (e.g., v1.4.2)')
         choice(name: 'ENVIRONMENT', choices: ['production', 'staging'], description: 'Deployment environment')
+        choice(name: 'BUILD_TARGET', choices: ['all', 'frontend-only', 'backend-only'], description: '빌드 대상 선택')
         booleanParam(name: 'CLEAN_BUILD', defaultValue: false, description: '클린 빌드 (캐시 무시)')
         booleanParam(name: 'SKIP_BUILD', defaultValue: false, description: '빌드 스킵 (이미지만 배포)')
     }
@@ -27,9 +28,12 @@ pipeline {
             }
         }
         
-        stage('🔨 Build with Gradle') {
+        stage('🔨 Build Backend with Gradle') {
             when {
-                expression { !params.SKIP_BUILD }
+                allOf {
+                    expression { !params.SKIP_BUILD }
+                    expression { params.BUILD_TARGET == 'all' || params.BUILD_TARGET == 'backend-only' }
+                }
             }
             steps {
                 script {
@@ -49,39 +53,45 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🐳 Building and pushing Docker images..."
+                    echo "🐳 Building and pushing Docker images (target: ${params.BUILD_TARGET})..."
                     
                     sh """
                         echo ${DOCKER_CREDENTIALS_PSW} | docker login ${REGISTRY} -u ${DOCKER_CREDENTIALS_USR} --password-stdin
                     """
                     
-                    def services = ['eureka-server', 'api-gateway', 'user-service', 'stock-service', 'trading-service', 'event-service', 'scheduler-service', 'news-service']
-                    
-                    // 병렬로 Docker 빌드
                     def parallelStages = [:]
                     
-                    services.each { service ->
-                        parallelStages[service] = {
-                            sh """
-                                cd backend/${service}
-                                docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} .
-                                docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-                                docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
-                                docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
-                                cd ../..
-                            """
+                    // Backend services
+                    if (params.BUILD_TARGET == 'all' || params.BUILD_TARGET == 'backend-only') {
+                        def services = ['eureka-server', 'api-gateway', 'user-service', 'stock-service', 'trading-service', 'event-service', 'scheduler-service', 'news-service']
+                        
+                        services.each { service ->
+                            parallelStages[service] = {
+                                sh """
+                                    cd backend/${service}
+                                    docker build -t ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} .
+                                    docker tag ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                                    docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:${VERSION}
+                                    docker push ${REGISTRY}/${IMAGE_PREFIX}/${service}:latest
+                                    cd ../..
+                                """
+                            }
                         }
                     }
                     
-                    parallelStages['frontend'] = {
-                        sh """
-                            cd frontend
-                            docker build -t ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} .
-                            docker tag ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
-                            docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION}
-                            docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
-                            cd ..
-                        """
+                    // Frontend
+                    if (params.BUILD_TARGET == 'all' || params.BUILD_TARGET == 'frontend-only') {
+                        parallelStages['frontend'] = {
+                            echo "🎨 Building Frontend..."
+                            sh """
+                                cd frontend
+                                docker build -t ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} .
+                                docker tag ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION} ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                                docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:${VERSION}
+                                docker push ${REGISTRY}/${IMAGE_PREFIX}/frontend:latest
+                                cd ..
+                            """
+                        }
                     }
                     
                     parallel parallelStages
@@ -95,7 +105,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🚀 Deploying to production..."
+                    echo "🚀 Deploying to production (target: ${params.BUILD_TARGET})..."
                     
                     sh """
                         # Copy infrastructure configuration files to /deploy
@@ -113,51 +123,93 @@ pipeline {
                         
                         # Pull new images (ignore errors for local-build images)
                         docker-compose -p stock-simulator --profile all pull --ignore-pull-failures
-                        
-                        # 기존 고아 컨테이너 정리 (이전 배포 실패 시 남은 컨테이너 제거)
-                        echo "🧹 Cleaning up orphan containers..."
-                        docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
-                        
-                        # Rolling update
-                        echo "🔄 Starting rolling update..."
-                        
-                        # 0. 인프라 서비스 먼저 기동 (DB, Redis, Kafka 등)
-                        docker-compose -p stock-simulator --profile all up -d postgres-primary postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
-                        echo "⏳ Waiting for infrastructure to be ready..."
-                        sleep 20
-                        
-                        # 1. Eureka first
-                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
-                        echo "⏳ Waiting for Eureka to start..."
-                        for i in \$(seq 1 12); do
-                            if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
-                                echo "✅ Eureka is ready!"
-                                break
-                            fi
-                            echo "  Attempt \$i/12 - Eureka not ready yet, waiting 10s..."
-                            sleep 10
-                        done
-                        
-                        # 2. Backend services
-                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
-                        sleep 15
-                        
-                        # 3. API Gateway
-                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
-                        sleep 10
-                        
-                        # 4. Frontend
-                        docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
-                        
-                        echo "✅ Deployment complete"
                     """
+                    
+                    // 빌드 대상에 따라 다른 배포 전략
+                    if (params.BUILD_TARGET == 'frontend-only') {
+                        echo "🎨 Deploying Frontend only..."
+                        sh """
+                            cd /deploy
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
+                            echo "✅ Frontend deployment complete"
+                        """
+                    } else if (params.BUILD_TARGET == 'backend-only') {
+                        echo "⚙️ Deploying Backend services only..."
+                        sh """
+                            cd /deploy
+                            
+                            # Eureka first
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
+                            echo "⏳ Waiting for Eureka to start..."
+                            for i in \$(seq 1 12); do
+                                if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
+                                    echo "✅ Eureka is ready!"
+                                    break
+                                fi
+                                echo "  Attempt \$i/12 - Eureka not ready yet, waiting 10s..."
+                                sleep 10
+                            done
+                            
+                            # Backend services
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                            sleep 15
+                            
+                            # API Gateway
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
+                            sleep 10
+                            
+                            echo "✅ Backend deployment complete"
+                        """
+                    } else {
+                        echo "🔄 Full deployment..."
+                        sh """
+                            cd /deploy
+                            
+                            # 기존 고아 컨테이너 정리
+                            echo "🧹 Cleaning up orphan containers..."
+                            docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
+                            
+                            # 0. 인프라 서비스 먼저 기동
+                            docker-compose -p stock-simulator --profile all up -d postgres-primary postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
+                            echo "⏳ Waiting for infrastructure to be ready..."
+                            sleep 20
+                            
+                            # 1. Eureka first
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
+                            echo "⏳ Waiting for Eureka to start..."
+                            for i in \$(seq 1 12); do
+                                if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
+                                    echo "✅ Eureka is ready!"
+                                    break
+                                fi
+                                echo "  Attempt \$i/12 - Eureka not ready yet, waiting 10s..."
+                                sleep 10
+                            done
+                            
+                            # 2. Backend services
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                            sleep 15
+                            
+                            # 3. API Gateway
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
+                            sleep 10
+                            
+                            # 4. Frontend
+                            docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
+                            
+                            echo "✅ Full deployment complete"
+                        """
+                    }
                 }
             }
         }
         
         stage('🏥 Health Check') {
             when {
-                expression { params.ENVIRONMENT == 'production' }
+                allOf {
+                    expression { params.ENVIRONMENT == 'production' }
+                    expression { params.BUILD_TARGET != 'frontend-only' }
+                }
             }
             steps {
                 script {
@@ -211,6 +263,7 @@ pipeline {
             echo "🎉 Pipeline completed successfully!"
             echo "📦 Version: ${params.VERSION}"
             echo "🌐 Environment: ${params.ENVIRONMENT}"
+            echo "🎯 Build Target: ${params.BUILD_TARGET}"
         }
         failure {
             echo "❌ Pipeline failed!"
