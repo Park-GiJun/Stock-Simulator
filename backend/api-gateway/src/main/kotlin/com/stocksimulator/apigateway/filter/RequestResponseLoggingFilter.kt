@@ -1,6 +1,7 @@
 package com.stocksimulator.apigateway.filter
 
-import com.stocksimulator.common.logging.CustomLogger
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
 import org.springframework.core.Ordered
@@ -12,7 +13,7 @@ import java.util.UUID
 /**
  * API Gateway 요청/응답 로깅 필터
  *
- * 모든 요청을 가로채서 로그를 MongoDB에 저장
+ * 모든 요청을 가로채서 로그
  * - TraceId 생성 및 MDC 설정
  * - 요청 정보 (method, path, clientIp)
  * - 응답 정보 (statusCode, duration)
@@ -20,7 +21,7 @@ import java.util.UUID
 @Component
 class RequestResponseLoggingFilter : GlobalFilter, Ordered {
 
-    private val log = CustomLogger(RequestResponseLoggingFilter::class.java)
+    private val log = LoggerFactory.getLogger(RequestResponseLoggingFilter::class.java)
 
     override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
         val startTime = System.currentTimeMillis()
@@ -35,7 +36,7 @@ class RequestResponseLoggingFilter : GlobalFilter, Ordered {
         val mutatedExchange = exchange.mutate().request(mutatedRequest).build()
 
         // MDC에 TraceId 설정
-        CustomLogger.setTraceId(traceId)
+        MDC.put("traceId", traceId)
 
         return chain.filter(mutatedExchange)
             .doOnSuccess {
@@ -45,7 +46,7 @@ class RequestResponseLoggingFilter : GlobalFilter, Ordered {
                 logRequest(mutatedExchange, startTime, traceId, error)
             }
             .doFinally {
-                CustomLogger.clearTraceId()
+                MDC.remove("traceId")
             }
     }
 
@@ -64,33 +65,19 @@ class RequestResponseLoggingFilter : GlobalFilter, Ordered {
         val statusCode = response.statusCode?.value()
         val clientIp = request.remoteAddress?.address?.hostAddress ?: "unknown"
 
-        val metadata = mutableMapOf<String, Any?>(
-            "method" to method,
-            "path" to path,
-            "statusCode" to statusCode,
-            "duration" to duration,
-            "clientIp" to clientIp,
-            "userAgent" to request.headers.getFirst("User-Agent"),
-            "queryParams" to request.queryParams.toString()
-        )
-
-        if (error != null) {
-            metadata["errorMessage"] = error.message
-            metadata["errorType"] = error.javaClass.simpleName
-        }
-
         // 로그 메시지
         val message = buildString {
             append("$method $path")
             if (statusCode != null) append(" -> $statusCode")
             append(" (${duration}ms)")
+            append(" [clientIp=$clientIp]")
             if (error != null) append(" [ERROR: ${error.message}]")
         }
 
         when {
-            error != null -> log.error(message, error, metadata)
-            statusCode != null && statusCode >= 400 -> log.warn(message, null, metadata)
-            else -> log.info(message, metadata)
+            error != null -> log.error(message, error)
+            statusCode != null && statusCode >= 400 -> log.warn(message)
+            else -> log.info(message)
         }
     }
 

@@ -1,5 +1,4 @@
 plugins {
-    kotlin("plugin.jpa")
     kotlin("plugin.serialization")
 }
 
@@ -12,23 +11,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // JPA
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-
-    // Kotlin JDSL
-    implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.6.0")
-    implementation("com.linecorp.kotlin-jdsl:jpql-render:3.6.0")
-    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.6.0")
-
     // Kotlinx Serialization (for shared DTOs)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
 
-    // Kafka
+    // Kafka (for shared events)
     implementation("org.springframework.kafka:spring-kafka")
-
-    // Redisson
-    implementation("org.redisson:redisson:3.40.2")
 
     // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -36,9 +24,6 @@ dependencies {
 
     // Swagger / OpenAPI
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8")
-
-    // MongoDB for custom logging
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     
     // Logback for structured logging
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")

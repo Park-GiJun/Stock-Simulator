@@ -6,6 +6,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongo}:27017/stocksimulator?authSource=admin
+  autoconfigure:
+    exclude:
+      - com.linecorp.kotlinjdsl.support.spring.data.jpa.autoconfigure.KotlinJdslAutoConfiguration
 
 eureka:
   instance:

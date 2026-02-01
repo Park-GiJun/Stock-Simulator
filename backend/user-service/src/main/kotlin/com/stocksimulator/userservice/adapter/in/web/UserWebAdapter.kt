@@ -3,7 +3,7 @@ package com.stocksimulator.userservice.adapter.`in`.web
 import com.stocksimulator.common.dto.ApiResponse
 import com.stocksimulator.common.dto.toCreatedResponseEntity
 import com.stocksimulator.common.dto.toResponseEntity
-import com.stocksimulator.common.logging.CustomLogger
+import org.slf4j.LoggerFactory
 import com.stocksimulator.userservice.adapter.`in`.web.dto.LoginRequest
 import com.stocksimulator.userservice.adapter.`in`.web.dto.LoginResponse
 import com.stocksimulator.userservice.adapter.`in`.web.dto.SignUpRequest
@@ -36,7 +36,7 @@ class UserWebAdapter(
     private val loginUseCase: LoginUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
-    private val log = CustomLogger(UserWebAdapter::class.java)
+    private val log = LoggerFactory.getLogger(UserWebAdapter::class.java)
 
     /**
      * 회원가입 API
@@ -158,7 +158,7 @@ class UserWebAdapter(
         // Session에서 userId 추출
         val userId = webSession.getAttribute<Long>("userId")
             ?: run {
-                log.warn("인증되지 않은 요청", metadata = mapOf("sessionId" to webSession.id))
+                log.warn("인증되지 않은 요청: sessionId={}", webSession.id)
                 return@mono ApiResponse.error<UserResponse>("인증이 필요합니다", "A001")
                     .toResponseEntity(HttpStatus.UNAUTHORIZED)
             }

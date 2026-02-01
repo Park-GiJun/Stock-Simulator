@@ -7,6 +7,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator?authSource=admin
+  autoconfigure:
+    exclude:
+      - com.linecorp.kotlinjdsl.support.spring.data.jpa.autoconfigure.KotlinJdslAutoConfiguration
 
 eureka:
   client:

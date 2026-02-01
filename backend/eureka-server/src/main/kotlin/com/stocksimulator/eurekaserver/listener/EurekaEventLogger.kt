@@ -1,7 +1,7 @@
 package com.stocksimulator.eurekaserver.listener
 
 import com.netflix.appinfo.InstanceInfo
-import com.stocksimulator.common.logging.CustomLogger
+import org.slf4j.LoggerFactory
 import org.springframework.cloud.netflix.eureka.server.event.*
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component
 /**
  * Eureka Server 이벤트 리스너
  *
- * 서비스 등록/해제 이벤트를 로깅하여 MongoDB에 저장
+ * 서비스 등록/해제 이벤트를 로깅
  */
 @Component
 class EurekaEventLogger {
 
-    private val log = CustomLogger(EurekaEventLogger::class.java)
+    private val log = LoggerFactory.getLogger(EurekaEventLogger::class.java)
 
     /**
      * 서비스 등록 이벤트
@@ -23,15 +23,13 @@ class EurekaEventLogger {
     fun onServiceRegistered(event: EurekaInstanceRegisteredEvent) {
         val instance = event.instanceInfo
         log.info(
-            "Service registered to Eureka",
-            mapOf(
-                "instanceId" to instance.instanceId,
-                "appName" to instance.appName,
-                "ipAddr" to instance.ipAddr,
-                "port" to instance.port,
-                "status" to instance.status.name,
-                "homePageUrl" to instance.homePageUrl
-            )
+            "Service registered to Eureka: instanceId={}, appName={}, ipAddr={}, port={}, status={}, homePageUrl={}",
+            instance.instanceId,
+            instance.appName,
+            instance.ipAddr,
+            instance.port,
+            instance.status.name,
+            instance.homePageUrl
         )
     }
 
@@ -41,11 +39,9 @@ class EurekaEventLogger {
     @EventListener
     fun onServiceCancelled(event: EurekaInstanceCanceledEvent) {
         log.info(
-            "Service cancelled from Eureka",
-            mapOf(
-                "appName" to event.appName,
-                "serverId" to event.serverId
-            )
+            "Service cancelled from Eureka: appName={}, serverId={}",
+            event.appName,
+            event.serverId
         )
     }
 
@@ -56,13 +52,11 @@ class EurekaEventLogger {
     fun onServiceRenewed(event: EurekaInstanceRenewedEvent) {
         val instance = event.instanceInfo
         log.debug(
-            "Service heartbeat renewed",
-            mapOf(
-                "instanceId" to instance.instanceId,
-                "appName" to instance.appName,
-                "ipAddr" to instance.ipAddr,
-                "status" to instance.status.name
-            )
+            "Service heartbeat renewed: instanceId={}, appName={}, ipAddr={}, status={}",
+            instance.instanceId,
+            instance.appName,
+            instance.ipAddr,
+            instance.status.name
         )
     }
 

@@ -2,7 +2,7 @@ package com.stocksimulator.userservice.application.handler.user
 
 import com.stocksimulator.common.exception.DuplicateResourceException
 import com.stocksimulator.common.exception.ErrorCode
-import com.stocksimulator.common.logging.CustomLogger
+import org.slf4j.LoggerFactory
 import com.stocksimulator.userservice.application.dto.command.user.SignUpCommand
 import com.stocksimulator.userservice.application.dto.result.user.SingUpResult
 import com.stocksimulator.userservice.application.port.`in`.user.SignUpUseCase
@@ -21,7 +21,7 @@ class UserCommandHandler(
     private val passwordEncoder: PasswordEncoder
 ) : SignUpUseCase {
 
-    private val log = CustomLogger(UserCommandHandler::class.java)
+    private val log = LoggerFactory.getLogger(UserCommandHandler::class.java)
 
     /**
      * 회원가입 처리
@@ -32,17 +32,17 @@ class UserCommandHandler(
      */
     @Transactional
     override fun signUp(command: SignUpCommand): SingUpResult {
-        log.info("회원가입 시작", mapOf("email" to command.email, "username" to command.username))
+        log.info("회원가입 시작: email={}, username={}", command.email, command.username)
 
         // 1. 이메일 중복 검증
         userPersistencePort.findByEmail(command.email)?.let {
-            log.warn("이메일 중복", metadata = mapOf("email" to command.email))
+            log.warn("이메일 중복: email={}", command.email)
             throw DuplicateResourceException(ErrorCode.DUPLICATE_EMAIL)
         }
 
         // 2. 닉네임 중복 검증
         userPersistencePort.findByUsername(command.username)?.let {
-            log.warn("닉네임 중복", metadata = mapOf("username" to command.username))
+            log.warn("닉네임 중복: username={}", command.username)
             throw DuplicateResourceException(ErrorCode.DUPLICATE_NICKNAME)
         }
 
