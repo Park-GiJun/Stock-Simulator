@@ -98,6 +98,10 @@ pipeline {
                     echo "🚀 Deploying to production..."
                     
                     sh """
+                        # Remove old infra directory to prevent conflicts
+                        echo "🧹 Cleaning old infra directory..."
+                        rm -rf /deploy/infra
+                        
                         # Copy infrastructure configuration files to /deploy
                         echo "📋 Copying infrastructure configuration files..."
                         cp -rf infra /deploy/
@@ -105,7 +109,6 @@ pipeline {
                         # Debug: Check if files are copied correctly
                         echo "🔍 Checking copied files..."
                         ls -la /deploy/infra/prometheus/
-                        file /deploy/infra/prometheus/prometheus.yml
                         
                         cd /deploy
                         
