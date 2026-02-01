@@ -125,6 +125,22 @@ pipeline {
                         echo "🧹 Cleaning up orphan containers..."
                         docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
                         
+                        # Verify prometheus.yml is a file, not a directory
+                        echo "🔍 Final verification of prometheus.yml..."
+                        if [ -d /deploy/infra/prometheus/prometheus.yml ]; then
+                            echo "❌ ERROR: prometheus.yml is a directory! Removing..."
+                            rm -rf /deploy/infra/prometheus/prometheus.yml
+                        fi
+                        
+                        if [ ! -f /deploy/infra/prometheus/prometheus.yml ]; then
+                            echo "❌ ERROR: prometheus.yml file does not exist!"
+                            ls -la /deploy/infra/prometheus/
+                            exit 1
+                        fi
+                        
+                        echo "✅ prometheus.yml is a valid file"
+                        ls -lh /deploy/infra/prometheus/prometheus.yml
+                        
                         # Rolling update
                         echo "🔄 Starting rolling update..."
                         
