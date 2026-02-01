@@ -141,6 +141,10 @@ pipeline {
                         echo "✅ prometheus.yml is a valid file"
                         ls -lh /deploy/infra/prometheus/prometheus.yml
                         
+                        # Clean Docker builder cache and system cache
+                        echo "🧹 Cleaning Docker system cache..."
+                        docker system prune -f --volumes 2>/dev/null || true
+                        
                         # Rolling update
                         echo "🔄 Starting rolling update..."
                         
