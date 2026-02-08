@@ -3,6 +3,7 @@ package com.stocksimulator.gateway.filter
 import com.stocksimulator.gateway.auth.RedisSessionRepository
 import com.stocksimulator.gateway.config.AuthProperties
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
 import org.springframework.core.Ordered
@@ -64,6 +65,11 @@ class SessionAuthenticationFilter(
         // Validate session in Redis
         return sessionRepository.getSessionData(sessionId)
             .flatMap { sessionData ->
+                // Set MDC tags for logging context
+                MDC.put("userId", sessionData.userId.toString())
+                MDC.put("sessionId", sessionId)
+                sessionData.role?.let { MDC.put("userRole", it) }
+
                 log.info(
                     "Session validated: userId={}, role={}, path={}",
                     sessionData.userId,
@@ -90,6 +96,12 @@ class SessionAuthenticationFilter(
                     unauthorized(exchange, "Session expired or invalid")
                 }
             )
+            .doFinally {
+                // Clear MDC tags after request completes
+                MDC.remove("userId")
+                MDC.remove("sessionId")
+                MDC.remove("userRole")
+            }
     }
 
     /**
