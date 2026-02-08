@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:stocksim123}
   cloud:
     gateway:
       discovery:
@@ -99,3 +104,17 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
+
+# Gateway Authentication Configuration
+gateway:
+  auth:
+    session-namespace: stock-simulator:session
+    session-cookie-name: SESSION
+    public-paths:
+      - /user-service/api/v1/users/signup
+      - /user-service/api/v1/users/login
+      - /user-service/api/v1/health/**
+      - /**/actuator/**
+      - /**/swagger-ui/**
+      - /**/api-docs/**
+      - /**/v3/api-docs/**

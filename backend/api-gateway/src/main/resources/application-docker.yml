@@ -3,6 +3,11 @@ server:
   port: 8080
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:stocksim123}
   cloud:
     gateway:
       discovery:
@@ -19,3 +24,6 @@ eureka:
   instance:
     hostname: api-gateway
     prefer-ip-address: false
+
+# Gateway Authentication Configuration (inherits from application.yml)
+# Override only if needed for Docker environment
