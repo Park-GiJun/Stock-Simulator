@@ -115,6 +115,12 @@ Each service has two config files:
 - `application.yml` - Local development (localhost)
 - `application-docker.yml` - Docker environment (uses env variables)
 
+**Important Notes:**
+- **API Gateway**: Spring Cloud Gateway 5.0.0 uses Java Config instead of YAML for routes
+  - Route configuration is in `RouteConfig.kt` (not in YAML files)
+  - Removed MongoDB dependency (not needed for API Gateway)
+- **Eureka Server**: No database dependencies (service discovery only)
+
 **Environment Variables (`.env` file):**
 ```env
 # Infrastructure hosts
@@ -205,6 +211,7 @@ news.published       # AI-generated news
 | Promtail | stockSimulator-promtail | - | - |
 | Eureka | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
 | API Gateway | stockSimulator-api-gateway | 9832 | - |
+| Jenkins | jenkins-blueocean | 8180 (http), 50000 (agent) | - |
 
 ## Monitoring
 
@@ -276,6 +283,47 @@ docker-compose --profile all up -d
 ### 3. Services Can't Connect to Eureka
 **Cause:** Using `localhost` instead of Docker service name
 **Solution:** Use `application-docker.yml` with `eureka-server:8761`
+
+### 4. Frontend Login Navigation Bug (Fixed)
+**Issue:** Login succeeds but page doesn't navigate to home
+**Cause:** `+layout.svelte` was calling `getCurrentUser()` immediately after login, causing session timing issues
+**Solution:** Skip `getCurrentUser()` if user info already exists in `authStore` (로그인 직후에는 세션 검증 스킵)
+
+## CI/CD
+
+### Jenkins Pipeline
+- **URL**: http://localhost:8180
+- **Jenkinsfile**: Located at project root
+- **Features**:
+  - Multi-stage pipeline (Clean → Build → Deploy)
+  - Selective build options (All, Backend only, Frontend only)
+  - Docker image build and push to GHCR (GitHub Container Registry)
+  - Automatic deployment with health checks
+  - Slack notifications (optional)
+  
+**Build Triggers**:
+- Webhook from GitHub on push to `master` branch
+- Manual trigger via Jenkins UI
+
+**Deployment Flow**:
+1. Clean workspace and old Docker images
+2. Build backend services with Gradle (Java 25)
+3. Build frontend with pnpm
+4. Build and push Docker images to GHCR
+5. Deploy via docker-compose
+6. Health check (Eureka, API Gateway)
+
+### GitHub Container Registry (GHCR)
+All Docker images are now hosted on GHCR:
+- `ghcr.io/park-gijun/stock-simulator-eureka-server:latest`
+- `ghcr.io/park-gijun/stock-simulator-api-gateway:latest`
+- `ghcr.io/park-gijun/stock-simulator-user-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-stock-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-trading-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-event-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-scheduler-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-news-service:latest`
+- `ghcr.io/park-gijun/stock-simulator-frontend:latest`
 
 ## Key Documentation
 

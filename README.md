@@ -75,6 +75,7 @@ Docker Compose  +  Kafka  +  PostgreSQL  +  MongoDB  +  Redis
 | Elasticsearch | 9201 | 검색 엔진 |
 | Prometheus | 9091 | 메트릭 수집 |
 | Grafana | 3001 | 대시보드 |
+| Jenkins | 8180 | CI/CD 파이프라인 |
 
 ## 📁 프로젝트 구조
 
@@ -187,10 +188,11 @@ docker-compose --profile monitoring up -d  # 모니터링만
 ### 3. 서비스 확인
 
 - **Eureka Dashboard**: http://localhost:8761
+- **API Gateway**: http://localhost:9832
 - **Grafana**: http://localhost:3001
 - **Prometheus**: http://localhost:9091
 - **Kafka UI**: http://localhost:8089
-- **API Gateway**: http://localhost:9832
+- **Jenkins**: http://localhost:8180
 
 > 기본 Grafana 계정은 `.env` 파일에서 설정한 값을 사용합니다.
 
@@ -323,6 +325,53 @@ pnpm run lint
 모든 서비스는 `/actuator/prometheus` 엔드포인트로 메트릭 노출  
 **타겟 확인**: http://localhost:9091/targets
 
+## 🚢 CI/CD
+
+### Jenkins 파이프라인
+
+**URL**: http://localhost:8180
+
+**주요 기능:**
+- 🔄 Multi-stage 파이프라인 (Clean → Build → Deploy)
+- 🎯 선택적 빌드 옵션 (All, Backend only, Frontend only)
+- 🐳 Docker 이미지 빌드 및 GHCR 푸시
+- ✅ 자동 배포 및 헬스체크
+- 📢 Slack 알림 (선택적)
+
+**빌드 트리거:**
+- GitHub webhook (master 브랜치 push 시)
+- Jenkins UI에서 수동 트리거
+
+**배포 플로우:**
+1. 작업 공간 정리 및 이전 Docker 이미지 삭제
+2. Gradle로 백엔드 서비스 빌드 (Java 25)
+3. pnpm으로 프론트엔드 빌드
+4. Docker 이미지 빌드 및 GHCR 푸시
+5. docker-compose로 배포
+6. 헬스체크 (Eureka, API Gateway)
+
+### GitHub Container Registry (GHCR)
+
+모든 Docker 이미지는 GHCR에서 호스팅됩니다:
+
+```
+ghcr.io/park-gijun/stock-simulator-eureka-server:latest
+ghcr.io/park-gijun/stock-simulator-api-gateway:latest
+ghcr.io/park-gijun/stock-simulator-user-service:latest
+ghcr.io/park-gijun/stock-simulator-stock-service:latest
+ghcr.io/park-gijun/stock-simulator-trading-service:latest
+ghcr.io/park-gijun/stock-simulator-event-service:latest
+ghcr.io/park-gijun/stock-simulator-scheduler-service:latest
+ghcr.io/park-gijun/stock-simulator-news-service:latest
+ghcr.io/park-gijun/stock-simulator-frontend:latest
+```
+
+**이미지 Pull:**
+```bash
+docker login ghcr.io -u <github-username>
+docker pull ghcr.io/park-gijun/stock-simulator-frontend:latest
+```
+
 ## 🔧 문제 해결
 
 ### 1. Kafka Cluster ID Mismatch
@@ -348,7 +397,15 @@ docker-compose --profile all up -d
 
 **해결**: `application-docker.yml`에서 `eureka-server:8761` 사용 확인
 
-### 4. 데이터베이스 초기화
+### 4. 로그인 후 페이지 전환 오류 (해결됨)
+
+**증상**: 로그인 성공했으나 홈페이지로 이동하지 않음
+
+**원인**: `+layout.svelte`에서 로그인 직후 `getCurrentUser()` 호출로 인한 세션 타이밍 이슈
+
+**해결**: `authStore`에 사용자 정보가 이미 있으면 세션 검증 스킵하도록 수정
+
+### 5. 데이터베이스 초기화
 
 ```bash
 # PostgreSQL 스키마 재생성
@@ -376,25 +433,28 @@ docker exec -it stockSimulator-redis redis-cli -a <your-redis-password> FLUSHALL
 - [x] **Phase 1**: Docker 인프라 구축
   - [x] PostgreSQL (Primary + Replica)
   - [x] MongoDB, Redis, Kafka
-  - [x] Prometheus, Grafana
+  - [x] Prometheus, Grafana, Loki
+  - [x] Jenkins CI/CD 파이프라인
 - [x] **Phase 2**: Backend MSA 구현
-  - [x] Eureka, API Gateway
+  - [x] Eureka, API Gateway (Spring Cloud Gateway 5.0.0)
   - [x] 7개 마이크로서비스
+  - [x] GHCR (GitHub Container Registry) 마이그레이션
 - [ ] **Phase 3**: 이벤트 시스템
   - [x] IPO/상장폐지 스케줄러
   - [x] 투자자 생성 스케줄러
   - [ ] AI 뉴스 생성
 - [ ] **Phase 4**: Frontend 구현
-  - [ ] 인증/대시보드
+  - [x] 인증 (로그인/회원가입)
+  - [ ] 대시보드
   - [ ] 주식 목록/상세
   - [ ] 호가창/거래
   - [ ] 포트폴리오/랭킹
 - [ ] **Phase 5**: AI 통합
   - [ ] OpenAI GPT 기반 뉴스 생성
   - [ ] NPC 투자 전략 AI
-- [ ] **Phase 6**: 배포
-  - [ ] CI/CD 파이프라인
-  - [ ] 프로덕션 환경 구성
+- [x] **Phase 6**: 배포
+  - [x] Jenkins CI/CD 파이프라인
+  - [x] Docker 기반 프로덕션 환경
 
 ## 🤝 기여하기
 
