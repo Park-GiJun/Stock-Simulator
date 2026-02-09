@@ -30,6 +30,7 @@ class RedisConfig {
     private lateinit var redisPassword: String
 
     @Bean
+    @Primary
     fun reactiveRedisConnectionFactory(): ReactiveRedisConnectionFactory {
         val config = RedisStandaloneConfiguration(redisHost, redisPort)
         if (redisPassword.isNotBlank()) {
