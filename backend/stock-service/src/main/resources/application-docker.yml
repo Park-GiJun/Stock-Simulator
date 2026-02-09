@@ -12,6 +12,18 @@ spring:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:stocksim123}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: stocks
+  flyway:
+    enabled: true
+    schemas:
+      - stocks
+    default-schema: stocks
+    baseline-on-migrate: true
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
 

@@ -11,12 +11,18 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         format_sql: true
         default_schema: stocks
+  flyway:
+    enabled: true
+    schemas:
+      - stocks
+    default-schema: stocks
+    baseline-on-migrate: true
   data:
     redis:
       host: localhost
