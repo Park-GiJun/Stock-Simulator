@@ -4,9 +4,6 @@ import com.stocksimulator.common.dto.Sector
 import org.springframework.stereotype.Service
 import kotlin.random.Random
 
-/**
- * 랜덤 기업명 생성 서비스
- */
 @Service
 class CompanyNameGenerator {
 

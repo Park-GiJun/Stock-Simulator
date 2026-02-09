@@ -1,31 +1,57 @@
 <script lang="ts">
-	import { Search, Filter } from 'lucide-svelte';
-	import { Button, Card, Input } from '$lib/components';
-	import { getStockListItems } from '$lib/mock/stocks.js';
-	import { SECTOR_NAMES, MARKET_CAP_NAMES, type Sector, type MarketCapGrade } from '$lib/types/stock.js';
+	import { onMount } from 'svelte';
+	import { Search } from 'lucide-svelte';
+	import { getStocks } from '$lib/api/stockApi.js';
+	import { SECTOR_NAMES, MARKET_CAP_NAMES, type Sector, type MarketCapGrade, type StockListItem } from '$lib/types/stock.js';
 
 	let searchQuery = $state('');
 	let selectedSector = $state<Sector | 'ALL'>('ALL');
+	let stocks = $state<StockListItem[]>([]);
+	let loading = $state(true);
+	let totalElements = $state(0);
+	let currentPage = $state(0);
+	let pageSize = $state(50);
 
-	const allStocks = getStockListItems();
-
-	const filteredStocks = $derived(() => {
-		let result = allStocks;
-
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			result = result.filter(s =>
-				s.stockName.toLowerCase().includes(query) ||
-				s.stockId.toLowerCase().includes(query)
-			);
+	async function fetchStocks() {
+		loading = true;
+		try {
+			const res = await getStocks({
+				page: currentPage,
+				size: pageSize,
+				sector: selectedSector === 'ALL' ? undefined : selectedSector,
+				search: searchQuery || undefined,
+				sortBy: 'stockName',
+				sortOrder: 'asc'
+			});
+			if (res.success && res.data) {
+				stocks = res.data.stocks;
+				totalElements = res.data.total;
+			}
+		} catch (e) {
+			console.error('Failed to fetch stocks:', e);
+		} finally {
+			loading = false;
 		}
+	}
 
-		if (selectedSector !== 'ALL') {
-			result = result.filter(s => s.sector === selectedSector);
-		}
-
-		return result;
+	onMount(() => {
+		fetchStocks();
 	});
+
+	let debounceTimer: ReturnType<typeof setTimeout>;
+	function onSearchInput() {
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			currentPage = 0;
+			fetchStocks();
+		}, 300);
+	}
+
+	function onSectorChange(sector: Sector | 'ALL') {
+		selectedSector = sector;
+		currentPage = 0;
+		fetchStocks();
+	}
 
 	function formatPrice(price: number): string {
 		return price.toLocaleString();
@@ -42,7 +68,7 @@
 		return volume.toString();
 	}
 
-	const sectors: (Sector | 'ALL')[] = ['ALL', 'IT', 'AGRICULTURE', 'MANUFACTURING', 'SERVICE', 'REALESTATE', 'LUXURY', 'FOOD'];
+	const sectors: (Sector | 'ALL')[] = ['ALL', 'IT', 'AGRICULTURE', 'MANUFACTURING', 'SERVICE', 'REAL_ESTATE', 'LUXURY', 'FOOD'];
 </script>
 
 <div class="stocks-page">
@@ -60,6 +86,7 @@
 					class="input"
 					placeholder="종목명 또는 코드로 검색..."
 					bind:value={searchQuery}
+					oninput={onSearchInput}
 				/>
 			</div>
 		</div>
@@ -69,7 +96,7 @@
 					class="btn btn-sm"
 					class:btn-primary={selectedSector === sector}
 					class:btn-secondary={selectedSector !== sector}
-					onclick={() => selectedSector = sector}
+					onclick={() => onSectorChange(sector)}
 				>
 					{sector === 'ALL' ? '전체' : SECTOR_NAMES[sector]}
 				</button>
@@ -79,54 +106,58 @@
 
 	<!-- Stock Table -->
 	<div class="table-wrapper">
-		<table class="table table-stock">
-			<thead>
-				<tr>
-					<th>종목명</th>
-					<th>산업</th>
-					<th>시가총액</th>
-					<th class="text-right">현재가</th>
-					<th class="text-right">등락률</th>
-					<th class="text-right">거래량</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each filteredStocks() as stock}
-					<tr class="clickable" onclick={() => location.href = `/stocks/${stock.stockId}`}>
-						<td>
-							<div class="stock-name">
-								<div class="stock-icon">{stock.stockName.charAt(0)}</div>
-								<div class="stock-info">
-									<span class="stock-title">{stock.stockName}</span>
-									<span class="stock-code">{stock.stockId}</span>
-								</div>
-							</div>
-						</td>
-						<td>
-							<span class="badge badge-sector-{stock.sector.toLowerCase()}">
-								{SECTOR_NAMES[stock.sector]}
-							</span>
-						</td>
-						<td>{MARKET_CAP_NAMES[stock.marketCapGrade]}</td>
-						<td class="stock-price text-right">₩{formatPrice(stock.currentPrice)}</td>
-						<td class="text-right">
-							<div class="stock-change" class:up={stock.changePercent >= 0} class:down={stock.changePercent < 0}>
-								{formatPercent(stock.changePercent)}
-							</div>
-						</td>
-						<td class="stock-volume">{formatVolume(stock.volume)}</td>
+		{#if loading}
+			<div class="text-center p-xl text-secondary">로딩 중...</div>
+		{:else}
+			<table class="table table-stock">
+				<thead>
+					<tr>
+						<th>종목명</th>
+						<th>산업</th>
+						<th>시가총액</th>
+						<th class="text-right">현재가</th>
+						<th class="text-right">등락률</th>
+						<th class="text-right">거래량</th>
 					</tr>
-				{/each}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					{#each stocks as stock}
+						<tr class="clickable" onclick={() => location.href = `/stocks/${stock.stockId}`}>
+							<td>
+								<div class="stock-name">
+									<div class="stock-icon">{stock.stockName.charAt(0)}</div>
+									<div class="stock-info">
+										<span class="stock-title">{stock.stockName}</span>
+										<span class="stock-code">{stock.stockId}</span>
+									</div>
+								</div>
+							</td>
+							<td>
+								<span class="badge badge-sector-{stock.sector.toLowerCase()}">
+									{SECTOR_NAMES[stock.sector]}
+								</span>
+							</td>
+							<td>{MARKET_CAP_NAMES[stock.marketCapGrade]}</td>
+							<td class="stock-price text-right">₩{formatPrice(stock.currentPrice)}</td>
+							<td class="text-right">
+								<div class="stock-change" class:up={stock.changePercent >= 0} class:down={stock.changePercent < 0}>
+									{formatPercent(stock.changePercent)}
+								</div>
+							</td>
+							<td class="stock-volume">{formatVolume(stock.volume)}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 
-		{#if filteredStocks().length === 0}
-			<div class="table-empty">
-				<div class="table-empty-icon">
-					<Search size={48} />
+			{#if stocks.length === 0}
+				<div class="table-empty">
+					<div class="table-empty-icon">
+						<Search size={48} />
+					</div>
+					<div class="table-empty-text">검색 결과가 없습니다</div>
 				</div>
-				<div class="table-empty-text">검색 결과가 없습니다</div>
-			</div>
+			{/if}
 		{/if}
 	</div>
 </div>

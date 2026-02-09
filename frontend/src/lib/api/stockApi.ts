@@ -1,7 +1,12 @@
 // Stock API - Stock related API functions
 import { api, useMock, type ApiResponse } from './api.js';
 import type { Stock, StockListItem, OrderBook, Candle, Trade } from '$lib/types/stock.js';
-import { getMockStocks, getMockStockById, generateMockCandles, generateMockOrderBook } from '$lib/mock/stocks.js';
+import {
+	getMockStocks,
+	getMockStockById,
+	getMockCandleData,
+	getMockOrderBook
+} from '$lib/mock/stocks.js';
 
 // API Endpoints
 const ENDPOINTS = {
@@ -11,6 +16,18 @@ const ENDPOINTS = {
 	candles: (id: string) => `/api/stocks/${id}/candles`,
 	trades: (id: string) => `/api/stocks/${id}/trades`
 };
+
+// Backend PageResponse format
+interface PageResponse<T> {
+	content: T[];
+	page: number;
+	size: number;
+	totalElements: number;
+	totalPages: number;
+	first: boolean;
+	last: boolean;
+	empty: boolean;
+}
 
 // Types for API responses
 export interface StocksResponse {
@@ -58,7 +75,7 @@ export async function getStocks(params?: StocksQueryParams): Promise<ApiResponse
 			data: {
 				stocks,
 				total: stocks.length,
-				page: params?.page ?? 1,
+				page: params?.page ?? 0,
 				size: params?.size ?? 20
 			},
 			error: null,
@@ -66,7 +83,18 @@ export async function getStocks(params?: StocksQueryParams): Promise<ApiResponse
 		};
 	}
 
-	return api.get<StocksResponse>(ENDPOINTS.stocks, { params });
+	const res = await api.get<PageResponse<StockListItem>>(ENDPOINTS.stocks, { params: params as Record<string, string | number | boolean | undefined> });
+	return {
+		...res,
+		data: res.data
+			? {
+					stocks: res.data.content,
+					total: res.data.totalElements,
+					page: res.data.page,
+					size: res.data.size
+				}
+			: null
+	};
 }
 
 export async function getStock(stockId: string): Promise<ApiResponse<Stock>> {
@@ -93,16 +121,7 @@ export async function getStock(stockId: string): Promise<ApiResponse<Stock>> {
 
 export async function getOrderBook(stockId: string): Promise<ApiResponse<OrderBook>> {
 	if (useMock()) {
-		const stock = getMockStockById(stockId);
-		if (!stock) {
-			return {
-				success: false,
-				data: null,
-				error: '종목을 찾을 수 없습니다.',
-				timestamp: new Date().toISOString()
-			};
-		}
-		const orderBook = generateMockOrderBook(stockId, stock.currentPrice);
+		const orderBook = getMockOrderBook(stockId);
 		return {
 			success: true,
 			data: orderBook,
@@ -119,16 +138,7 @@ export async function getCandles(
 	params?: CandlesQueryParams
 ): Promise<ApiResponse<CandlesResponse>> {
 	if (useMock()) {
-		const stock = getMockStockById(stockId);
-		if (!stock) {
-			return {
-				success: false,
-				data: null,
-				error: '종목을 찾을 수 없습니다.',
-				timestamp: new Date().toISOString()
-			};
-		}
-		const candles = generateMockCandles(stock.currentPrice, params?.limit ?? 100);
+		const candles = getMockCandleData(stockId, params?.limit ?? 30);
 		return {
 			success: true,
 			data: {
@@ -141,7 +151,7 @@ export async function getCandles(
 		};
 	}
 
-	return api.get<CandlesResponse>(ENDPOINTS.candles(stockId), { params });
+	return api.get<CandlesResponse>(ENDPOINTS.candles(stockId), { params: params as Record<string, string | number | boolean | undefined> });
 }
 
 export async function getTrades(
@@ -149,9 +159,8 @@ export async function getTrades(
 	limit?: number
 ): Promise<ApiResponse<TradesResponse>> {
 	if (useMock()) {
-		// Generate mock trades
-		const trades: Trade[] = [];
 		const stock = getMockStockById(stockId);
+		const trades: Trade[] = [];
 		if (stock) {
 			for (let i = 0; i < (limit ?? 20); i++) {
 				trades.push({
