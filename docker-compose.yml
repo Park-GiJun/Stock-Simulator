@@ -559,6 +559,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/${POSTGRES_DB}?currentSchema=scheduler
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATA_MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/scheduler?authSource=admin
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -573,6 +574,8 @@ services:
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
 
   # News Service
