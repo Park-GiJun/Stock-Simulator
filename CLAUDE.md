@@ -77,9 +77,9 @@ docker-compose --profile all ps
 # Restart specific service
 docker-compose --profile all restart <service-name>
 
-# Reset Kafka (cluster ID mismatch)
+# Reset Kafka data
 docker-compose --profile all down
-docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker volume rm stock-simulator_kafka_data
 docker-compose --profile all up -d
 ```
 
@@ -202,7 +202,7 @@ news.published       # AI-generated news
 | PostgreSQL Replica | stockSimulator-postgres-replica | 5433 | same as primary |
 | MongoDB | stockSimulator-mongo | 27018 | user: `stocksim`, pw: `stocksim123` |
 | Redis | stockSimulator-redis | 6380 | pw: `stocksim123` |
-| Kafka | stockSimulator-kafka | 9093 | - |
+| Kafka (KRaft) | stockSimulator-kafka | 9094 | - |
 | Kafka UI | stockSimulator-kafka-ui | 8089 | http://localhost:8089 |
 | Elasticsearch | stockSimulator-elasticsearch | 9201 | - |
 | Prometheus | stockSimulator-prometheus | 9091 | http://localhost:9091 |
@@ -267,12 +267,13 @@ sum by (service) (rate({service=~".*-service"}[1m]))
 
 ## Known Issues & Solutions
 
-### 1. Kafka Cluster ID Mismatch
-**Error:** `InconsistentClusterIdException`
-**Solution:**
+### 1. Kafka (KRaft Mode)
+- Kafka uses KRaft mode (no Zookeeper) with a fixed `CLUSTER_ID`
+- Cluster ID mismatch issue is resolved by the fixed ID
+- If Kafka data needs full reset:
 ```bash
 docker-compose --profile all down
-docker volume rm stock-simulator_kafka_data stock-simulator_zookeeper_data
+docker volume rm stock-simulator_kafka_data
 docker-compose --profile all up -d
 ```
 
