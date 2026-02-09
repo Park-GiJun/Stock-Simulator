@@ -170,7 +170,7 @@ pipeline {
                             docker rm -f \$(docker ps -aq --filter "name=stockSimulator-") 2>/dev/null || true
                             
                             # 0. 인프라 서비스 먼저 기동
-                            docker-compose -p stock-simulator --profile all up -d postgres-primary postgres-replica redis mongodb kafka zookeeper elasticsearch loki promtail prometheus grafana
+                            docker-compose -p stock-simulator --profile all up -d postgres-primary postgres-replica redis mongodb kafka elasticsearch loki promtail prometheus grafana
                             echo "⏳ Waiting for infrastructure to be ready..."
                             sleep 20
                             
