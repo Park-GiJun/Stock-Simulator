@@ -2,7 +2,7 @@
 
 import type { Stock, StockListItem, OrderBook, Candle, Sector } from '$lib/types/stock.js';
 
-const SECTORS: Sector[] = ['IT', 'AGRICULTURE', 'MANUFACTURING', 'SERVICE', 'REALESTATE', 'LUXURY', 'FOOD'];
+const SECTORS: Sector[] = ['IT', 'AGRICULTURE', 'MANUFACTURING', 'SERVICE', 'REAL_ESTATE', 'LUXURY', 'FOOD'];
 
 export const MOCK_STOCKS: Stock[] = [
 	{
@@ -84,7 +84,7 @@ export const MOCK_STOCKS: Stock[] = [
 	{
 		stockId: 'STK005',
 		stockName: '프라임부동산',
-		sector: 'REALESTATE',
+		sector: 'REAL_ESTATE',
 		basePrice: 120000,
 		currentPrice: 118000,
 		previousClose: 120000,
@@ -238,7 +238,7 @@ export function getMockStocks(): StockListItem[] {
 }
 
 export function getMockStockById(stockId: string): Stock | undefined {
-	return getStockById(stockId);
+	return getStockById(stockId) ?? undefined;
 }
 
 export function generateMockCandles(stockId: string, days: number = 30): Candle[] {

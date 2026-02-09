@@ -1,21 +1,45 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { Search } from 'lucide-svelte';
 	import { Card } from '$lib/components';
-	import { getStockListItems } from '$lib/mock/stocks.js';
-	import { SECTOR_NAMES } from '$lib/types/stock.js';
+	import { getStocks } from '$lib/api/stockApi.js';
+	import { SECTOR_NAMES, type StockListItem } from '$lib/types/stock.js';
 
 	let searchQuery = $state('');
+	let stocks = $state<StockListItem[]>([]);
+	let loading = $state(true);
 
-	const allStocks = getStockListItems();
+	async function fetchStocks(search?: string) {
+		loading = true;
+		try {
+			const res = await getStocks({
+				page: 0,
+				size: 50,
+				search: search || undefined,
+				sortBy: 'stockName',
+				sortOrder: 'asc'
+			});
+			if (res.success && res.data) {
+				stocks = res.data.stocks;
+			}
+		} catch (e) {
+			console.error('Failed to fetch stocks:', e);
+		} finally {
+			loading = false;
+		}
+	}
 
-	const filteredStocks = $derived(() => {
-		if (!searchQuery) return allStocks;
-		const query = searchQuery.toLowerCase();
-		return allStocks.filter(s =>
-			s.stockName.toLowerCase().includes(query) ||
-			s.stockId.toLowerCase().includes(query)
-		);
+	onMount(() => {
+		fetchStocks();
 	});
+
+	let debounceTimer: ReturnType<typeof setTimeout>;
+	function onSearchInput() {
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			fetchStocks(searchQuery);
+		}, 300);
+	}
 
 	function formatPrice(price: number): string {
 		return price.toLocaleString();
@@ -37,44 +61,49 @@
 				class="input"
 				placeholder="종목 검색..."
 				bind:value={searchQuery}
+				oninput={onSearchInput}
 			/>
 		</div>
 	</div>
 
 	<!-- Stock List -->
-	<div class="stack-sm">
-		{#each filteredStocks() as stock}
-			<a href="/m/stocks/{stock.stockId}">
-				<Card hover clickable>
-					<div class="flex justify-between items-center">
-						<div class="flex items-center gap-sm">
-							<div class="stock-icon w-10 h-10 rounded-md bg-tertiary flex items-center justify-center font-semibold text-primary">
-								{stock.stockName.charAt(0)}
+	{#if loading}
+		<div class="text-center p-xl text-secondary">로딩 중...</div>
+	{:else}
+		<div class="stack-sm">
+			{#each stocks as stock}
+				<a href="/m/stocks/{stock.stockId}">
+					<Card hover clickable>
+						<div class="flex justify-between items-center">
+							<div class="flex items-center gap-sm">
+								<div class="stock-icon w-10 h-10 rounded-md bg-tertiary flex items-center justify-center font-semibold text-primary">
+									{stock.stockName.charAt(0)}
+								</div>
+								<div>
+									<div class="font-medium">{stock.stockName}</div>
+									<div class="text-xs text-secondary">{SECTOR_NAMES[stock.sector]}</div>
+								</div>
 							</div>
-							<div>
-								<div class="font-medium">{stock.stockName}</div>
-								<div class="text-xs text-secondary">{SECTOR_NAMES[stock.sector]}</div>
+							<div class="text-right">
+								<div class="font-semibold">₩{formatPrice(stock.currentPrice)}</div>
+								<div
+									class="text-sm"
+									class:text-stock-up={stock.changePercent >= 0}
+									class:text-stock-down={stock.changePercent < 0}
+								>
+									{formatPercent(stock.changePercent)}
+								</div>
 							</div>
 						</div>
-						<div class="text-right">
-							<div class="font-semibold">₩{formatPrice(stock.currentPrice)}</div>
-							<div
-								class="text-sm"
-								class:text-stock-up={stock.changePercent >= 0}
-								class:text-stock-down={stock.changePercent < 0}
-							>
-								{formatPercent(stock.changePercent)}
-							</div>
-						</div>
-					</div>
-				</Card>
-			</a>
-		{/each}
-	</div>
-
-	{#if filteredStocks().length === 0}
-		<div class="text-center p-xl text-secondary">
-			검색 결과가 없습니다
+					</Card>
+				</a>
+			{/each}
 		</div>
+
+		{#if stocks.length === 0}
+			<div class="text-center p-xl text-secondary">
+				검색 결과가 없습니다
+			</div>
+		{/if}
 	{/if}
 </div>

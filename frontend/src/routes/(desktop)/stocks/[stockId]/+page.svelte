@@ -1,20 +1,47 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-svelte';
 	import { Button, Card, StockChart } from '$lib/components';
-	import { getStockById, getMockOrderBook, getMockCandleData } from '$lib/mock/stocks.js';
-	import { SECTOR_NAMES, MARKET_CAP_NAMES } from '$lib/types/stock.js';
+	import { getStock, getOrderBook, getCandles } from '$lib/api/stockApi.js';
+	import { SECTOR_NAMES, MARKET_CAP_NAMES, type Stock, type OrderBook as OrderBookType, type Candle } from '$lib/types/stock.js';
 
-	const stockId = $page.params.stockId;
-	const stock = getStockById(stockId);
-	const orderBook = getMockOrderBook(stockId);
-	const candleData = getMockCandleData(stockId, 30);
+	const stockId = $page.params.stockId!;
+
+	let stock = $state<Stock | null>(null);
+	let orderBook = $state<OrderBookType | null>(null);
+	let candleData = $state<Candle[]>([]);
+	let loading = $state(true);
 
 	let orderSide = $state<'BUY' | 'SELL'>('BUY');
 	let orderQuantity = $state(1);
 
 	const change = $derived(() => stock ? stock.currentPrice - stock.previousClose : 0);
 	const changePercent = $derived(() => stock ? ((stock.currentPrice - stock.previousClose) / stock.previousClose) * 100 : 0);
+
+	onMount(async () => {
+		try {
+			const [stockRes, orderBookRes, candlesRes] = await Promise.all([
+				getStock(stockId),
+				getOrderBook(stockId),
+				getCandles(stockId, { limit: 30 })
+			]);
+
+			if (stockRes.success && stockRes.data) {
+				stock = stockRes.data;
+			}
+			if (orderBookRes.success && orderBookRes.data) {
+				orderBook = orderBookRes.data;
+			}
+			if (candlesRes.success && candlesRes.data) {
+				candleData = candlesRes.data.candles;
+			}
+		} catch (e) {
+			console.error('Failed to fetch stock detail:', e);
+		} finally {
+			loading = false;
+		}
+	});
 
 	function formatPrice(price: number): string {
 		return price.toLocaleString();
@@ -30,7 +57,9 @@
 	}
 </script>
 
-{#if stock}
+{#if loading}
+	<div class="text-center p-2xl text-secondary">로딩 중...</div>
+{:else if stock}
 	<div class="stock-detail">
 		<!-- Header -->
 		<div class="flex items-center gap-md mb-lg">
@@ -40,7 +69,7 @@
 			<div>
 				<h1 class="text-2xl font-bold">{stock.stockName}</h1>
 				<div class="flex items-center gap-md text-secondary">
-					<span>{stock.stockId}</span>
+					<span>{stockId}</span>
 					<span class="badge badge-sector-{stock.sector.toLowerCase()}">{SECTOR_NAMES[stock.sector]}</span>
 					<span>{MARKET_CAP_NAMES[stock.marketCapGrade]}</span>
 				</div>
@@ -99,36 +128,40 @@
 					{/snippet}
 
 					<div class="table-wrapper border-none">
-						<table class="table table-orderbook">
-							<thead>
-								<tr>
-									<th class="text-right">매도잔량</th>
-									<th class="text-center">가격</th>
-									<th class="text-left">매수잔량</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each orderBook.asks.slice().reverse() as ask}
-									<tr class="ask-row">
-										<td class="quantity-col">{ask.quantity.toLocaleString()}</td>
-										<td class="price-col ask">₩{formatPrice(ask.price)}</td>
-										<td></td>
+						{#if orderBook}
+							<table class="table table-orderbook">
+								<thead>
+									<tr>
+										<th class="text-right">매도잔량</th>
+										<th class="text-center">가격</th>
+										<th class="text-left">매수잔량</th>
 									</tr>
-								{/each}
-								<tr>
-									<td colspan="3" class="text-center p-sm bg-tertiary font-semibold">
-										현재가 ₩{formatPrice(stock.currentPrice)}
-									</td>
-								</tr>
-								{#each orderBook.bids as bid}
-									<tr class="bid-row">
-										<td></td>
-										<td class="price-col bid">₩{formatPrice(bid.price)}</td>
-										<td class="quantity-col">{bid.quantity.toLocaleString()}</td>
+								</thead>
+								<tbody>
+									{#each (orderBook.asks ?? []).slice().reverse() as ask}
+										<tr class="ask-row">
+											<td class="quantity-col">{ask.quantity.toLocaleString()}</td>
+											<td class="price-col ask">₩{formatPrice(ask.price)}</td>
+											<td></td>
+										</tr>
+									{/each}
+									<tr>
+										<td colspan="3" class="text-center p-sm bg-tertiary font-semibold">
+											현재가 ₩{formatPrice(stock.currentPrice)}
+										</td>
 									</tr>
-								{/each}
-							</tbody>
-						</table>
+									{#each orderBook.bids ?? [] as bid}
+										<tr class="bid-row">
+											<td></td>
+											<td class="price-col bid">₩{formatPrice(bid.price)}</td>
+											<td class="quantity-col">{bid.quantity.toLocaleString()}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						{:else}
+							<div class="text-center p-md text-secondary">호가 데이터 없음</div>
+						{/if}
 					</div>
 				</Card>
 
@@ -139,7 +172,11 @@
 					{/snippet}
 
 					<div class="p-md">
-						<StockChart data={candleData} width={400} height={300} />
+						{#if candleData.length > 0}
+							<StockChart data={candleData} width={400} height={300} />
+						{:else}
+							<div class="text-center p-md text-secondary">차트 데이터 없음</div>
+						{/if}
 					</div>
 				</Card>
 			</div>

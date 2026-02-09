@@ -78,8 +78,14 @@ async function request<T>(
 
 		clearTimeout(timeoutId);
 
-		// Parse response
-		const data: ApiResponse<T> = await response.json();
+		// Parse response and normalize backend format
+		const raw = await response.json();
+		const data: ApiResponse<T> = {
+			success: raw.success,
+			data: raw.data ?? null,
+			error: raw.message ?? raw.error ?? null,
+			timestamp: String(raw.timestamp)
+		};
 
 		// Handle API errors
 		if (!response.ok || !data.success) {

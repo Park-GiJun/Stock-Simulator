@@ -5,7 +5,7 @@ export type Sector =
 	| 'AGRICULTURE'
 	| 'MANUFACTURING'
 	| 'SERVICE'
-	| 'REALESTATE'
+	| 'REAL_ESTATE'
 	| 'LUXURY'
 	| 'FOOD';
 
@@ -87,7 +87,7 @@ export const SECTOR_NAMES: Record<Sector, string> = {
 	AGRICULTURE: '농경',
 	MANUFACTURING: '제조업',
 	SERVICE: '서비스업',
-	REALESTATE: '부동산',
+	REAL_ESTATE: '부동산',
 	LUXURY: '럭셔리',
 	FOOD: '식료'
 };

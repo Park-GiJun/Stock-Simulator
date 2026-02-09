@@ -52,7 +52,7 @@ export const MOCK_NEWS: NewsEvent[] = [
 	{
 		eventId: 'EVT004',
 		level: 'INDUSTRY',
-		targetSector: 'REALESTATE',
+		targetSector: 'REAL_ESTATE',
 		targetStockId: null,
 		targetStockName: null,
 		sentiment: 'NEGATIVE',
