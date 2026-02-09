@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS stocks;
 
 -- Stocks 테이블
-CREATE TABLE IF NOT EXISTS stocks (
+CREATE TABLE IF NOT EXISTS stocks.stocks (
     stock_id VARCHAR(20) PRIMARY KEY,
     stock_name VARCHAR(100) NOT NULL,
     sector VARCHAR(50) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS stocks (
 );
 
 -- 인덱스
-CREATE INDEX idx_stocks_sector ON stocks(sector);
-CREATE INDEX idx_stocks_status ON stocks(status);
-CREATE INDEX idx_stocks_market_cap_grade ON stocks(market_cap_grade);
-CREATE INDEX idx_stocks_stock_name ON stocks(stock_name);
+CREATE INDEX IF NOT EXISTS idx_stocks_sector ON stocks.stocks(sector);
+CREATE INDEX IF NOT EXISTS idx_stocks_status ON stocks.stocks(status);
+CREATE INDEX IF NOT EXISTS idx_stocks_market_cap_grade ON stocks.stocks(market_cap_grade);
+CREATE INDEX IF NOT EXISTS idx_stocks_stock_name ON stocks.stocks(stock_name);

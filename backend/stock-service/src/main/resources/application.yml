@@ -23,6 +23,7 @@ spring:
       - stocks
     default-schema: stocks
     baseline-on-migrate: true
+    baseline-version: 0
   data:
     redis:
       host: localhost

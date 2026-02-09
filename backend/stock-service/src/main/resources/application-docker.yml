@@ -24,6 +24,7 @@ spring:
       - stocks
     default-schema: stocks
     baseline-on-migrate: true
+    baseline-version: 0
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
 
