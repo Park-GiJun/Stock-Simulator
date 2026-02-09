@@ -14,6 +14,19 @@ spring:
       password: ${REDIS_PASSWORD:stocksim123}
     mongodb:
       uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongo}:27017/stocksimulator?authSource=admin
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: users
+  flyway:
+    enabled: true
+    schemas:
+      - users
+    default-schema: users
+    baseline-on-migrate: true
+    baseline-version: 0
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
 
