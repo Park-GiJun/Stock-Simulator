@@ -7,9 +7,6 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:postgres-primary}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=events
     username: ${POSTGRES_USER:stocksim}
     password: ${POSTGRES_PASSWORD:stocksim123}
-  data:
-    mongodb:
-      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongodb}:${MONGO_PORT:27017}/${POSTGRES_DB:stocksimulator}?authSource=admin
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
 

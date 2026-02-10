@@ -17,9 +17,6 @@ spring:
       hibernate:
         format_sql: true
         default_schema: events
-  data:
-    mongodb:
-      uri: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator?authSource=admin
   kafka:
     bootstrap-servers: localhost:9092
     producer:

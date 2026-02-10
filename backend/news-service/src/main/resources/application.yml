@@ -18,8 +18,6 @@ spring:
         format_sql: true
         default_schema: news
   data:
-    mongodb:
-      uri: mongodb://stocksim:stocksim123@localhost:27017/stocksimulator?authSource=admin
     redis:
       host: localhost
       port: 6379

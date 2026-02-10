@@ -8,8 +8,6 @@ spring:
     username: ${POSTGRES_USER:stocksim}
     password: ${POSTGRES_PASSWORD:stocksim123}
   data:
-    mongodb:
-      uri: mongodb://${MONGO_USER:stocksim}:${MONGO_PASSWORD:stocksim123}@${MONGO_HOST:mongodb}:${MONGO_PORT:27017}/${POSTGRES_DB:stocksimulator}?authSource=admin
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}

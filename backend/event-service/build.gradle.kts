@@ -23,8 +23,6 @@ dependencies {
     implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.4")
     implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.4")
 
-    // MongoDB (이벤트 로그)
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
