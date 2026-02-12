@@ -72,12 +72,12 @@
 </script>
 
 <div class="stocks-page">
-	<div class="flex justify-between items-center mb-lg">
-		<h1 class="text-2xl font-bold">주식 투자</h1>
+	<div class="stocks-page-header flex justify-between items-center mb-lg">
+		<h1 class="text-2xl font-bold gradient-text">주식 투자</h1>
 	</div>
 
 	<!-- Filters -->
-	<div class="flex gap-md mb-lg flex-col-tablet">
+	<div class="stocks-filter-bar flex gap-md mb-lg flex-col-tablet">
 		<div class="flex-1">
 			<div class="input-icon-wrapper">
 				<span class="input-icon"><Search size={18} /></span>
@@ -107,7 +107,10 @@
 	<!-- Stock Table -->
 	<div class="table-wrapper">
 		{#if loading}
-			<div class="text-center p-xl text-secondary">로딩 중...</div>
+			<div class="stocks-loading">
+				<div class="stocks-loading-spinner"></div>
+				<div class="text-secondary text-sm">로딩 중...</div>
+			</div>
 		{:else}
 			<table class="table table-stock">
 				<thead>
@@ -138,7 +141,7 @@
 								</span>
 							</td>
 							<td>{MARKET_CAP_NAMES[stock.marketCapGrade]}</td>
-							<td class="stock-price text-right">₩{formatPrice(stock.currentPrice)}</td>
+							<td class="stock-price text-right">{formatPrice(stock.currentPrice)}</td>
 							<td class="text-right">
 								<div class="stock-change" class:up={stock.changePercent >= 0} class:down={stock.changePercent < 0}>
 									{formatPercent(stock.changePercent)}

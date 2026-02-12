@@ -1,4 +1,4 @@
-/* ===== Dropdown Styles ===== */
+/* ===== Dropdown Styles - Glassmorphism ===== */
 
 .dropdown {
 	position: relative;
@@ -14,14 +14,16 @@
 	z-index: var(--z-dropdown);
 	min-width: 180px;
 	padding: var(--spacing-xs) 0;
-	background: var(--color-bg-primary);
-	border: 1px solid var(--color-border);
+	background: var(--glass-bg-strong);
+	backdrop-filter: var(--glass-blur-lg);
+	-webkit-backdrop-filter: var(--glass-blur-lg);
+	border: 1px solid var(--glass-border);
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-lg);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 10px rgba(139, 92, 246, 0.05);
 	opacity: 0;
 	visibility: hidden;
 	transform: translateY(-8px);
-	transition: all var(--transition-fast);
+	transition: all 0.2s ease;
 }
 
 .dropdown-menu.open {
@@ -68,16 +70,16 @@
 	font-size: var(--font-size-sm);
 	color: var(--color-text-primary);
 	cursor: pointer;
-	transition: background var(--transition-fast);
+	transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
-	background: var(--color-bg-hover);
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .dropdown-item:focus {
 	outline: none;
-	background: var(--color-bg-hover);
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .dropdown-item:disabled {
@@ -106,11 +108,15 @@
 	color: var(--color-error);
 }
 
+.dropdown-item.danger:hover {
+	background: rgba(244, 63, 94, 0.1);
+}
+
 /* Divider */
 .dropdown-divider {
 	height: 1px;
 	margin: var(--spacing-xs) 0;
-	background: var(--color-border);
+	background: var(--glass-border-light);
 }
 
 /* Label */
@@ -138,6 +144,11 @@
 
 .dropdown-item.selected .dropdown-item-check svg {
 	opacity: 1;
+	color: var(--color-primary);
+}
+
+.dropdown-item.selected {
+	background: rgba(139, 92, 246, 0.1);
 }
 
 /* Submenu */
@@ -155,4 +166,19 @@
 .dropdown-submenu-arrow {
 	margin-left: auto;
 	color: var(--color-text-disabled);
+}
+
+/* Light mode */
+[data-theme='light'] .dropdown-menu {
+	background: rgba(255, 255, 255, 0.85);
+	border-color: rgba(0, 0, 0, 0.1);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .dropdown-item:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .dropdown-divider {
+	background: rgba(0, 0, 0, 0.08);
 }

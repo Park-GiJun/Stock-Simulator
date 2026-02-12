@@ -1,12 +1,15 @@
-/* ===== OrderBook Component Styles ===== */
+/* ===== OrderBook Component Styles - Glassmorphism ===== */
 
 .orderbook {
 	display: flex;
 	flex-direction: column;
-	background: var(--color-bg-primary);
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	border-radius: var(--radius-lg);
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--glass-border);
 	overflow: hidden;
+	box-shadow: var(--glass-shadow);
 }
 
 .orderbook-header {
@@ -14,8 +17,8 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--spacing-sm) var(--spacing-md);
-	background: var(--color-bg-tertiary);
-	border-bottom: 1px solid var(--color-border);
+	background: rgba(255, 255, 255, 0.06);
+	border-bottom: 1px solid var(--glass-border-light);
 }
 
 .orderbook-title {
@@ -41,8 +44,8 @@
 	grid-template-columns: 1fr 80px 80px;
 	gap: var(--spacing-xs);
 	padding: var(--spacing-xs) var(--spacing-md);
-	background: var(--color-bg-secondary);
-	border-bottom: 1px solid var(--color-border);
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid var(--glass-border-light);
 	font-size: var(--font-size-xs);
 	color: var(--color-text-secondary);
 	text-transform: uppercase;
@@ -82,9 +85,9 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--spacing-sm) var(--spacing-md);
-	background: var(--color-bg-tertiary);
-	border-top: 1px solid var(--color-border);
-	border-bottom: 1px solid var(--color-border);
+	background: rgba(255, 255, 255, 0.06);
+	border-top: 1px solid var(--glass-border-light);
+	border-bottom: 1px solid var(--glass-border-light);
 }
 
 .orderbook-center-price {
@@ -95,10 +98,12 @@
 
 .orderbook-center-price.up {
 	color: var(--color-stock-up);
+	text-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
 }
 
 .orderbook-center-price.down {
 	color: var(--color-stock-down);
+	text-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
 }
 
 .orderbook-center-price.unchanged {
@@ -118,11 +123,11 @@
 	padding: var(--spacing-xs) var(--spacing-md);
 	position: relative;
 	cursor: pointer;
-	transition: background var(--transition-fast);
+	transition: background 0.2s ease;
 }
 
 .orderbook-row:hover {
-	background: var(--color-bg-hover);
+	background: rgba(255, 255, 255, 0.06);
 }
 
 /* Background bar */
@@ -133,15 +138,15 @@
 	bottom: 0;
 	right: 0;
 	z-index: 0;
-	transition: width var(--transition-fast);
+	transition: width 0.3s ease;
 }
 
 .orderbook-row.ask::before {
-	background: rgba(239, 68, 68, 0.1);
+	background: rgba(244, 63, 94, 0.08);
 }
 
 .orderbook-row.bid::before {
-	background: rgba(59, 130, 246, 0.1);
+	background: rgba(16, 185, 129, 0.08);
 }
 
 /* Row cells */
@@ -162,11 +167,11 @@
 }
 
 .orderbook-price.ask {
-	color: var(--color-stock-up);
+	color: var(--color-stock-down);
 }
 
 .orderbook-price.bid {
-	color: var(--color-stock-down);
+	color: var(--color-stock-up);
 }
 
 .orderbook-quantity {
@@ -204,19 +209,10 @@
 	display: none;
 }
 
-/* Dark mode adjustments */
-[data-theme='dark'] .orderbook-row.ask::before {
-	background: rgba(239, 68, 68, 0.15);
-}
-
-[data-theme='dark'] .orderbook-row.bid::before {
-	background: rgba(59, 130, 246, 0.15);
-}
-
 /* Animation for new orders */
 @keyframes orderFlash {
 	0% {
-		background: rgba(212, 175, 55, 0.3);
+		background: rgba(139, 92, 246, 0.2);
 	}
 	100% {
 		background: transparent;
@@ -229,18 +225,48 @@
 
 /* Scrollbar styling */
 .orderbook-body::-webkit-scrollbar {
-	width: 6px;
+	width: 4px;
 }
 
 .orderbook-body::-webkit-scrollbar-track {
-	background: var(--color-bg-secondary);
+	background: transparent;
 }
 
 .orderbook-body::-webkit-scrollbar-thumb {
-	background: var(--color-border-dark);
+	background: rgba(255, 255, 255, 0.15);
 	border-radius: var(--radius-full);
 }
 
 .orderbook-body::-webkit-scrollbar-thumb:hover {
-	background: var(--color-text-disabled);
+	background: rgba(255, 255, 255, 0.25);
+}
+
+/* Light mode */
+[data-theme='light'] .orderbook {
+	background: rgba(255, 255, 255, 0.6);
+	border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .orderbook-header {
+	background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .orderbook-columns {
+	background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme='light'] .orderbook-row:hover {
+	background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .orderbook-row.ask::before {
+	background: rgba(244, 63, 94, 0.06);
+}
+
+[data-theme='light'] .orderbook-row.bid::before {
+	background: rgba(16, 185, 129, 0.06);
+}
+
+[data-theme='light'] .orderbook-body::-webkit-scrollbar-thumb {
+	background: rgba(0, 0, 0, 0.15);
 }

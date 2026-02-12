@@ -1,61 +1,4 @@
-/* ===== Badge & Form Component Styles ===== */
-
-/* ===== Badge ===== */
-.badge {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--spacing-xs);
-	padding: var(--spacing-xs) var(--spacing-sm);
-	font-size: var(--font-size-xs);
-	font-weight: 500;
-	line-height: 1;
-	border-radius: var(--radius-full);
-	white-space: nowrap;
-}
-
-.badge-primary {
-	background-color: var(--color-primary);
-	color: var(--color-text-primary);
-}
-
-.badge-secondary {
-	background-color: var(--color-bg-tertiary);
-	color: var(--color-text-secondary);
-}
-
-.badge-success {
-	background-color: rgba(16, 185, 129, 0.1);
-	color: var(--color-success);
-}
-
-.badge-warning {
-	background-color: rgba(245, 158, 11, 0.1);
-	color: var(--color-warning);
-}
-
-.badge-error {
-	background-color: rgba(239, 68, 68, 0.1);
-	color: var(--color-error);
-}
-
-.badge-info {
-	background-color: rgba(59, 130, 246, 0.1);
-	color: var(--color-info);
-}
-
-.badge-outline {
-	background-color: transparent;
-	border: 1px solid currentColor;
-}
-
-/* ===== Sector Badges ===== */
-.badge-sector-it { background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; }
-.badge-sector-agriculture { background-color: rgba(16, 185, 129, 0.1); color: #10B981; }
-.badge-sector-manufacturing { background-color: rgba(107, 114, 128, 0.1); color: #6B7280; }
-.badge-sector-service { background-color: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
-.badge-sector-real_estate { background-color: rgba(236, 72, 153, 0.1); color: #EC4899; }
-.badge-sector-luxury { background-color: rgba(212, 175, 55, 0.1); color: #D4AF37; }
-.badge-sector-food { background-color: rgba(249, 115, 22, 0.1); color: #F97316; }
+/* ===== Form Component Styles - Glassmorphism ===== */
 
 /* ===== Checkbox ===== */
 .checkbox-wrapper {
@@ -68,11 +11,11 @@
 .checkbox {
 	width: 18px;
 	height: 18px;
-	border: 2px solid var(--color-border);
+	border: 2px solid rgba(255, 255, 255, 0.2);
 	border-radius: var(--radius-sm);
-	background-color: var(--color-bg-primary);
+	background: rgba(255, 255, 255, 0.05);
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -82,18 +25,20 @@
 
 .checkbox:hover {
 	border-color: var(--color-primary);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 .checkbox:checked {
-	background-color: var(--color-primary);
+	background: var(--color-primary);
 	border-color: var(--color-primary);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .checkbox:checked::after {
 	content: '';
 	width: 5px;
 	height: 9px;
-	border: solid var(--color-text-primary);
+	border: solid var(--color-text-inverse);
 	border-width: 0 2px 2px 0;
 	transform: rotate(45deg);
 	margin-bottom: 2px;
@@ -121,11 +66,11 @@
 .radio {
 	width: 18px;
 	height: 18px;
-	border: 2px solid var(--color-border);
+	border: 2px solid rgba(255, 255, 255, 0.2);
 	border-radius: 50%;
-	background-color: var(--color-bg-primary);
+	background: rgba(255, 255, 255, 0.05);
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 	appearance: none;
 	-webkit-appearance: none;
 	position: relative;
@@ -133,10 +78,12 @@
 
 .radio:hover {
 	border-color: var(--color-primary);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 .radio:checked {
 	border-color: var(--color-primary);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .radio:checked::after {
@@ -147,7 +94,7 @@
 	transform: translate(-50%, -50%);
 	width: 8px;
 	height: 8px;
-	background-color: var(--color-primary);
+	background: var(--color-primary);
 	border-radius: 50%;
 }
 
@@ -185,10 +132,10 @@
 	position: relative;
 	width: 44px;
 	height: 24px;
-	background-color: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.1);
 	border-radius: var(--radius-full);
 	cursor: pointer;
-	transition: background-color var(--transition-fast);
+	transition: all 0.3s ease;
 }
 
 .switch::after {
@@ -198,22 +145,24 @@
 	left: 2px;
 	width: 20px;
 	height: 20px;
-	background-color: var(--color-bg-primary);
+	background: var(--color-text-secondary);
 	border-radius: 50%;
-	box-shadow: var(--shadow-sm);
-	transition: transform var(--transition-fast);
+	box-shadow: var(--glass-shadow-sm);
+	transition: all 0.3s ease;
 }
 
 .switch:hover {
-	background-color: var(--color-secondary-light);
+	background: rgba(255, 255, 255, 0.15);
 }
 
 .switch.active {
-	background-color: var(--color-primary);
+	background: rgba(139, 92, 246, 0.4);
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
 }
 
 .switch.active::after {
 	transform: translateX(20px);
+	background: var(--color-primary);
 }
 
 .switch:disabled {
@@ -233,27 +182,27 @@
 	font-family: var(--font-family);
 	font-size: var(--font-size-sm);
 	color: var(--color-text-primary);
-	background-color: var(--color-bg-primary);
-	border: 1px solid var(--color-border);
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: var(--radius-md);
 	cursor: pointer;
 	appearance: none;
 	-webkit-appearance: none;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 }
 
 .select:hover:not(:disabled) {
-	border-color: var(--color-border-dark);
+	border-color: rgba(255, 255, 255, 0.2);
 }
 
 .select:focus {
 	outline: none;
 	border-color: var(--color-primary);
-	box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), 0 0 15px rgba(139, 92, 246, 0.1);
 }
 
 .select:disabled {
-	background-color: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.03);
 	color: var(--color-text-disabled);
 	cursor: not-allowed;
 }
@@ -298,3 +247,12 @@
 		flex-direction: column;
 	}
 }
+
+/* ===== Sector Badges ===== */
+.badge-sector-it { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.badge-sector-agriculture { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.badge-sector-manufacturing { background: rgba(107, 114, 128, 0.15); color: #9CA3AF; }
+.badge-sector-service { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
+.badge-sector-real_estate { background: rgba(236, 72, 153, 0.15); color: #EC4899; }
+.badge-sector-luxury { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.badge-sector-food { background: rgba(249, 115, 22, 0.15); color: #F97316; }

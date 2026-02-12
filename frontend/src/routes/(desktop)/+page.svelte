@@ -50,12 +50,12 @@
 	<!-- User Stats -->
 	{#if $currentUser}
 		<section class="dashboard-stats grid grid-cols-4 mb-lg">
-			<Card>
+			<Card hover={true}>
 				<div class="card-stat">
-					<div class="card-stat-icon">
+					<div class="card-stat-icon stat-icon-emerald">
 						<DollarSign size={24} />
 					</div>
-					<div class="card-stat-value">₩{$currentUser.capital?.toLocaleString() ?? '0'}</div>
+					<div class="card-stat-value">{$currentUser.capital?.toLocaleString() ?? '0'}</div>
 					<div class="card-stat-label">보유 자산</div>
 					<div class="card-stat-change up">
 						<TrendingUp size={12} />
@@ -63,18 +63,18 @@
 					</div>
 				</div>
 			</Card>
-			<Card>
+			<Card hover={true}>
 				<div class="card-stat">
-					<div class="card-stat-icon">
+					<div class="card-stat-icon stat-icon-violet">
 						<BarChart3 size={24} />
 					</div>
 					<div class="card-stat-value">10</div>
 					<div class="card-stat-label">보유 종목</div>
 				</div>
 			</Card>
-			<Card>
+			<Card hover={true}>
 				<div class="card-stat">
-					<div class="card-stat-icon">
+					<div class="card-stat-icon stat-icon-amber">
 						<Trophy size={24} />
 					</div>
 					<div class="card-stat-value">#15</div>
@@ -85,37 +85,37 @@
 					</div>
 				</div>
 			</Card>
-			<Card>
+			<Card hover={true}>
 				<div class="card-stat">
-					<div class="card-stat-icon">
+					<div class="card-stat-icon stat-icon-cyan">
 						<TrendingUp size={24} />
 					</div>
-					<div class="card-stat-value">₩850,000</div>
+					<div class="card-stat-value">850,000</div>
 					<div class="card-stat-label">총 수익</div>
 				</div>
 			</Card>
 		</section>
 	{/if}
 
-	<div class="grid grid-cols-3 gap-lg">
+	<div class="dashboard-market-cards grid grid-cols-3 gap-lg">
 		<!-- Top Gainers -->
-		<Card>
+		<Card hover={true}>
 			{#snippet header()}
-				<div class="flex items-center gap-sm">
+				<div class="dashboard-section-title">
 					<TrendingUp size={20} class="text-stock-up" />
-					<h3 class="card-title">상승 TOP</h3>
+					<h3 class="card-title gradient-text">상승 TOP</h3>
 				</div>
 			{/snippet}
 
 			<div class="stack-sm">
 				{#each topGainers as stock}
-					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors hover-lift">
+					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors">
 						<div>
 							<div class="font-medium">{stock.stockName}</div>
 							<div class="text-xs text-secondary">{SECTOR_NAMES[stock.sector]}</div>
 						</div>
 						<div class="text-right">
-							<div class="font-semibold">₩{formatPrice(stock.currentPrice)}</div>
+							<div class="font-semibold">{formatPrice(stock.currentPrice)}</div>
 							<div class="text-sm text-stock-up">{formatPercent(stock.changePercent)}</div>
 						</div>
 					</a>
@@ -124,23 +124,23 @@
 		</Card>
 
 		<!-- Top Losers -->
-		<Card>
+		<Card hover={true}>
 			{#snippet header()}
-				<div class="flex items-center gap-sm">
+				<div class="dashboard-section-title">
 					<TrendingDown size={20} class="text-stock-down" />
-					<h3 class="card-title">하락 TOP</h3>
+					<h3 class="card-title gradient-text">하락 TOP</h3>
 				</div>
 			{/snippet}
 
 			<div class="stack-sm">
 				{#each topLosers as stock}
-					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors hover-lift">
+					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors">
 						<div>
 							<div class="font-medium">{stock.stockName}</div>
 							<div class="text-xs text-secondary">{SECTOR_NAMES[stock.sector]}</div>
 						</div>
 						<div class="text-right">
-							<div class="font-semibold">₩{formatPrice(stock.currentPrice)}</div>
+							<div class="font-semibold">{formatPrice(stock.currentPrice)}</div>
 							<div class="text-sm text-stock-down">{formatPercent(stock.changePercent)}</div>
 						</div>
 					</a>
@@ -149,23 +149,23 @@
 		</Card>
 
 		<!-- Top Volume -->
-		<Card>
+		<Card hover={true}>
 			{#snippet header()}
-				<div class="flex items-center gap-sm">
+				<div class="dashboard-section-title">
 					<BarChart3 size={20} class="text-info" />
-					<h3 class="card-title">거래량 TOP</h3>
+					<h3 class="card-title gradient-text">거래량 TOP</h3>
 				</div>
 			{/snippet}
 
 			<div class="stack-sm">
 				{#each topVolume as stock}
-					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors hover-lift">
+					<a href="/stocks/{stock.stockId}" class="stock-row flex justify-between items-center p-sm rounded-md transition-colors">
 						<div>
 							<div class="font-medium">{stock.stockName}</div>
 							<div class="text-xs text-secondary">{formatVolume(stock.volume)}</div>
 						</div>
 						<div class="text-right">
-							<div class="font-semibold">₩{formatPrice(stock.currentPrice)}</div>
+							<div class="font-semibold">{formatPrice(stock.currentPrice)}</div>
 							<div class="text-sm" class:text-stock-up={stock.changePercent >= 0} class:text-stock-down={stock.changePercent < 0}>
 								{formatPercent(stock.changePercent)}
 							</div>
@@ -177,20 +177,20 @@
 	</div>
 
 	<!-- News & Ranking -->
-	<div class="grid grid-cols-2 gap-lg mt-lg">
+	<div class="dashboard-bottom grid grid-cols-2 gap-lg mt-lg">
 		<!-- Recent News -->
-		<Card>
+		<Card hover={true}>
 			{#snippet header()}
-				<div class="flex items-center gap-sm">
+				<div class="dashboard-section-title">
 					<Newspaper size={20} />
 					<h3 class="card-title">최신 뉴스</h3>
 				</div>
-				<a href="/news" class="text-sm text-link">전체보기</a>
+				<a href="/news" class="btn btn-ghost btn-sm">전체보기</a>
 			{/snippet}
 
 			<div class="stack">
 				{#each activeNews as news}
-					<div class="news-item p-sm border-b">
+					<div class="news-item">
 						<div class="flex items-center gap-sm mb-xs">
 							<span class="badge badge-{news.level === 'SOCIETY' ? 'error' : news.level === 'INDUSTRY' ? 'info' : 'success'}">
 								{EVENT_LEVEL_NAMES[news.level]}
@@ -207,13 +207,13 @@
 		</Card>
 
 		<!-- Top Ranking -->
-		<Card>
+		<Card hover={true}>
 			{#snippet header()}
-				<div class="flex items-center gap-sm">
+				<div class="dashboard-section-title">
 					<Trophy size={20} class="text-warning" />
 					<h3 class="card-title">수익률 랭킹</h3>
 				</div>
-				<a href="/ranking" class="text-sm text-link">전체보기</a>
+				<a href="/ranking" class="btn btn-ghost btn-sm">전체보기</a>
 			{/snippet}
 
 			<div class="stack-sm">

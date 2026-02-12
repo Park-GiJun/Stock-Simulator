@@ -1,9 +1,12 @@
-/* ===== Sidebar Layout Styles ===== */
+/* ===== Sidebar Layout Styles - Glassmorphism ===== */
 
 .sidebar {
 	width: var(--sidebar-width);
 	height: 100vh;
-	background-color: var(--sidebar-bg);
+	background: var(--sidebar-bg);
+	backdrop-filter: var(--glass-blur-lg);
+	-webkit-backdrop-filter: var(--glass-blur-lg);
+	border-right: 1px solid var(--glass-border-light);
 	display: flex;
 	flex-direction: column;
 	position: fixed;
@@ -23,24 +26,28 @@
 	align-items: center;
 	gap: var(--spacing-sm);
 	padding: var(--spacing-lg);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	border-bottom: 1px solid var(--glass-border-light);
 }
 
 .sidebar-logo-icon {
 	width: 32px;
 	height: 32px;
-	background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+	background: linear-gradient(135deg, #8b5cf6, #06b6d4);
 	border-radius: var(--radius-md);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
 }
 
 .sidebar-logo-text {
 	font-size: var(--font-size-lg);
 	font-weight: 700;
-	color: var(--color-text-inverse);
+	background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -61,7 +68,7 @@
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.15);
 	border-radius: var(--radius-full);
 }
 
@@ -76,17 +83,32 @@
 	text-decoration: none;
 	border-radius: var(--radius-md);
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
+	position: relative;
 }
 
 .sidebar-item:hover {
-	background-color: var(--sidebar-hover);
+	background: var(--sidebar-hover);
 	color: var(--sidebar-text-active);
 }
 
 .sidebar-item.active {
-	background-color: var(--sidebar-active);
-	color: var(--color-text-primary);
+	background: var(--sidebar-active);
+	color: var(--sidebar-text-active);
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+}
+
+.sidebar-item.active::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 3px;
+	height: 60%;
+	background: var(--color-primary);
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
 .sidebar-item-icon {
@@ -112,6 +134,10 @@
 	display: none;
 }
 
+.sidebar.collapsed .sidebar-item.active::before {
+	display: none;
+}
+
 /* ===== Sidebar Section ===== */
 .sidebar-section {
 	margin-top: var(--spacing-lg);
@@ -134,7 +160,7 @@
 /* ===== Sidebar Footer ===== */
 .sidebar-footer {
 	padding: var(--spacing-md) var(--spacing-lg);
-	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	border-top: 1px solid var(--glass-border-light);
 }
 
 .sidebar-user {
@@ -147,13 +173,14 @@
 	width: 36px;
 	height: 36px;
 	border-radius: var(--radius-full);
-	background-color: var(--color-primary);
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-weight: 600;
-	color: var(--color-text-primary);
+	color: var(--color-text-inverse);
 	flex-shrink: 0;
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .sidebar-user-info {
@@ -188,21 +215,24 @@
 	transform: translateY(-50%);
 	width: 24px;
 	height: 24px;
-	background-color: var(--sidebar-bg);
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	background: var(--sidebar-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border-light);
 	border-radius: var(--radius-full);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
 	color: var(--sidebar-text);
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 	z-index: 10;
 }
 
 .sidebar-toggle:hover {
-	background-color: var(--sidebar-hover);
+	background: var(--sidebar-hover);
 	color: var(--sidebar-text-active);
+	border-color: rgba(139, 92, 246, 0.3);
 }
 
 /* ===== Game Time Display ===== */
@@ -212,7 +242,8 @@
 	align-items: center;
 	padding: var(--spacing-md);
 	margin: var(--spacing-md);
-	background-color: rgba(255, 255, 255, 0.05);
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid var(--glass-border-light);
 	border-radius: var(--radius-md);
 }
 
@@ -227,6 +258,7 @@
 	font-weight: 600;
 	color: var(--color-primary);
 	font-family: var(--font-mono);
+	text-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
 }
 
 .sidebar.collapsed .sidebar-game-time {
@@ -250,12 +282,12 @@
 }
 
 .sidebar-market-status.open {
-	background-color: rgba(16, 185, 129, 0.1);
+	background: rgba(16, 185, 129, 0.15);
 	color: var(--color-success);
 }
 
 .sidebar-market-status.closed {
-	background-color: rgba(107, 114, 128, 0.1);
+	background: rgba(255, 255, 255, 0.05);
 	color: var(--color-text-secondary);
 }
 
@@ -268,4 +300,5 @@
 
 .sidebar-market-status.open .sidebar-market-status-dot {
 	animation: pulse 2s ease-in-out infinite;
+	box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }

@@ -1,4 +1,4 @@
-/* ===== Tabs Component Styles ===== */
+/* ===== Tabs Component Styles - Glassmorphism ===== */
 
 .tabs {
 	display: flex;
@@ -9,7 +9,7 @@
 .tabs-list {
 	display: flex;
 	gap: var(--spacing-xs);
-	border-bottom: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--glass-border-light);
 	overflow-x: auto;
 	scrollbar-width: none;
 	-ms-overflow-style: none;
@@ -26,14 +26,16 @@
 
 .tabs.variant-pills .tabs-list {
 	border-bottom: none;
-	background: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.05);
 	padding: var(--spacing-xs);
 	border-radius: var(--radius-lg);
+	backdrop-filter: var(--glass-blur-sm);
+	-webkit-backdrop-filter: var(--glass-blur-sm);
 }
 
 .tabs.variant-segment .tabs-list {
 	border-bottom: none;
-	background: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.05);
 	padding: 2px;
 	border-radius: var(--radius-md);
 }
@@ -52,7 +54,7 @@
 	font-weight: 500;
 	white-space: nowrap;
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 	position: relative;
 }
 
@@ -83,15 +85,16 @@
 	right: 0;
 	height: 2px;
 	background: transparent;
-	transition: background var(--transition-fast);
+	transition: background 0.3s ease;
 }
 
 .tabs.variant-line .tabs-tab.active::after {
 	background: var(--color-primary);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .tabs.variant-line .tabs-tab:hover::after {
-	background: var(--color-border-dark);
+	background: rgba(255, 255, 255, 0.15);
 }
 
 .tabs.variant-line .tabs-tab.active:hover::after {
@@ -104,12 +107,13 @@
 }
 
 .tabs.variant-pills .tabs-tab:hover {
-	background: var(--color-bg-hover);
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .tabs.variant-pills .tabs-tab.active {
 	background: var(--color-primary);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
 }
 
 /* Segment Variant */
@@ -119,9 +123,9 @@
 }
 
 .tabs.variant-segment .tabs-tab.active {
-	background: var(--color-bg-primary);
+	background: var(--glass-bg-strong);
 	color: var(--color-text-primary);
-	box-shadow: var(--shadow-sm);
+	box-shadow: var(--glass-shadow-sm);
 }
 
 /* Tab Icon */
@@ -139,7 +143,7 @@
 	min-width: 18px;
 	height: 18px;
 	padding: 0 var(--spacing-xs);
-	background: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.1);
 	border-radius: var(--radius-full);
 	font-size: var(--font-size-xs);
 	font-weight: 600;
@@ -186,7 +190,7 @@
 .tabs.vertical .tabs-list {
 	flex-direction: column;
 	border-bottom: none;
-	border-right: 1px solid var(--color-border);
+	border-right: 1px solid var(--glass-border-light);
 	padding-right: var(--spacing-md);
 	min-width: 150px;
 }
@@ -238,7 +242,7 @@
 	.tabs.vertical .tabs-list {
 		flex-direction: row;
 		border-right: none;
-		border-bottom: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--glass-border-light);
 		padding-right: 0;
 		min-width: auto;
 	}

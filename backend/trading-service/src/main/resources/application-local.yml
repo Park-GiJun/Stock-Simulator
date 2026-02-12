@@ -1,48 +1,38 @@
-# Local 환경 설정 - IDE에서 실행, 인프라는 Docker (docker-compose-local.yml)
+# Local 환경 설정 (IDE에서 실행, 인프라는 Docker)
 server:
-  port: 8081
+  port: 8083
 
 spring:
   application:
-    name: user-service
-  session:
-    store-type: redis
-    timeout: 30m
-    redis:
-      namespace: stock-simulator:session
-      flush-mode: on_save
+    name: trading-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/stocksimulator?currentSchema=users
+    url: jdbc:postgresql://localhost:5432/stocksimulator?currentSchema=trading
     username: stocksim
     password: stocksim123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        default_schema: users
-  flyway:
-    enabled: true
-    schemas:
-      - users
-    default-schema: users
-    baseline-on-migrate: true
-    baseline-version: 0
+        default_schema: trading
   data:
     redis:
       host: localhost
       port: 6380
       password: stocksim123
-    mongodb:
-      uri: mongodb://stocksim:stocksim123@localhost:27018/stocksimulator?authSource=admin
   kafka:
     bootstrap-servers: localhost:9094
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: trading-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
 eureka:
   client:
@@ -70,14 +60,11 @@ management:
     tags:
       application: ${spring.application.name}
 
-# Logging - 로컬 개발용 디버그 레벨
 logging:
   level:
     com.stocksimulator: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
 
 # SpringDoc / OpenAPI Configuration
 springdoc:

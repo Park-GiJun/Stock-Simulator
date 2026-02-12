@@ -1,0 +1,44 @@
+# Local 환경 설정 - IDE에서 실행, 인프라는 Docker (docker-compose-local.yml)
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    enable-self-preservation: false
+    # 로컬 개발 환경 - 빠른 서비스 등록/해제
+    eviction-interval-timer-in-ms: 3000
+    response-cache-update-interval-ms: 3000
+  instance:
+    hostname: localhost
+
+# Actuator & Prometheus 모니터링
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging - 로컬 개발용 디버그 레벨
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
+    com.stocksimulator: DEBUG

@@ -1,4 +1,4 @@
-/* ===== Button Component Styles ===== */
+/* ===== Button Component Styles - Glassmorphism ===== */
 
 .btn {
 	display: inline-flex;
@@ -12,16 +12,20 @@
 	line-height: 1;
 	text-decoration: none;
 	border-radius: var(--radius-md);
-	border: 1px solid transparent;
+	border: 1px solid var(--glass-border);
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 	white-space: nowrap;
 	user-select: none;
+	background: var(--glass-bg);
+	color: var(--color-text-primary);
+	backdrop-filter: var(--glass-blur-sm);
+	-webkit-backdrop-filter: var(--glass-blur-sm);
 }
 
 .btn:focus {
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.3);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
 }
 
 .btn:disabled,
@@ -33,91 +37,120 @@
 
 /* ===== Button Variants ===== */
 .btn-primary {
-	background-color: var(--color-primary);
-	color: var(--color-text-primary);
-	border-color: var(--color-primary);
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+	color: var(--color-text-inverse);
+	border-color: rgba(139, 92, 246, 0.5);
+	box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-	background-color: var(--color-primary-hover);
-	border-color: var(--color-primary-hover);
+	background: linear-gradient(135deg, #7c3aed, #6d28d9);
+	box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+	transform: scale(1.02);
+}
+
+.btn-primary:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .btn-secondary {
-	background-color: var(--color-bg-tertiary);
+	background: var(--glass-bg);
 	color: var(--color-text-primary);
-	border-color: var(--color-border);
+	border-color: var(--glass-border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-	background-color: var(--color-bg-hover);
-	border-color: var(--color-border-dark);
+	background: var(--glass-bg-hover);
+	border-color: var(--glass-border);
 }
 
 .btn-accent {
-	background-color: var(--color-accent);
+	background: linear-gradient(135deg, #06b6d4, #0891b2);
 	color: var(--color-text-inverse);
-	border-color: var(--color-accent);
+	border-color: rgba(6, 182, 212, 0.5);
+	box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
 }
 
 .btn-accent:hover:not(:disabled) {
-	background-color: var(--color-accent-dark);
-	border-color: var(--color-accent-dark);
+	box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
+	transform: scale(1.02);
+}
+
+.btn-accent:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .btn-danger {
-	background-color: var(--color-error);
-	color: var(--color-text-inverse);
-	border-color: var(--color-error);
+	background: rgba(244, 63, 94, 0.2);
+	color: #f43f5e;
+	border-color: rgba(244, 63, 94, 0.3);
+	box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
 }
 
 .btn-danger:hover:not(:disabled) {
-	background-color: var(--color-error-light);
-	border-color: var(--color-error-light);
+	background: rgba(244, 63, 94, 0.3);
+	box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+	transform: scale(1.02);
+}
+
+.btn-danger:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .btn-success {
-	background-color: var(--color-success);
-	color: var(--color-text-inverse);
-	border-color: var(--color-success);
+	background: rgba(16, 185, 129, 0.2);
+	color: #10b981;
+	border-color: rgba(16, 185, 129, 0.3);
+	box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
 }
 
 .btn-success:hover:not(:disabled) {
-	background-color: var(--color-success-light);
-	border-color: var(--color-success-light);
+	background: rgba(16, 185, 129, 0.3);
+	box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+	transform: scale(1.02);
+}
+
+.btn-success:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .btn-ghost {
-	background-color: transparent;
+	background: transparent;
 	color: var(--color-text-secondary);
 	border-color: transparent;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 .btn-ghost:hover:not(:disabled) {
-	background-color: var(--color-bg-hover);
+	background: var(--glass-bg);
 	color: var(--color-text-primary);
 }
 
 .btn-outline {
-	background-color: transparent;
+	background: transparent;
 	color: var(--color-primary);
 	border-color: var(--color-primary);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 .btn-outline:hover:not(:disabled) {
-	background-color: var(--color-primary);
-	color: var(--color-text-primary);
+	background: rgba(139, 92, 246, 0.15);
+	box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
 }
 
 .btn-link {
-	background-color: transparent;
+	background: transparent;
 	color: var(--color-text-link);
 	border-color: transparent;
 	padding: 0;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 .btn-link:hover:not(:disabled) {
-	color: var(--color-accent-dark);
+	color: var(--color-primary-light);
 	text-decoration: underline;
 }
 
@@ -200,7 +233,7 @@
 }
 
 .btn-primary.btn-loading::after {
-	border-color: var(--color-text-primary);
+	border-color: var(--color-text-inverse);
 	border-right-color: transparent;
 }
 
@@ -236,21 +269,35 @@
 
 /* ===== Stock Trade Buttons ===== */
 .btn-buy {
-	background-color: var(--color-stock-up);
-	color: var(--color-text-inverse);
-	border-color: var(--color-stock-up);
+	background: rgba(16, 185, 129, 0.2);
+	color: #10b981;
+	border-color: rgba(16, 185, 129, 0.3);
+	box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
 }
 
 .btn-buy:hover:not(:disabled) {
-	filter: brightness(1.1);
+	background: rgba(16, 185, 129, 0.3);
+	box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+	transform: scale(1.02);
+}
+
+.btn-buy:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .btn-sell {
-	background-color: var(--color-stock-down);
-	color: var(--color-text-inverse);
-	border-color: var(--color-stock-down);
+	background: rgba(244, 63, 94, 0.2);
+	color: #f43f5e;
+	border-color: rgba(244, 63, 94, 0.3);
+	box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
 }
 
 .btn-sell:hover:not(:disabled) {
-	filter: brightness(1.1);
+	background: rgba(244, 63, 94, 0.3);
+	box-shadow: 0 0 25px rgba(244, 63, 94, 0.3);
+	transform: scale(1.02);
+}
+
+.btn-sell:active:not(:disabled) {
+	transform: scale(0.98);
 }

@@ -30,3 +30,9 @@
 @import './styles/layouts/sidebar.css';
 @import './styles/layouts/header.css';
 @import './styles/layouts/mobile-nav.css';
+
+/* ===== Page Styles ===== */
+@import './styles/pages/dashboard.css';
+@import './styles/pages/stocks.css';
+@import './styles/pages/auth.css';
+@import './styles/pages/stock-detail.css';

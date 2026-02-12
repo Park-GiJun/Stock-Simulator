@@ -1,4 +1,4 @@
-/* ===== Avatar Styles ===== */
+/* ===== Avatar Styles - Glassmorphism ===== */
 
 .avatar {
 	position: relative;
@@ -7,10 +7,14 @@
 	justify-content: center;
 	flex-shrink: 0;
 	border-radius: var(--radius-full);
-	background: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: var(--glass-blur-sm);
+	-webkit-backdrop-filter: var(--glass-blur-sm);
+	border: 1px solid rgba(255, 255, 255, 0.15);
 	color: var(--color-text-secondary);
 	font-weight: 600;
 	overflow: hidden;
+	transition: all 0.3s ease;
 }
 
 /* Sizes */
@@ -77,8 +81,8 @@
 
 /* Bordered */
 .avatar-bordered {
-	border: 2px solid var(--color-bg-primary);
-	box-shadow: var(--shadow-sm);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
 }
 
 /* Status indicator */
@@ -91,11 +95,12 @@
 	min-width: 8px;
 	min-height: 8px;
 	border-radius: var(--radius-full);
-	border: 2px solid var(--color-bg-primary);
+	border: 2px solid rgba(15, 23, 42, 0.8);
 }
 
 .avatar-status.online {
 	background: var(--color-success);
+	box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
 }
 
 .avatar-status.offline {
@@ -104,10 +109,12 @@
 
 .avatar-status.busy {
 	background: var(--color-error);
+	box-shadow: 0 0 6px rgba(244, 63, 94, 0.5);
 }
 
 .avatar-status.away {
 	background: var(--color-warning);
+	box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
 }
 
 /* Avatar Group */
@@ -118,7 +125,7 @@
 
 .avatar-group .avatar {
 	margin-left: -8px;
-	border: 2px solid var(--color-bg-primary);
+	border: 2px solid rgba(15, 23, 42, 0.8);
 }
 
 .avatar-group .avatar:first-child {
@@ -128,6 +135,7 @@
 .avatar-group .avatar:hover {
 	z-index: 1;
 	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .avatar-group-count {
@@ -135,45 +143,52 @@
 	align-items: center;
 	justify-content: center;
 	margin-left: -8px;
-	background: var(--color-bg-tertiary);
-	border: 2px solid var(--color-bg-primary);
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: var(--glass-blur-sm);
+	-webkit-backdrop-filter: var(--glass-blur-sm);
+	border: 2px solid rgba(15, 23, 42, 0.8);
 	font-size: var(--font-size-xs);
 	font-weight: 600;
 }
 
 /* Color variants for initials */
 .avatar-primary {
-	background: var(--color-primary);
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
 }
 
 .avatar-accent {
-	background: var(--color-accent);
+	background: linear-gradient(135deg, #06b6d4, #0891b2);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
 }
 
 .avatar-success {
-	background: var(--color-success);
+	background: linear-gradient(135deg, #10b981, #059669);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
 }
 
 .avatar-warning {
-	background: var(--color-warning);
+	background: linear-gradient(135deg, #f59e0b, #d97706);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
 }
 
 .avatar-error {
-	background: var(--color-error);
+	background: linear-gradient(135deg, #f43f5e, #e11d48);
 	color: var(--color-text-inverse);
+	box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
 }
 
 /* Loading state */
 .avatar-loading {
 	background: linear-gradient(
 		90deg,
-		var(--color-bg-tertiary) 25%,
-		var(--color-bg-secondary) 50%,
-		var(--color-bg-tertiary) 75%
+		rgba(255, 255, 255, 0.05) 25%,
+		rgba(255, 255, 255, 0.1) 50%,
+		rgba(255, 255, 255, 0.05) 75%
 	);
 	background-size: 200% 100%;
 	animation: avatarShimmer 1.5s ease-in-out infinite;
@@ -182,4 +197,23 @@
 @keyframes avatarShimmer {
 	0% { background-position: 200% 0; }
 	100% { background-position: -200% 0; }
+}
+
+/* Light mode */
+[data-theme='light'] .avatar {
+	background: rgba(0, 0, 0, 0.06);
+	border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .avatar-status {
+	border-color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme='light'] .avatar-group .avatar {
+	border-color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme='light'] .avatar-group-count {
+	background: rgba(0, 0, 0, 0.06);
+	border-color: rgba(255, 255, 255, 0.9);
 }

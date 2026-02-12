@@ -23,7 +23,7 @@
 		style:margin-left={sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'}
 	>
 		<Header onMenuClick={handleMenuClick} showLoginModal={openLoginModal} />
-		<main class="page-content">
+		<main class="page-content animate-fade-in">
 			{@render children()}
 		</main>
 	</div>

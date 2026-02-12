@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Card } from '$lib/components';
 	import { getMockPortfolio, getMockTransactions } from '$lib/mock/user.js';
 	import { currentUser } from '$lib/stores/authStore.js';
 
@@ -17,49 +16,68 @@
 </script>
 
 <div class="mypage">
-	<h1 class="text-2xl font-bold mb-lg">마이페이지</h1>
+	<h1 class="text-2xl font-bold mb-lg gradient-text">마이페이지</h1>
 
 	<!-- Asset Summary -->
-	<div class="grid grid-cols-4 gap-md mb-lg">
-		<Card>
-			<div class="card-stat">
-				<div class="card-stat-label">총 자산</div>
-				<div class="card-stat-value">₩{formatPrice(portfolio.totalAssetValue)}</div>
-			</div>
-		</Card>
-		<Card>
-			<div class="card-stat">
-				<div class="card-stat-label">보유 현금</div>
-				<div class="card-stat-value">₩{formatPrice(portfolio.cashBalance)}</div>
-			</div>
-		</Card>
-		<Card>
-			<div class="card-stat">
-				<div class="card-stat-label">주식 평가금</div>
-				<div class="card-stat-value">₩{formatPrice(portfolio.totalStockValue)}</div>
-			</div>
-		</Card>
-		<Card>
-			<div class="card-stat">
-				<div class="card-stat-label">총 손익</div>
-				<div class="card-stat-value" class:text-stock-up={portfolio.totalProfitLoss >= 0} class:text-stock-down={portfolio.totalProfitLoss < 0}>
-					{portfolio.totalProfitLoss >= 0 ? '+' : ''}₩{formatPrice(portfolio.totalProfitLoss)}
-				</div>
-				<div class="card-stat-change" class:up={portfolio.totalProfitLossPercent >= 0} class:down={portfolio.totalProfitLossPercent < 0}>
-					{formatPercent(portfolio.totalProfitLossPercent)}
+	<div class="stat-cards-grid mb-lg">
+		<div class="card card-hover animate-slide-up" style="animation-delay: 0ms">
+			<div class="card-body">
+				<div class="card-stat">
+					<div class="card-stat-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+					</div>
+					<div class="card-stat-label">총 자산</div>
+					<div class="card-stat-value">₩{formatPrice(portfolio.totalAssetValue)}</div>
 				</div>
 			</div>
-		</Card>
+		</div>
+		<div class="card card-hover animate-slide-up" style="animation-delay: 50ms">
+			<div class="card-body">
+				<div class="card-stat">
+					<div class="card-stat-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10H2"/></svg>
+					</div>
+					<div class="card-stat-label">보유 현금</div>
+					<div class="card-stat-value">₩{formatPrice(portfolio.cashBalance)}</div>
+				</div>
+			</div>
+		</div>
+		<div class="card card-hover animate-slide-up" style="animation-delay: 100ms">
+			<div class="card-body">
+				<div class="card-stat">
+					<div class="card-stat-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+					</div>
+					<div class="card-stat-label">주식 평가금</div>
+					<div class="card-stat-value">₩{formatPrice(portfolio.totalStockValue)}</div>
+				</div>
+			</div>
+		</div>
+		<div class="card card-hover animate-slide-up" style="animation-delay: 150ms">
+			<div class="card-body">
+				<div class="card-stat">
+					<div class="card-stat-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+					</div>
+					<div class="card-stat-label">총 손익</div>
+					<div class="card-stat-value" class:text-stock-up={portfolio.totalProfitLoss >= 0} class:text-stock-down={portfolio.totalProfitLoss < 0}>
+						{portfolio.totalProfitLoss >= 0 ? '+' : ''}₩{formatPrice(portfolio.totalProfitLoss)}
+					</div>
+					<div class="card-stat-change" class:up={portfolio.totalProfitLossPercent >= 0} class:down={portfolio.totalProfitLossPercent < 0}>
+						{formatPercent(portfolio.totalProfitLossPercent)}
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<div class="grid grid-cols-2 gap-lg">
 		<!-- Holdings -->
-		<Card>
-			{#snippet header()}
+		<div class="card animate-slide-up" style="animation-delay: 200ms">
+			<div class="card-header">
 				<h3 class="card-title">보유 종목</h3>
-			{/snippet}
-
-			<div class="table-wrapper border-none">
+			</div>
+			<div class="table-wrapper border-none" style="border: none; box-shadow: none; border-radius: 0; background: transparent; backdrop-filter: none;">
 				<table class="table table-portfolio">
 					<thead>
 						<tr>
@@ -92,17 +110,16 @@
 					</tbody>
 				</table>
 			</div>
-		</Card>
+		</div>
 
 		<!-- Recent Transactions -->
-		<Card>
-			{#snippet header()}
+		<div class="card animate-slide-up" style="animation-delay: 250ms">
+			<div class="card-header">
 				<h3 class="card-title">최근 거래 내역</h3>
-			{/snippet}
-
-			<div class="stack-sm">
+			</div>
+			<div class="card-body p-0">
 				{#each transactions as tx}
-					<div class="flex justify-between items-center p-sm border-b">
+					<div class="transaction-item">
 						<div>
 							<div class="font-medium">{tx.stockName}</div>
 							<div class="text-xs text-secondary">
@@ -113,11 +130,11 @@
 							<div class="badge" class:badge-error={tx.side === 'SELL'} class:badge-success={tx.side === 'BUY'}>
 								{tx.side === 'BUY' ? '매수' : '매도'}
 							</div>
-							<div class="text-sm">{tx.quantity}주 × ₩{formatPrice(tx.price)}</div>
+							<div class="text-sm mt-xs">{tx.quantity}주 × ₩{formatPrice(tx.price)}</div>
 						</div>
 					</div>
 				{/each}
 			</div>
-		</Card>
+		</div>
 	</div>
 </div>

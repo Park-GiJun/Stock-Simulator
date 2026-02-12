@@ -1,10 +1,12 @@
-/* ===== Modal Component Styles ===== */
+/* ===== Modal Component Styles - Glassmorphism ===== */
 
 /* ===== Backdrop ===== */
 .modal-backdrop {
 	position: fixed;
 	inset: 0;
-	background-color: rgba(0, 0, 0, 0.5);
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
 	z-index: var(--z-modal-backdrop);
 	display: flex;
 	align-items: center;
@@ -16,9 +18,12 @@
 /* ===== Modal Container ===== */
 .modal {
 	position: relative;
-	background-color: var(--color-bg-primary);
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-xl);
+	background: var(--glass-bg-strong);
+	backdrop-filter: var(--glass-blur-lg);
+	-webkit-backdrop-filter: var(--glass-blur-lg);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow-lg), 0 0 40px rgba(139, 92, 246, 0.1);
 	max-height: calc(100vh - var(--spacing-xl) * 2);
 	display: flex;
 	flex-direction: column;
@@ -39,7 +44,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--spacing-md) var(--spacing-lg);
-	border-bottom: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--glass-border-light);
 	flex-shrink: 0;
 }
 
@@ -57,17 +62,18 @@
 	width: 32px;
 	height: 32px;
 	padding: 0;
-	background: none;
-	border: none;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: var(--radius-md);
 	color: var(--color-text-secondary);
 	cursor: pointer;
-	transition: all var(--transition-fast);
+	transition: all 0.3s ease;
 }
 
 .modal-close:hover {
-	background-color: var(--color-bg-hover);
+	background: rgba(255, 255, 255, 0.1);
 	color: var(--color-text-primary);
+	border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ===== Modal Body ===== */
@@ -82,7 +88,7 @@
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-	background: var(--color-secondary-light);
+	background: rgba(255, 255, 255, 0.15);
 	border-radius: var(--radius-full);
 }
 
@@ -93,7 +99,7 @@
 	justify-content: flex-end;
 	gap: var(--spacing-sm);
 	padding: var(--spacing-md) var(--spacing-lg);
-	border-top: 1px solid var(--color-border);
+	border-top: 1px solid var(--glass-border-light);
 	flex-shrink: 0;
 }
 
@@ -111,12 +117,12 @@
 
 /* ===== Error Modal ===== */
 .modal-error .modal-header {
-	background-color: rgba(239, 68, 68, 0.1);
-	border-bottom-color: rgba(239, 68, 68, 0.2);
+	background: rgba(244, 63, 94, 0.1);
+	border-bottom-color: rgba(244, 63, 94, 0.2);
 }
 
 .modal-error .modal-title {
-	color: var(--color-error);
+	color: var(--color-stock-down);
 }
 
 .modal-error-icon {
@@ -126,9 +132,10 @@
 	width: 48px;
 	height: 48px;
 	margin: 0 auto var(--spacing-md);
-	background-color: rgba(239, 68, 68, 0.1);
+	background: rgba(244, 63, 94, 0.15);
 	border-radius: var(--radius-full);
-	color: var(--color-error);
+	color: var(--color-stock-down);
+	box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
 }
 
 .modal-error-code {
@@ -138,7 +145,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--font-size-xs);
 	color: var(--color-text-secondary);
-	background-color: var(--color-bg-tertiary);
+	background: rgba(255, 255, 255, 0.06);
 	border-radius: var(--radius-sm);
 }
 
@@ -158,18 +165,21 @@
 }
 
 .modal-confirm-icon.warning {
-	background-color: rgba(245, 158, 11, 0.1);
+	background: rgba(245, 158, 11, 0.15);
 	color: var(--color-warning);
+	box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
 }
 
 .modal-confirm-icon.danger {
-	background-color: rgba(239, 68, 68, 0.1);
-	color: var(--color-error);
+	background: rgba(244, 63, 94, 0.15);
+	color: var(--color-stock-down);
+	box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
 }
 
 .modal-confirm-icon.info {
-	background-color: rgba(59, 130, 246, 0.1);
+	background: rgba(59, 130, 246, 0.15);
 	color: var(--color-info);
+	box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
 /* ===== Mobile Modal ===== */
@@ -183,7 +193,7 @@
 		width: 100%;
 		max-width: none;
 		max-height: 90vh;
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 		animation: slideUp var(--transition-normal) ease-out;
 	}
 
@@ -239,5 +249,5 @@
 	content: '';
 	flex: 1;
 	height: 1px;
-	background-color: var(--color-border);
+	background: var(--glass-border-light);
 }

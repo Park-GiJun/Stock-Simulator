@@ -1,0 +1,530 @@
+/* ===== Stock Detail Page - Glassmorphism ===== */
+
+/* ===== Page Container ===== */
+.stock-detail {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg);
+	animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== Stock Detail Header ===== */
+.stock-detail-header {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+}
+
+.stock-detail-header h1 {
+	font-size: var(--font-size-2xl);
+	font-weight: 700;
+	color: var(--color-text-primary);
+}
+
+.stock-detail-meta {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+}
+
+/* ===== Price Display Panel ===== */
+.stock-detail-price-panel {
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow);
+	padding: var(--spacing-lg);
+	animation: slideUp 0.4s ease-out;
+}
+
+.stock-detail-price-main {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-lg);
+}
+
+.stock-detail-current-price {
+	font-size: 36px;
+	font-weight: 800;
+	font-family: var(--font-mono);
+	letter-spacing: -0.5px;
+}
+
+.stock-detail-current-price.up {
+	color: var(--color-stock-up);
+	text-shadow: 0 0 30px var(--color-stock-up-glow), 0 0 60px rgba(16, 185, 129, 0.15);
+}
+
+.stock-detail-current-price.down {
+	color: var(--color-stock-down);
+	text-shadow: 0 0 30px var(--color-stock-down-glow), 0 0 60px rgba(244, 63, 94, 0.15);
+}
+
+.stock-detail-change {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	font-size: var(--font-size-xl);
+	font-weight: 600;
+	font-family: var(--font-mono);
+	padding-bottom: 4px;
+}
+
+.stock-detail-change.up {
+	color: var(--color-stock-up);
+}
+
+.stock-detail-change.down {
+	color: var(--color-stock-down);
+}
+
+/* Price stats grid */
+.stock-detail-stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: var(--spacing-md);
+}
+
+.stock-detail-stat {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}
+
+.stock-detail-stat-label {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.stock-detail-stat-value {
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+	.stock-detail-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.stock-detail-current-price {
+		font-size: var(--font-size-2xl);
+	}
+
+	.stock-detail-change {
+		font-size: var(--font-size-md);
+	}
+}
+
+/* ===== Order Book + Chart Grid ===== */
+.stock-detail-content-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--spacing-lg);
+}
+
+@media (max-width: 1024px) {
+	.stock-detail-content-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ===== Glass Section Panel ===== */
+.stock-detail-section {
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow);
+	overflow: hidden;
+}
+
+.stock-detail-section.animate-entry-1 {
+	animation: slideUp 0.4s ease-out 0.1s both;
+}
+
+.stock-detail-section.animate-entry-2 {
+	animation: slideUp 0.4s ease-out 0.2s both;
+}
+
+.stock-detail-section.animate-entry-3 {
+	animation: slideUp 0.4s ease-out 0.3s both;
+}
+
+.stock-detail-section.animate-entry-4 {
+	animation: slideUp 0.4s ease-out 0.4s both;
+}
+
+.stock-detail-section-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border-bottom: 1px solid var(--glass-border-light);
+}
+
+.stock-detail-section-title {
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.stock-detail-section-body {
+	padding: var(--spacing-md);
+}
+
+/* ===== Order Book Glass Styles ===== */
+.stock-detail-orderbook {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-xs);
+}
+
+.stock-detail-orderbook-header {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-sm) var(--spacing-md);
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid var(--glass-border-light);
+	font-weight: 600;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-xs);
+}
+
+.stock-detail-orderbook-header span:nth-child(1) {
+	text-align: right;
+}
+
+.stock-detail-orderbook-header span:nth-child(2) {
+	text-align: center;
+}
+
+.stock-detail-orderbook-header span:nth-child(3) {
+	text-align: left;
+}
+
+.stock-detail-orderbook-body {
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+/* Ask rows - rose tint */
+.stock-detail-ob-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-md);
+	transition: all 0.15s ease;
+	position: relative;
+}
+
+.stock-detail-ob-row:hover {
+	background: var(--glass-bg-hover);
+}
+
+.stock-detail-ob-row.ask-row {
+	background: rgba(244, 63, 94, 0.04);
+	border-bottom: 1px solid rgba(244, 63, 94, 0.06);
+}
+
+.stock-detail-ob-row.ask-row:hover {
+	background: rgba(244, 63, 94, 0.1);
+}
+
+/* Bid rows - emerald tint */
+.stock-detail-ob-row.bid-row {
+	background: rgba(16, 185, 129, 0.04);
+	border-bottom: 1px solid rgba(16, 185, 129, 0.06);
+}
+
+.stock-detail-ob-row.bid-row:hover {
+	background: rgba(16, 185, 129, 0.1);
+}
+
+.stock-detail-ob-cell {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-xs);
+}
+
+.stock-detail-ob-cell.quantity {
+	color: var(--color-text-secondary);
+}
+
+.stock-detail-ob-cell.quantity.left {
+	text-align: right;
+}
+
+.stock-detail-ob-cell.quantity.right {
+	text-align: left;
+}
+
+.stock-detail-ob-cell.price {
+	text-align: center;
+	font-weight: 600;
+}
+
+.stock-detail-ob-cell.price.ask {
+	color: var(--color-stock-down);
+	text-shadow: 0 0 8px rgba(244, 63, 94, 0.2);
+}
+
+.stock-detail-ob-cell.price.bid {
+	color: var(--color-stock-up);
+	text-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Center row (current price) */
+.stock-detail-ob-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background: rgba(139, 92, 246, 0.08);
+	border-top: 1px solid rgba(139, 92, 246, 0.15);
+	border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+	font-weight: 700;
+	font-family: var(--font-mono);
+	font-size: var(--font-size-sm);
+	color: var(--color-primary-light);
+	text-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}
+
+/* ===== Trade Panel (Order Form) ===== */
+.stock-detail-trade-panel {
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow);
+	overflow: hidden;
+}
+
+/* Tab navigation - glass pill style */
+.stock-detail-trade-tabs {
+	display: flex;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-sm);
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid var(--glass-border-light);
+}
+
+.stock-detail-trade-tab {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-sm) var(--spacing-md);
+	border: none;
+	border-radius: var(--radius-lg);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.stock-detail-trade-tab:hover {
+	background: rgba(255, 255, 255, 0.08);
+	color: var(--color-text-primary);
+}
+
+.stock-detail-trade-tab.active-buy {
+	background: rgba(16, 185, 129, 0.2);
+	color: var(--color-stock-up);
+	box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.stock-detail-trade-tab.active-sell {
+	background: rgba(244, 63, 94, 0.2);
+	color: var(--color-stock-down);
+	box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+}
+
+.stock-detail-trade-body {
+	padding: var(--spacing-lg);
+}
+
+/* Estimated amount with glow */
+.stock-detail-estimated-amount {
+	font-size: var(--font-size-xl);
+	font-weight: 700;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+	text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Glow action buttons */
+.stock-detail-btn-buy {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border: none;
+	border-radius: var(--radius-lg);
+	font-size: var(--font-size-md);
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.5));
+	color: var(--color-stock-up);
+	border: 1px solid rgba(16, 185, 129, 0.4);
+	box-shadow: 0 0 20px rgba(16, 185, 129, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stock-detail-btn-buy:hover {
+	background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(16, 185, 129, 0.6));
+	box-shadow: 0 0 30px rgba(16, 185, 129, 0.35), 0 4px 20px rgba(0, 0, 0, 0.25);
+	transform: translateY(-1px);
+}
+
+.stock-detail-btn-buy:active {
+	transform: translateY(0);
+}
+
+.stock-detail-btn-sell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border: none;
+	border-radius: var(--radius-lg);
+	font-size: var(--font-size-md);
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	background: linear-gradient(135deg, rgba(244, 63, 94, 0.3), rgba(244, 63, 94, 0.5));
+	color: var(--color-stock-down);
+	border: 1px solid rgba(244, 63, 94, 0.4);
+	box-shadow: 0 0 20px rgba(244, 63, 94, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stock-detail-btn-sell:hover {
+	background: linear-gradient(135deg, rgba(244, 63, 94, 0.4), rgba(244, 63, 94, 0.6));
+	box-shadow: 0 0 30px rgba(244, 63, 94, 0.35), 0 4px 20px rgba(0, 0, 0, 0.25);
+	transform: translateY(-1px);
+}
+
+.stock-detail-btn-sell:active {
+	transform: translateY(0);
+}
+
+/* ===== Stock Info Panel ===== */
+.stock-detail-info-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	border-bottom: 1px solid var(--glass-border-light);
+	transition: background 0.15s ease;
+}
+
+.stock-detail-info-row:last-child {
+	border-bottom: none;
+}
+
+.stock-detail-info-row:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.stock-detail-info-label {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-secondary);
+}
+
+.stock-detail-info-value {
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}
+
+/* ===== Empty / Loading States ===== */
+.stock-detail-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-2xl);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-lg);
+}
+
+.stock-detail-not-found {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-2xl);
+	gap: var(--spacing-lg);
+	text-align: center;
+}
+
+.stock-detail-not-found h2 {
+	font-size: var(--font-size-xl);
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.stock-detail-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-lg);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+}
+
+/* ===== Chart Section ===== */
+.stock-detail-chart-container {
+	padding: var(--spacing-md);
+}
+
+/* ===== Aside (sidebar) panels ===== */
+.stock-detail aside {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg);
+}
+
+/* ===== Light Mode Adjustments ===== */
+[data-theme='light'] .stock-detail-ob-row.ask-row {
+	background: rgba(244, 63, 94, 0.06);
+	border-bottom-color: rgba(244, 63, 94, 0.08);
+}
+
+[data-theme='light'] .stock-detail-ob-row.ask-row:hover {
+	background: rgba(244, 63, 94, 0.12);
+}
+
+[data-theme='light'] .stock-detail-ob-row.bid-row {
+	background: rgba(16, 185, 129, 0.06);
+	border-bottom-color: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme='light'] .stock-detail-ob-row.bid-row:hover {
+	background: rgba(16, 185, 129, 0.12);
+}
+
+[data-theme='light'] .stock-detail-ob-center {
+	background: rgba(139, 92, 246, 0.1);
+}
+
+[data-theme='light'] .stock-detail-trade-tabs {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme='light'] .stock-detail-info-row:hover {
+	background: rgba(0, 0, 0, 0.03);
+}

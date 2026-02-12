@@ -1,0 +1,155 @@
+# =============================================================================
+# Stock Simulator - Local Development Docker Compose
+# =============================================================================
+# Infrastructure services only for local development.
+# Backend services run directly from IDE.
+#
+# Usage:
+#   docker-compose -f docker-compose-local.yml up -d
+#   docker-compose -f docker-compose-local.yml down
+#   docker-compose -f docker-compose-local.yml down -v   # remove volumes
+# =============================================================================
+
+networks:
+  stocksim-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  kafka_data:
+  elasticsearch_data:
+
+services:
+  # ===========================================================================
+  # PostgreSQL Primary (single instance for local dev)
+  # ===========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: stockSimulator-local-postgres
+    environment:
+      POSTGRES_USER: stocksim
+      POSTGRES_PASSWORD: stocksim123
+      POSTGRES_DB: stocksimulator
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/init-db-local.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stocksim -d stocksimulator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # MongoDB
+  # ===========================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: stockSimulator-local-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: stocksim
+      MONGO_INITDB_ROOT_PASSWORD: stocksim123
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # Redis
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: stockSimulator-local-redis
+    command: redis-server --requirepass stocksim123
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "stocksim123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # Kafka (KRaft mode - no Zookeeper)
+  # ===========================================================================
+  kafka:
+    image: apache/kafka:3.7.1
+    container_name: stockSimulator-local-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    ports:
+      - "9094:29093"
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # ===========================================================================
+  # Kafka UI
+  # ===========================================================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: stockSimulator-local-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: stocksim-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8089:8080"
+    networks:
+      - stocksim-network
+
+  # ===========================================================================
+  # Elasticsearch
+  # ===========================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: stockSimulator-local-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - stocksim-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
