@@ -486,6 +486,232 @@
 	font-size: var(--font-size-sm);
 }
 
+/* ===== 52-Week Range Bar ===== */
+.stock-detail-range {
+	margin-top: var(--spacing-lg);
+	padding-top: var(--spacing-md);
+	border-top: 1px solid var(--glass-border-light);
+}
+
+.stock-detail-range-labels {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-xs);
+}
+
+.stock-detail-range-bar {
+	position: relative;
+	height: 6px;
+	background: var(--glass-border);
+	border-radius: var(--radius-full);
+	overflow: visible;
+}
+
+.stock-detail-range-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--color-stock-down), var(--color-primary), var(--color-stock-up));
+	border-radius: var(--radius-full);
+}
+
+.stock-detail-range-marker {
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: var(--color-primary);
+	border: 2px solid var(--color-bg-solid);
+	box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+/* ===== Interval Tabs ===== */
+.stock-detail-interval-tabs {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	background: var(--glass-bg);
+	border: 1px solid var(--glass-border-light);
+	border-radius: var(--radius-md);
+}
+
+.stock-detail-interval-tab {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	border: none;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.stock-detail-interval-tab:hover {
+	color: var(--color-text-primary);
+}
+
+.stock-detail-interval-tab.active {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+	box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+}
+
+/* ===== Order Book Bars ===== */
+.stock-detail-ob-cell.quantity {
+	position: relative;
+}
+
+.stock-detail-ob-bar {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	border-radius: var(--radius-sm);
+	opacity: 0.3;
+	transition: width 0.3s ease;
+}
+
+.stock-detail-ob-bar.ask {
+	right: 0;
+	background: var(--color-stock-down);
+}
+
+.stock-detail-ob-bar.bid {
+	left: 0;
+	background: var(--color-stock-up);
+}
+
+.stock-detail-ob-totals {
+	display: flex;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	border-top: 1px solid var(--glass-border-light);
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	font-family: var(--font-mono);
+}
+
+/* ===== Order Type Toggle ===== */
+.stock-detail-order-type-toggle {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid var(--glass-border-light);
+	border-radius: var(--radius-md);
+}
+
+.stock-detail-order-type-btn {
+	flex: 1;
+	padding: var(--spacing-xs) var(--spacing-sm);
+	border: none;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.stock-detail-order-type-btn.active {
+	background: rgba(139, 92, 246, 0.2);
+	color: var(--color-primary-light);
+}
+
+/* ===== Quick Quantity Buttons ===== */
+.stock-detail-quick-qty {
+	display: flex;
+	gap: var(--spacing-xs);
+	margin-top: var(--spacing-xs);
+}
+
+.stock-detail-quick-qty-btn {
+	flex: 1;
+	padding: var(--spacing-xs);
+	border: 1px solid var(--glass-border-light);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-xs);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.stock-detail-quick-qty-btn:hover {
+	border-color: var(--color-primary);
+	color: var(--color-primary-light);
+	background: rgba(139, 92, 246, 0.08);
+}
+
+/* ===== Investor Trend ===== */
+.stock-detail-investor-trend {
+	padding: var(--spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg);
+}
+
+.investor-trend-row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+.investor-trend-label {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.investor-trend-bar-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}
+
+.investor-trend-bar {
+	height: 8px;
+	background: var(--color-stock-down);
+	border-radius: var(--radius-full);
+	overflow: hidden;
+}
+
+.investor-trend-buy {
+	height: 100%;
+	background: var(--color-stock-up);
+	border-radius: var(--radius-full);
+	transition: width 0.5s ease;
+}
+
+.investor-trend-values {
+	display: flex;
+	justify-content: space-between;
+}
+
+/* ===== Related News ===== */
+.stock-detail-related-news {
+	padding: var(--spacing-sm);
+}
+
+.stock-detail-news-item {
+	padding: var(--spacing-sm);
+	border-bottom: 1px solid var(--glass-border-light);
+	transition: background 0.2s ease;
+	border-radius: var(--radius-md);
+}
+
+.stock-detail-news-item:last-child {
+	border-bottom: none;
+}
+
+.stock-detail-news-item:hover {
+	background: var(--glass-bg-hover);
+}
+
 /* ===== Chart Section ===== */
 .stock-detail-chart-container {
 	padding: var(--spacing-md);

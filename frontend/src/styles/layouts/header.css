@@ -322,3 +322,16 @@
 .header-login-btn {
 	padding: var(--spacing-sm) var(--spacing-md);
 }
+
+/* ===== Header Wrapper (with ticker) ===== */
+.header-wrapper {
+	position: sticky;
+	top: 0;
+	z-index: var(--z-sticky);
+}
+
+.header-wrapper .header {
+	position: relative;
+	top: auto;
+	z-index: auto;
+}

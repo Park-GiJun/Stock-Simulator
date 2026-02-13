@@ -1,0 +1,270 @@
+/* ===== Ranking Page Styles - Glassmorphism ===== */
+
+.ranking-page {
+	animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== Ranking Type Tabs ===== */
+.ranking-type-tabs {
+	display: flex;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-sm);
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	margin-bottom: var(--spacing-lg);
+	animation: slideUp 0.3s ease-out 0.1s both;
+}
+
+.ranking-type-tab {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-sm) var(--spacing-md);
+	border: none;
+	border-radius: var(--radius-lg);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.ranking-type-tab:hover {
+	background: var(--glass-bg-hover);
+	color: var(--color-text-primary);
+}
+
+.ranking-type-tab.active {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+	box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* ===== My Rank Highlight ===== */
+.my-rank-card {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-lg);
+	padding: var(--spacing-lg);
+	background: var(--glass-bg-strong);
+	backdrop-filter: var(--glass-blur-lg);
+	-webkit-backdrop-filter: var(--glass-blur-lg);
+	border: 1px solid rgba(139, 92, 246, 0.3);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow), 0 0 20px rgba(139, 92, 246, 0.1);
+	margin-bottom: var(--spacing-lg);
+	animation: slideUp 0.4s ease-out 0.15s both;
+}
+
+.my-rank-label {
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	color: var(--color-primary-light);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.my-rank-number {
+	font-size: var(--font-size-3xl);
+	font-weight: 800;
+	font-family: var(--font-mono);
+	color: var(--color-primary);
+	text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.my-rank-info {
+	flex: 1;
+}
+
+.my-rank-value {
+	font-size: var(--font-size-xl);
+	font-weight: 700;
+	font-family: var(--font-mono);
+}
+
+.my-rank-change {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	padding: var(--spacing-xs) var(--spacing-sm);
+	border-radius: var(--radius-full);
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	margin-left: var(--spacing-sm);
+}
+
+.my-rank-change.up {
+	background: rgba(16, 185, 129, 0.15);
+	color: var(--color-success);
+}
+
+.my-rank-change.down {
+	background: rgba(244, 63, 94, 0.15);
+	color: var(--color-stock-down);
+}
+
+/* ===== Podium Styles ===== */
+.podium {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-xl);
+	padding: var(--spacing-lg) 0;
+}
+
+.podium-entry {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+}
+
+.podium-first {
+	order: 2;
+}
+
+.podium-second {
+	order: 1;
+}
+
+.podium-third {
+	order: 3;
+}
+
+.podium-crown {
+	color: #FFD700;
+	margin-bottom: var(--spacing-xs);
+	animation: glowPulse 2s ease-in-out infinite;
+	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+.podium-avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: var(--font-size-lg);
+	color: #fff;
+	margin-bottom: var(--spacing-xs);
+}
+
+.podium-avatar-first {
+	width: 56px;
+	height: 56px;
+	font-size: var(--font-size-xl);
+}
+
+.podium-medal {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-size-xs);
+	font-weight: 800;
+	margin-bottom: var(--spacing-sm);
+}
+
+.podium-medal.gold {
+	background: linear-gradient(135deg, #FFD700, #FFA500);
+	color: #000;
+	box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.podium-medal.silver {
+	background: linear-gradient(135deg, #C0C0C0, #808080);
+	color: #000;
+}
+
+.podium-medal.bronze {
+	background: linear-gradient(135deg, #CD7F32, #8B4513);
+	color: #fff;
+}
+
+.podium-name {
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	color: var(--color-text-primary);
+	text-align: center;
+	margin-bottom: var(--spacing-xs);
+}
+
+.podium-value {
+	font-size: var(--font-size-sm);
+	font-weight: 700;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}
+
+.podium-value-first {
+	font-size: var(--font-size-md);
+	color: #FFD700;
+	text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.podium-sub {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.podium-pillar {
+	width: 80px;
+	border-radius: var(--radius-md) var(--radius-md) 0 0;
+	margin-top: var(--spacing-sm);
+}
+
+.podium-pillar-gold {
+	height: 80px;
+	background: linear-gradient(180deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.08));
+	border: 1px solid rgba(255, 215, 0, 0.2);
+	border-bottom: none;
+}
+
+.podium-pillar-silver {
+	height: 56px;
+	background: linear-gradient(180deg, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.06));
+	border: 1px solid rgba(192, 192, 192, 0.15);
+	border-bottom: none;
+}
+
+.podium-pillar-bronze {
+	height: 40px;
+	background: linear-gradient(180deg, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.06));
+	border: 1px solid rgba(205, 127, 50, 0.15);
+	border-bottom: none;
+}
+
+/* ===== Ranking Table Enhancement ===== */
+.ranking-page .table-wrapper {
+	animation: slideUp 0.4s ease-out 0.3s both;
+}
+
+.ranking-page .table-ranking tbody tr:hover {
+	background: var(--glass-bg-hover);
+}
+
+.ranking-row-avatar {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	font-size: var(--font-size-xs);
+	color: #fff;
+	margin-right: var(--spacing-sm);
+	vertical-align: middle;
+}

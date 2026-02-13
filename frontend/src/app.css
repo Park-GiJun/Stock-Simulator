@@ -36,3 +36,6 @@
 @import './styles/pages/stocks.css';
 @import './styles/pages/auth.css';
 @import './styles/pages/stock-detail.css';
+@import './styles/pages/news.css';
+@import './styles/pages/ranking.css';
+@import './styles/pages/mypage.css';

@@ -42,6 +42,12 @@ export { default as MarketSummary } from './MarketSummary.svelte';
 export { default as TradeHistory } from './TradeHistory.svelte';
 export { default as SearchInput } from './SearchInput.svelte';
 
+// Data Visualization Components
+export { default as MiniSparkline } from './MiniSparkline.svelte';
+export { default as DonutChart } from './DonutChart.svelte';
+export { default as MarketTicker } from './MarketTicker.svelte';
+export { default as Podium } from './Podium.svelte';
+
 // UX Components
 export { default as ThemeToggle } from './ThemeToggle.svelte';
 export { default as InfiniteScroll } from './InfiniteScroll.svelte';

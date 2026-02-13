@@ -10,17 +10,21 @@
 		Trophy,
 		Clock,
 		ChevronLeft,
-		ChevronRight
+		ChevronRight,
+		Briefcase
 	} from 'lucide-svelte';
 
 	import { gameTimeStore, formatGameTime, isMarketOpen } from '$lib/stores/gameTimeStore.js';
 	import { authStore, currentUser } from '$lib/stores/authStore.js';
+	import { getMockPortfolio } from '$lib/mock/user.js';
 
 	interface Props {
 		collapsed?: boolean;
 	}
 
 	let { collapsed = $bindable(false) }: Props = $props();
+
+	const portfolio = getMockPortfolio();
 
 	const iconMap: Record<string, typeof LayoutDashboard> = {
 		LayoutDashboard,
@@ -44,6 +48,10 @@
 
 	function toggleCollapse() {
 		collapsed = !collapsed;
+	}
+
+	function formatPercent(val: number): string {
+		return (val >= 0 ? '+' : '') + val.toFixed(1) + '%';
 	}
 </script>
 
@@ -82,6 +90,32 @@
 			</a>
 		{/each}
 	</nav>
+
+	<!-- Mini Portfolio -->
+	{#if $currentUser}
+		<div class="sidebar-mini-portfolio">
+			<div class="sidebar-mini-portfolio-header">
+				<Briefcase size={14} />
+				<span>내 포트폴리오</span>
+			</div>
+			<div class="sidebar-mini-portfolio-body">
+				<div class="sidebar-mini-stat">
+					<span class="sidebar-mini-stat-label">수익률</span>
+					<span
+						class="sidebar-mini-stat-value"
+						class:text-stock-up={portfolio.totalProfitLossPercent >= 0}
+						class:text-stock-down={portfolio.totalProfitLossPercent < 0}
+					>
+						{formatPercent(portfolio.totalProfitLossPercent)}
+					</span>
+				</div>
+				<div class="sidebar-mini-stat">
+					<span class="sidebar-mini-stat-label">보유 종목</span>
+					<span class="sidebar-mini-stat-value">{portfolio.holdings.length}종목</span>
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	<!-- User -->
 	{#if $currentUser}

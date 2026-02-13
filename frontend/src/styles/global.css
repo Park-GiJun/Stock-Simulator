@@ -901,6 +901,283 @@ img {
 	transform: scale(1.02);
 }
 
+/* ===== Market Ticker ===== */
+@keyframes tickerScroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
+
+.market-ticker {
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid var(--glass-border-light);
+}
+
+.market-ticker-track {
+	display: flex;
+	gap: var(--spacing-lg);
+	animation: tickerScroll 30s linear infinite;
+	white-space: nowrap;
+	padding: var(--spacing-xs) 0;
+}
+
+.market-ticker-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-xs) var(--spacing-md);
+	font-size: var(--font-size-xs);
+	color: var(--color-text-primary);
+	text-decoration: none;
+	transition: background 0.2s ease;
+	border-radius: var(--radius-sm);
+	flex-shrink: 0;
+}
+
+.market-ticker-item:hover {
+	background: var(--glass-bg-hover);
+	color: var(--color-text-primary);
+}
+
+.market-ticker-name {
+	font-weight: 600;
+	color: var(--color-text-secondary);
+}
+
+.market-ticker-price {
+	font-family: var(--font-mono);
+	font-weight: 600;
+}
+
+.market-ticker-change {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	font-family: var(--font-mono);
+	font-weight: 600;
+}
+
+.market-ticker-change.up {
+	color: var(--color-stock-up);
+}
+
+.market-ticker-change.down {
+	color: var(--color-stock-down);
+}
+
+/* ===== View Mode Toggle ===== */
+.view-mode-toggle {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	background: var(--glass-bg);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-md);
+}
+
+.view-mode-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+	color: var(--color-text-primary);
+}
+
+.view-mode-btn.active {
+	background: var(--color-primary);
+	color: var(--color-text-inverse);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+/* ===== Grid Layouts ===== */
+.grid {
+	display: grid;
+}
+
+.grid-cols-2 {
+	grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+	grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+	grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-cols-5 {
+	grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 1024px) {
+	.grid-cols-3,
+	.grid-cols-4,
+	.grid-cols-5 {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 640px) {
+	.grid-cols-2,
+	.grid-cols-3,
+	.grid-cols-4,
+	.grid-cols-5 {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ===== Main + Aside Layout ===== */
+.layout-main-aside {
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: var(--spacing-lg);
+}
+
+@media (max-width: 1200px) {
+	.layout-main-aside {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ===== Stock Card Grid ===== */
+.stock-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: var(--spacing-md);
+}
+
+.stock-grid-card {
+	background: var(--glass-bg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	padding: var(--spacing-md);
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.stock-grid-card:hover {
+	background: var(--glass-bg-hover);
+	border-color: rgba(139, 92, 246, 0.3);
+	box-shadow: var(--glass-shadow-sm), 0 0 15px rgba(139, 92, 246, 0.1);
+	transform: translateY(-2px);
+}
+
+.stock-grid-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-sm);
+}
+
+.stock-grid-card-name {
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.stock-grid-card-code {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+}
+
+.stock-grid-card-price {
+	font-size: var(--font-size-xl);
+	font-weight: 700;
+	font-family: var(--font-mono);
+	margin-bottom: var(--spacing-xs);
+}
+
+.stock-grid-card-bottom {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: var(--spacing-sm);
+}
+
+/* ===== Stack Utilities ===== */
+.stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+}
+
+.stack-sm {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+.stack-xs {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}
+
+/* ===== Pagination ===== */
+.pagination-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-md) 0;
+}
+
+.pagination-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	height: 32px;
+	padding: 0 var(--spacing-sm);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-md);
+	background: var(--glass-bg);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+	background: var(--glass-bg-hover);
+	border-color: rgba(139, 92, 246, 0.3);
+	color: var(--color-text-primary);
+}
+
+.pagination-btn.active {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--color-text-inverse);
+	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+.pagination-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.pagination-info {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-secondary);
+	margin-left: var(--spacing-md);
+}
+
 /* ===== Glassmorphism Utility Classes ===== */
 .glass {
 	background: var(--glass-bg);
