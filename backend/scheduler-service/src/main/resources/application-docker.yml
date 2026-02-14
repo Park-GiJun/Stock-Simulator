@@ -23,6 +23,10 @@ eureka:
     hostname: scheduler-service
     prefer-ip-address: false
 
+koog:
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY}
+
 # SpringDoc / OpenAPI Configuration
 springdoc:
   api-docs:

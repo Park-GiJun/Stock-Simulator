@@ -60,4 +60,8 @@ class StockPersistenceAdapter(
         return stockJpaRepository.searchByQuery(status, query, pageable)
             .map { it.toDomain() }
     }
+
+    override fun existsByName(stockName: String): Boolean {
+        return stockJpaRepository.existsByStockName(stockName)
+    }
 }

@@ -4,8 +4,10 @@ import com.stocksimulator.common.dto.ApiResponse
 import com.stocksimulator.common.dto.PageResponse
 import com.stocksimulator.common.dto.toResponseEntity
 import com.stocksimulator.stockservice.adapter.`in`.web.dto.StockDetailResponse
+import com.stocksimulator.stockservice.adapter.`in`.web.dto.StockExistsResponse
 import com.stocksimulator.stockservice.adapter.`in`.web.dto.StockListItemResponse
 import com.stocksimulator.stockservice.application.dto.query.stock.StockListQuery
+import com.stocksimulator.stockservice.application.port.`in`.stock.CheckStockExistsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockDetailUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.SearchStockUseCase
@@ -23,7 +25,8 @@ import reactor.core.publisher.Mono
 class StockWebAdapter(
     private val getStockListUseCase: GetStockListUseCase,
     private val getStockDetailUseCase: GetStockDetailUseCase,
-    private val searchStockUseCase: SearchStockUseCase
+    private val searchStockUseCase: SearchStockUseCase,
+    private val checkStockExistsUseCase: CheckStockExistsUseCase
 ) {
 
     @GetMapping
@@ -57,6 +60,19 @@ class StockWebAdapter(
         )
 
         ApiResponse.success(pageResponse).toResponseEntity()
+    }
+
+    @GetMapping("/exists")
+    @Operation(summary = "종목 존재 여부 확인", description = "종목 ID 또는 종목명으로 존재 여부 확인")
+    fun checkStockExists(
+        @Parameter(description = "종목 ID") @RequestParam(required = false) stockId: String?,
+        @Parameter(description = "종목명") @RequestParam(required = false) stockName: String?
+    ): Mono<ResponseEntity<ApiResponse<StockExistsResponse>>> = mono {
+        val response = StockExistsResponse(
+            stockIdExists = stockId?.let { checkStockExistsUseCase.existsByStockId(it) } ?: false,
+            stockNameExists = stockName?.let { checkStockExistsUseCase.existsByStockName(it) } ?: false
+        )
+        ApiResponse.success(response).toResponseEntity()
     }
 
     @GetMapping("/{stockId}")

@@ -29,4 +29,5 @@ interface StockPersistencePort {
         query: String,
         pageable: Pageable
     ): Page<StockModel>
+    fun existsByName(stockName: String): Boolean
 }

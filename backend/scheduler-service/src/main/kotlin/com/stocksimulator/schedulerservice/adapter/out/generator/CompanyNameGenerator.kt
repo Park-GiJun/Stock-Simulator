@@ -1,11 +1,12 @@
-package com.stocksimulator.schedulerservice.service
+package com.stocksimulator.schedulerservice.adapter.out.generator
 
 import com.stocksimulator.common.dto.Sector
-import org.springframework.stereotype.Service
+import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
+import org.springframework.stereotype.Component
 import kotlin.random.Random
 
-@Service
-class CompanyNameGenerator {
+@Component
+class CompanyNameGenerator : CompanyNameGeneratePort {
 
     private val prefixes = listOf(
         "네오", "퓨처", "글로벌", "코리아", "한국", "대한", "유니", "하이", "스마트", "디지털",
@@ -44,7 +45,7 @@ class CompanyNameGenerator {
         "", "홀딩스", "그룹", "컴퍼니", "코퍼레이션", "인더스트리", "파트너스", "캐피탈"
     )
 
-    fun generate(sector: Sector): String {
+    override suspend fun generate(sector: Sector): String {
         val prefix = prefixes.random()
         val keyword = when (sector) {
             Sector.IT -> itKeywords.random()
@@ -64,7 +65,7 @@ class CompanyNameGenerator {
         }
     }
 
-    fun generateStockCode(): String {
+    override fun generateStockCode(): String {
         val randomNumber = Random.nextInt(100000, 999999)
         return "A$randomNumber"
     }

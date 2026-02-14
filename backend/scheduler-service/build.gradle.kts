@@ -9,6 +9,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // Scheduling
     implementation("org.springframework.boot:spring-boot-starter-quartz")
@@ -30,13 +31,6 @@ dependencies {
     // Redisson
     implementation("org.redisson:redisson:3.52.0")
 
-    // Ktor Client (서비스 간 통신)
-    implementation("io.ktor:ktor-client-core:2.3.13")
-    implementation("io.ktor:ktor-client-cio:2.3.13")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.13")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.13")
-    implementation("io.ktor:ktor-client-logging:2.3.13")
-
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
 
@@ -46,4 +40,7 @@ dependencies {
     // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
+
+    // Koog (LLM)
+    implementation("ai.koog:koog-agents:0.6.2")
 }

@@ -8,6 +8,7 @@ import com.stocksimulator.common.exception.ResourceNotFoundException
 import com.stocksimulator.stockservice.application.dto.query.stock.StockListQuery
 import com.stocksimulator.stockservice.application.dto.result.stock.StockDetailResult
 import com.stocksimulator.stockservice.application.dto.result.stock.StockListItemResult
+import com.stocksimulator.stockservice.application.port.`in`.stock.CheckStockExistsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockDetailUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.SearchStockUseCase
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service
 @Service
 class StockQueryHandler(
     private val stockPersistencePort: StockPersistencePort
-) : GetStockListUseCase, GetStockDetailUseCase, SearchStockUseCase {
+) : GetStockListUseCase, GetStockDetailUseCase, SearchStockUseCase, CheckStockExistsUseCase {
 
     override fun getStockList(query: StockListQuery): Page<StockListItemResult> {
         val sortField = mapSortField(query.sortBy)
@@ -64,6 +65,14 @@ class StockQueryHandler(
             pageable = pageable
         )
         return stocks.content.map { StockListItemResult.from(it) }
+    }
+
+    override fun existsByStockId(stockId: String): Boolean {
+        return stockPersistencePort.findById(stockId) != null
+    }
+
+    override fun existsByStockName(stockName: String): Boolean {
+        return stockPersistencePort.existsByName(stockName)
     }
 
     private fun mapSortField(sortBy: String): String = when (sortBy) {

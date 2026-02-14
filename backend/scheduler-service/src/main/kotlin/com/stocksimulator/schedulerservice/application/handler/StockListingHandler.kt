@@ -1,59 +1,38 @@
-package com.stocksimulator.schedulerservice.scheduler
+package com.stocksimulator.schedulerservice.application.handler
 
 import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector
-import com.stocksimulator.common.event.KafkaTopics
 import com.stocksimulator.common.event.StockDelistedEvent
 import com.stocksimulator.common.event.StockListedEvent
-import com.stocksimulator.schedulerservice.service.CompanyNameGenerator
+import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.StockEventPublishPort
 import org.slf4j.LoggerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import kotlin.random.Random
 
-/**
- * 주식 상장/상장폐지 스케줄러
- * - IPO (신규 상장): 30분마다 30% 확률로 발생
- * - 상장폐지: 1시간마다 5% 확률로 발생
- */
-@Component
-class StockListingScheduler(
-    private val kafkaTemplate: KafkaTemplate<String, Any>,
-    private val companyNameGenerator: CompanyNameGenerator
+@Service
+class StockListingHandler(
+    private val stockEventPublishPort: StockEventPublishPort,
+    private val companyNameGeneratePort: CompanyNameGeneratePort
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 180_000) // 30분
-    fun checkForIPO() {
-        if (Random.nextDouble() < 1) {
-            initiateIPO()
-        }
-    }
-
-    @Scheduled(fixedRate = 1_800_000) // 30분
-    fun checkForDelisting() {
-        if (Random.nextDouble() < 0.05) {
-            initiateDelisting()
-        }
-    }
-
-    private fun initiateIPO() {
+    suspend fun initiateIPO() {
         val sector = Sector.entries.toTypedArray().random()
         val marketCapGrade = MarketCapGrade.entries.toTypedArray().random()
         val basePrice = generateBasePrice()
         val totalShares = calculateTotalShares(marketCapGrade, basePrice)
 
         val event = StockListedEvent(
-            stockId = companyNameGenerator.generateStockCode(),
-            stockName = companyNameGenerator.generate(sector),
+            stockId = companyNameGeneratePort.generateStockCode(),
+            stockName = companyNameGeneratePort.generate(sector),
             sector = sector.name,
             basePrice = basePrice,
             totalShares = totalShares,
             marketCapGrade = marketCapGrade.name
         )
 
-        kafkaTemplate.send(KafkaTopics.STOCK_LISTED, event.stockId, event)
+        stockEventPublishPort.publishStockListed(event)
 
         log.info(
             "IPO 발생 - 종목: {} ({}), 산업: {}, 기준가: {}원, 시총등급: {}, 발행주식수: {}주",
@@ -62,7 +41,7 @@ class StockListingScheduler(
         )
     }
 
-    private fun initiateDelisting() {
+    fun initiateDelisting() {
         val stockId = "A${Random.nextInt(100000, 999999)}"
         val reasons = listOf(
             "시가총액 50억 미만 지속",
@@ -79,7 +58,7 @@ class StockListingScheduler(
             finalPrice = Random.nextLong(500, 5000)
         )
 
-        kafkaTemplate.send(KafkaTopics.STOCK_DELISTED, event.stockId, event)
+        stockEventPublishPort.publishStockDelisted(event)
 
         log.warn(
             "상장폐지 발생 - 종목: {} ({}), 사유: {}, 최종가: {}원",

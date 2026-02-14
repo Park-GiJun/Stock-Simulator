@@ -55,4 +55,6 @@ interface StockJpaRepository : JpaRepository<StockJpaEntity, String> {
         search: String,
         pageable: Pageable
     ): Page<StockJpaEntity>
+
+    fun existsByStockName(stockName: String): Boolean
 }
