@@ -13,7 +13,10 @@ services:
       - stocksim-network
 
   teamcity-agent:
-    image: jetbrains/teamcity-agent:latest
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    image: stocksim-teamcity-agent:latest
     container_name: stockSimulator-teamcity-agent
     restart: unless-stopped
     privileged: true
@@ -22,6 +25,8 @@ services:
       - teamcity_agent:/opt/buildagent/work
       - ../:/workspace
       - /home/gijunpark/Stock-Simulator:/deploy
+    group_add:
+      - "999"
     environment:
       SERVER_URL: http://teamcity-server:8111
       DOCKER_IN_DOCKER: start
