@@ -36,10 +36,7 @@ object StockSimulatorDeploy : BuildType({
         // Step 2: Docker Login
         script {
             name = "Docker Login"
-            scriptContent = """
-                #!/bin/bash
-                echo "${'$'}DOCKER_PASSWORD" | docker login ghcr.io -u "${'$'}DOCKER_USER" --password-stdin
-            """.trimIndent()
+            scriptContent = "echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin"
         }
 
         // Step 3: Build & Push Backend Images (always latest)
@@ -99,7 +96,7 @@ object StockSimulatorDeploy : BuildType({
                 cd /deploy
 
                 # Login to registry
-                echo "${'$'}DOCKER_PASSWORD" | docker login ghcr.io -u "${'$'}DOCKER_USER" --password-stdin
+                echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin
 
                 # Pull new images
                 docker-compose -p stock-simulator --profile all pull --ignore-pull-failures
