@@ -111,10 +111,21 @@ gateway:
     session-namespace: stock-simulator:session
     session-cookie-name: SESSION
     public-paths:
+      # Auth endpoints
       - /user-service/api/v1/users/signup
       - /user-service/api/v1/users/login
       - /user-service/api/v1/health/**
+      # Public read-only service endpoints
+      - /stock-service/api/stocks/**
+      - /stock-service/api/stocks
+      - /news-service/api/news/**
+      - /news-service/api/news
+      # Monitoring
       - /**/actuator/**
+      # Swagger / OpenAPI
+      - /swagger-ui.html
+      - /swagger-ui/**
       - /**/swagger-ui/**
+      - /webjars/**
       - /**/api-docs/**
       - /**/v3/api-docs/**
