@@ -14,6 +14,12 @@ accordingly, and delete the patch script.
 changeBuildType(RelativeId("StockSimulatorDeploy")) {
     params {
         expect {
+            password("env.DOCKER_PASSWORD", "zxx775d03cbe80d301b", label = "Docker Registry Password", display = ParameterDisplay.HIDDEN)
+        }
+        update {
+            password("env.DOCKER_PASSWORD", "zxxf4d764c104bd5c231db1675f6ac32a92fb67040debd0eda21daa394c6c1e5e51287c897735de911c775d03cbe80d301b", label = "Docker Registry Password", display = ParameterDisplay.HIDDEN)
+        }
+        expect {
             password("env.DOCKER_USER", "zxx775d03cbe80d301b", label = "Docker Registry User", display = ParameterDisplay.HIDDEN)
         }
         update {
