@@ -15,5 +15,5 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // Swagger / OpenAPI for Gateway
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.4")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.1")
 }

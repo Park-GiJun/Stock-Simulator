@@ -30,7 +30,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
 
     // Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.4")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.1")
 
     // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")

@@ -23,7 +23,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // Swagger / OpenAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.1")
     
     // Logback for structured logging
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
