@@ -57,12 +57,12 @@
 
 <aside class="sidebar" class:collapsed>
 	<!-- Logo -->
-	<div class="sidebar-logo">
+	<a href="/" class="sidebar-logo" style="text-decoration: none; color: inherit;">
 		<div class="sidebar-logo-icon">
 			<TrendingUp size={20} color="#1F2937" />
 		</div>
 		<span class="sidebar-logo-text">StockSim</span>
-	</div>
+	</a>
 
 	<!-- Game Time -->
 	<div class="sidebar-game-time">

@@ -3,12 +3,11 @@
 import type { User, Portfolio, Holding, Order, Transaction } from '$lib/types/user.js';
 
 export const MOCK_USER: User = {
-	userId: 'USR001',
+	userId: 1,
 	username: '테스트유저',
 	email: 'test@example.com',
-	capital: 5850000,
-	initialCapital: 5000000,
-	createdAt: '2024-01-01T00:00:00Z'
+	role: 'ROLE_USER',
+	capital: 5850000
 };
 
 export const MOCK_HOLDINGS: Holding[] = [

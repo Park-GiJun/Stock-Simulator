@@ -366,8 +366,8 @@
 					<div class="stock-detail-trade-body">
 						<!-- Order Type -->
 						<div class="form-group">
-							<label class="input-label">주문 유형</label>
-							<div class="stock-detail-order-type-toggle">
+							<span class="input-label" id="order-type-label">주문 유형</span>
+							<div class="stock-detail-order-type-toggle" role="radiogroup" aria-labelledby="order-type-label">
 								<button
 									class="stock-detail-order-type-btn"
 									class:active={orderType === 'LIMIT'}
@@ -387,9 +387,10 @@
 
 						<!-- Quantity -->
 						<div class="form-group">
-							<label class="input-label">주문 수량</label>
+							<label class="input-label" for="order-quantity">주문 수량</label>
 							<div class="input-addon-wrapper">
 								<input
+									id="order-quantity"
 									type="number"
 									class="input input-number"
 									min="1"
@@ -411,8 +412,8 @@
 
 						<!-- Estimated Amount -->
 						<div class="form-group">
-							<label class="input-label">예상 금액</label>
-							<div class="stock-detail-estimated-amount">
+							<span class="input-label" id="estimated-amount-label">예상 금액</span>
+							<div class="stock-detail-estimated-amount" aria-labelledby="estimated-amount-label">
 								₩{formatPrice(stock.currentPrice * orderQuantity)}
 							</div>
 						</div>

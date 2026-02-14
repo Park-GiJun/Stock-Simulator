@@ -42,6 +42,7 @@
 
 <div
 	class="tooltip-wrapper"
+	role="presentation"
 	onmouseenter={handleMouseEnter}
 	onmouseleave={handleMouseLeave}
 	onfocusin={handleFocus}

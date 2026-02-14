@@ -27,6 +27,7 @@
 	gap: var(--spacing-sm);
 	padding: var(--spacing-lg);
 	border-bottom: 1px solid var(--glass-border-light);
+	cursor: pointer;
 }
 
 .sidebar-logo-icon {

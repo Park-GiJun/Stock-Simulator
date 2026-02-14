@@ -92,51 +92,43 @@
 	<!-- Asset Summary Cards -->
 	<div class="stat-cards-grid mb-lg">
 		<div class="card card-hover animate-slide-up" style="animation-delay: 0ms">
-			<div class="card-body">
-				<div class="card-stat">
-					<div class="card-stat-icon">
-						<DollarSign size={24} />
-					</div>
-					<div class="card-stat-label">총 자산</div>
-					<div class="card-stat-value">₩{formatPrice(portfolio.totalAssetValue)}</div>
+			<div class="card-stat">
+				<div class="card-stat-icon">
+					<DollarSign size={16} />
 				</div>
+				<div class="card-stat-label">총 자산</div>
+				<div class="card-stat-value">₩{formatPrice(portfolio.totalAssetValue)}</div>
 			</div>
 		</div>
 		<div class="card card-hover animate-slide-up" style="animation-delay: 50ms">
-			<div class="card-body">
-				<div class="card-stat">
-					<div class="card-stat-icon">
-						<CreditCard size={24} />
-					</div>
-					<div class="card-stat-label">보유 현금</div>
-					<div class="card-stat-value">₩{formatPrice(portfolio.cashBalance)}</div>
+			<div class="card-stat">
+				<div class="card-stat-icon">
+					<CreditCard size={16} />
 				</div>
+				<div class="card-stat-label">보유 현금</div>
+				<div class="card-stat-value">₩{formatPrice(portfolio.cashBalance)}</div>
 			</div>
 		</div>
 		<div class="card card-hover animate-slide-up" style="animation-delay: 100ms">
-			<div class="card-body">
-				<div class="card-stat">
-					<div class="card-stat-icon">
-						<TrendingUp size={24} />
-					</div>
-					<div class="card-stat-label">주식 평가금</div>
-					<div class="card-stat-value">₩{formatPrice(portfolio.totalStockValue)}</div>
+			<div class="card-stat">
+				<div class="card-stat-icon">
+					<TrendingUp size={16} />
 				</div>
+				<div class="card-stat-label">주식 평가금</div>
+				<div class="card-stat-value">₩{formatPrice(portfolio.totalStockValue)}</div>
 			</div>
 		</div>
 		<div class="card card-hover animate-slide-up" style="animation-delay: 150ms">
-			<div class="card-body">
-				<div class="card-stat">
-					<div class="card-stat-icon">
-						<Activity size={24} />
-					</div>
-					<div class="card-stat-label">총 손익</div>
-					<div class="card-stat-value" class:text-stock-up={portfolio.totalProfitLoss >= 0} class:text-stock-down={portfolio.totalProfitLoss < 0}>
-						{portfolio.totalProfitLoss >= 0 ? '+' : ''}₩{formatPrice(portfolio.totalProfitLoss)}
-					</div>
-					<div class="card-stat-change" class:up={portfolio.totalProfitLossPercent >= 0} class:down={portfolio.totalProfitLossPercent < 0}>
-						{formatPercent(portfolio.totalProfitLossPercent)}
-					</div>
+			<div class="card-stat">
+				<div class="card-stat-icon">
+					<Activity size={16} />
+				</div>
+				<div class="card-stat-label">총 손익</div>
+				<div class="card-stat-value" class:text-stock-up={portfolio.totalProfitLoss >= 0} class:text-stock-down={portfolio.totalProfitLoss < 0}>
+					{portfolio.totalProfitLoss >= 0 ? '+' : ''}₩{formatPrice(portfolio.totalProfitLoss)}
+				</div>
+				<div class="card-stat-change" class:up={portfolio.totalProfitLossPercent >= 0} class:down={portfolio.totalProfitLossPercent < 0}>
+					{formatPercent(portfolio.totalProfitLossPercent)}
 				</div>
 			</div>
 		</div>

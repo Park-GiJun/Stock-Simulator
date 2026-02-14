@@ -202,8 +202,8 @@
 	</div>
 
 	<!-- Market Stats Summary -->
-	<div class="grid grid-4 gap-md mb-lg">
-		<div class="card card-glass p-md">
+	<div class="grid grid-cols-4 gap-md mb-lg">
+		<div class="card card-glass p-sm">
 			<div class="flex items-center gap-sm">
 				<div class="stock-icon">
 					<TrendingUp size={16} />
@@ -214,7 +214,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="card card-glass p-md">
+		<div class="card card-glass p-sm">
 			<div class="flex items-center gap-sm">
 				<div class="stock-icon" style="background: rgba(34, 197, 94, 0.15); color: var(--color-stock-up);">
 					<ArrowUpRight size={16} />
@@ -225,7 +225,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="card card-glass p-md">
+		<div class="card card-glass p-sm">
 			<div class="flex items-center gap-sm">
 				<div class="stock-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--color-stock-down);">
 					<ArrowDownRight size={16} />
@@ -236,7 +236,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="card card-glass p-md">
+		<div class="card card-glass p-sm">
 			<div class="flex items-center gap-sm">
 				<div class="stock-icon" style="background: rgba(156, 163, 175, 0.15); color: var(--color-text-secondary);">
 					<TrendingDown size={16} />

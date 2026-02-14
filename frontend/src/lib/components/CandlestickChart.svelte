@@ -21,7 +21,7 @@
 
 	// Layout
 	const padding = { top: 20, right: 60, bottom: 30, left: 10 };
-	const volumeHeight = showVolume ? 60 : 0;
+	const volumeHeight = $derived(showVolume ? 60 : 0);
 	const chartHeight = $derived(height - padding.top - padding.bottom - volumeHeight);
 	const chartWidth = $derived(width - padding.left - padding.right);
 

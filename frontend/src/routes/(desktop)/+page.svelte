@@ -115,7 +115,7 @@
 				<div class="card-stat">
 					<div class="card-stat-header">
 						<div class="card-stat-icon stat-icon-emerald">
-							<DollarSign size={24} />
+							<DollarSign size={16} />
 						</div>
 						<MiniSparkline data={sparkData7d} color="auto" width={60} height={20} />
 					</div>
@@ -131,7 +131,7 @@
 				<div class="card-stat">
 					<div class="card-stat-header">
 						<div class="card-stat-icon stat-icon-violet">
-							<BarChart3 size={24} />
+							<BarChart3 size={16} />
 						</div>
 						<MiniSparkline data={sparkDataHoldings} color="#8b5cf6" width={60} height={20} />
 					</div>
@@ -143,7 +143,7 @@
 				<div class="card-stat">
 					<div class="card-stat-header">
 						<div class="card-stat-icon stat-icon-amber">
-							<Trophy size={24} />
+							<Trophy size={16} />
 						</div>
 						<MiniSparkline data={sparkDataRank} color="#f59e0b" width={60} height={20} />
 					</div>
@@ -159,7 +159,7 @@
 				<div class="card-stat">
 					<div class="card-stat-header">
 						<div class="card-stat-icon stat-icon-cyan">
-							<TrendingUp size={24} />
+							<TrendingUp size={16} />
 						</div>
 						<MiniSparkline data={sparkDataProfit} color="auto" width={60} height={20} />
 					</div>

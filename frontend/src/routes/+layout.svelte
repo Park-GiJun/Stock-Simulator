@@ -14,7 +14,7 @@
 	// Public routes (인증 불필요)
 	const publicRoutes = ['/login', '/signup', '/clear-storage.html'];
 
-	onMount(async () => {
+	onMount(() => {
 		// Initialize theme
 		themeStore.initialize();
 
@@ -36,10 +36,7 @@
 			// 이미 authStore에 user 정보가 있으면 세션 검증 스킵
 			// (로그인 직후 또는 페이지 새로고침 시 localStorage 복원)
 			if (!currentAuthState?.user) {
-				try {
-					// Session 유효성 확인 (Cookie 자동 전송)
-					const response = await getCurrentUser();
-
+				getCurrentUser().then((response) => {
 					if (response.success && response.data) {
 						// Session 유효 -> authStore 업데이트
 						authStore.updateUser(response.data);
@@ -50,12 +47,12 @@
 						authStore.logout();
 						goto('/login');
 					}
-				} catch (error) {
+				}).catch((error) => {
 					// Session 만료 또는 오류 -> 로그인 페이지로
 					console.error('❌ Session check failed:', error);
 					authStore.logout();
 					goto('/login');
-				}
+				});
 			} else {
 				console.log('✅ User already in authStore, skipping session check');
 			}
