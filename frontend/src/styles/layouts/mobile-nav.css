@@ -10,7 +10,7 @@
 	backdrop-filter: var(--glass-blur-lg);
 	-webkit-backdrop-filter: var(--glass-blur-lg);
 	border-top: 1px solid var(--glass-border-light);
-	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
 	display: flex;
 	align-items: center;
 	justify-content: space-around;
@@ -50,7 +50,7 @@
 }
 
 .mobile-nav-item.active .mobile-nav-icon {
-	filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+	filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.25));
 }
 
 .mobile-nav-item.active::before {
@@ -63,7 +63,7 @@
 	height: 3px;
 	background: var(--color-primary);
 	border-radius: 0 0 var(--radius-full) var(--radius-full);
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.2);
 }
 
 .mobile-nav-icon {
@@ -83,7 +83,7 @@
 	backdrop-filter: var(--glass-blur);
 	-webkit-backdrop-filter: var(--glass-blur);
 	border-bottom: 1px solid var(--header-border);
-	box-shadow: 0 1px 20px rgba(0, 0, 0, 0.15);
+	box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -145,7 +145,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .mobile-header-logo-text {
@@ -298,7 +298,7 @@
 	font-weight: 600;
 	font-size: var(--font-size-lg);
 	color: var(--color-text-inverse);
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .mobile-user-info {
@@ -316,7 +316,7 @@
 	font-size: var(--font-size-lg);
 	font-weight: 700;
 	color: var(--color-primary);
-	text-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+	text-shadow: 0 0 2px rgba(139, 92, 246, 0.1);
 }
 
 .mobile-user-return {
@@ -326,12 +326,12 @@
 
 .mobile-user-return.positive {
 	color: var(--color-stock-up);
-	text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+	text-shadow: none;
 }
 
 .mobile-user-return.negative {
 	color: var(--color-stock-down);
-	text-shadow: 0 0 10px rgba(244, 63, 94, 0.2);
+	text-shadow: none;
 }
 
 /* ===== Bottom Sheet ===== */
@@ -339,8 +339,8 @@
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.6);
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
 	z-index: var(--z-modal-backdrop);
 	animation: fadeIn var(--transition-fast);
 }

@@ -61,10 +61,10 @@ export interface TradeHistoryResponse {
 
 // API Endpoints
 const ENDPOINTS = {
-	orders: '/api/trading/orders',
-	order: (id: string) => `/api/trading/orders/${id}`,
-	portfolio: '/api/trading/portfolio',
-	history: '/api/trading/history'
+	orders: '/trading-service/api/trading/orders',
+	order: (id: string) => `/trading-service/api/trading/orders/${id}`,
+	portfolio: '/trading-service/api/trading/portfolio',
+	history: '/trading-service/api/trading/history'
 };
 
 // API Functions

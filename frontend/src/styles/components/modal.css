@@ -5,8 +5,8 @@
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.6);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 	z-index: var(--z-modal-backdrop);
 	display: flex;
 	align-items: center;
@@ -19,11 +19,11 @@
 .modal {
 	position: relative;
 	background: var(--glass-bg-strong);
-	backdrop-filter: var(--glass-blur-lg);
-	-webkit-backdrop-filter: var(--glass-blur-lg);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	border: 1px solid var(--glass-border);
 	border-radius: var(--radius-xl);
-	box-shadow: var(--glass-shadow-lg), 0 0 40px rgba(139, 92, 246, 0.1);
+	box-shadow: var(--glass-shadow-lg), 0 0 8px rgba(139, 92, 246, 0.05);
 	max-height: calc(100vh - var(--spacing-xl) * 2);
 	display: flex;
 	flex-direction: column;
@@ -135,7 +135,7 @@
 	background: rgba(244, 63, 94, 0.15);
 	border-radius: var(--radius-full);
 	color: var(--color-stock-down);
-	box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+	box-shadow: 0 0 6px rgba(244, 63, 94, 0.08);
 }
 
 .modal-error-code {
@@ -167,19 +167,19 @@
 .modal-confirm-icon.warning {
 	background: rgba(245, 158, 11, 0.15);
 	color: var(--color-warning);
-	box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+	box-shadow: 0 0 6px rgba(245, 158, 11, 0.08);
 }
 
 .modal-confirm-icon.danger {
 	background: rgba(244, 63, 94, 0.15);
 	color: var(--color-stock-down);
-	box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+	box-shadow: 0 0 6px rgba(244, 63, 94, 0.08);
 }
 
 .modal-confirm-icon.info {
 	background: rgba(59, 130, 246, 0.15);
 	color: var(--color-info);
-	box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+	box-shadow: 0 0 6px rgba(59, 130, 246, 0.08);
 }
 
 /* ===== Mobile Modal ===== */

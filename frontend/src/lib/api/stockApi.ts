@@ -10,11 +10,11 @@ import {
 
 // API Endpoints
 const ENDPOINTS = {
-	stocks: '/api/stocks',
-	stock: (id: string) => `/api/stocks/${id}`,
-	orderBook: (id: string) => `/api/stocks/${id}/orderbook`,
-	candles: (id: string) => `/api/stocks/${id}/candles`,
-	trades: (id: string) => `/api/stocks/${id}/trades`
+	stocks: '/stock-service/api/stocks',
+	stock: (id: string) => `/stock-service/api/stocks/${id}`,
+	orderBook: (id: string) => `/stock-service/api/stocks/${id}/orderbook`,
+	candles: (id: string) => `/stock-service/api/stocks/${id}/candles`,
+	trades: (id: string) => `/stock-service/api/stocks/${id}/trades`
 };
 
 // Backend PageResponse format

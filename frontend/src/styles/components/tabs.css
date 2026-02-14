@@ -90,7 +90,7 @@
 
 .tabs.variant-line .tabs-tab.active::after {
 	background: var(--color-primary);
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .tabs.variant-line .tabs-tab:hover::after {
@@ -113,7 +113,7 @@
 .tabs.variant-pills .tabs-tab.active {
 	background: var(--color-primary);
 	color: var(--color-text-inverse);
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 /* Segment Variant */

@@ -38,7 +38,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .sidebar-logo-text {
@@ -95,7 +95,7 @@
 .sidebar-item.active {
 	background: var(--sidebar-active);
 	color: var(--sidebar-text-active);
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.08);
 }
 
 .sidebar-item.active::before {
@@ -108,7 +108,7 @@
 	height: 60%;
 	background: var(--color-primary);
 	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.25);
 }
 
 .sidebar-item-icon {
@@ -229,7 +229,7 @@
 	font-weight: 600;
 	color: var(--color-text-inverse);
 	flex-shrink: 0;
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .sidebar-user-info {
@@ -307,7 +307,7 @@
 	font-weight: 600;
 	color: var(--color-primary);
 	font-family: var(--font-mono);
-	text-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+	text-shadow: 0 0 2px rgba(139, 92, 246, 0.1);
 }
 
 .sidebar.collapsed .sidebar-game-time {
@@ -348,6 +348,6 @@
 }
 
 .sidebar-market-status.open .sidebar-market-status-dot {
-	animation: pulse 2s ease-in-out infinite;
+	animation: pulse 2s ease-in-out 3;
 	box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }

@@ -67,7 +67,7 @@
 /* Toast Types */
 .toast.success {
 	border-left: 4px solid var(--color-success);
-	box-shadow: var(--glass-shadow-lg), -4px 0 15px rgba(16, 185, 129, 0.15);
+	box-shadow: var(--glass-shadow-lg), -4px 0 4px rgba(16, 185, 129, 0.08);
 }
 
 .toast.success .toast-icon {
@@ -76,7 +76,7 @@
 
 .toast.error {
 	border-left: 4px solid var(--color-stock-down);
-	box-shadow: var(--glass-shadow-lg), -4px 0 15px rgba(244, 63, 94, 0.15);
+	box-shadow: var(--glass-shadow-lg), -4px 0 4px rgba(244, 63, 94, 0.08);
 }
 
 .toast.error .toast-icon {
@@ -85,7 +85,7 @@
 
 .toast.warning {
 	border-left: 4px solid var(--color-warning);
-	box-shadow: var(--glass-shadow-lg), -4px 0 15px rgba(245, 158, 11, 0.15);
+	box-shadow: var(--glass-shadow-lg), -4px 0 4px rgba(245, 158, 11, 0.08);
 }
 
 .toast.warning .toast-icon {
@@ -94,7 +94,7 @@
 
 .toast.info {
 	border-left: 4px solid var(--color-info);
-	box-shadow: var(--glass-shadow-lg), -4px 0 15px rgba(59, 130, 246, 0.15);
+	box-shadow: var(--glass-shadow-lg), -4px 0 4px rgba(59, 130, 246, 0.08);
 }
 
 .toast.info .toast-icon {

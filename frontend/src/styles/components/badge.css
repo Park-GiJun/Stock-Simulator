@@ -17,7 +17,7 @@
 .badge-primary {
 	background: rgba(139, 92, 246, 0.2);
 	color: var(--color-primary-light);
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.08);
 }
 
 .badge-secondary {
@@ -28,25 +28,25 @@
 .badge-success {
 	background: rgba(16, 185, 129, 0.15);
 	color: var(--color-success);
-	box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.05);
 }
 
 .badge-error {
 	background: rgba(244, 63, 94, 0.15);
 	color: var(--color-stock-down);
-	box-shadow: 0 0 10px rgba(244, 63, 94, 0.1);
+	box-shadow: 0 0 4px rgba(244, 63, 94, 0.05);
 }
 
 .badge-warning {
 	background: rgba(245, 158, 11, 0.15);
 	color: var(--color-warning);
-	box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+	box-shadow: 0 0 4px rgba(245, 158, 11, 0.05);
 }
 
 .badge-info {
 	background: rgba(59, 130, 246, 0.15);
 	color: var(--color-info);
-	box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+	box-shadow: 0 0 4px rgba(59, 130, 246, 0.05);
 }
 
 /* Outline variants */
@@ -152,7 +152,7 @@
 	inset: 0;
 	border-radius: inherit;
 	background: currentColor;
-	animation: badgePulse 2s ease-in-out infinite;
+	animation: badgePulse 2s ease-in-out 2;
 }
 
 @keyframes badgePulse {
@@ -184,11 +184,11 @@
 .badge-stock-up {
 	background: rgba(16, 185, 129, 0.15);
 	color: var(--color-stock-up);
-	box-shadow: 0 0 8px rgba(16, 185, 129, 0.1);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.05);
 }
 
 .badge-stock-down {
 	background: rgba(244, 63, 94, 0.15);
 	color: var(--color-stock-down);
-	box-shadow: 0 0 8px rgba(244, 63, 94, 0.1);
+	box-shadow: 0 0 4px rgba(244, 63, 94, 0.05);
 }

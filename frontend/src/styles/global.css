@@ -10,12 +10,12 @@
 	--glass-bg-strong: rgba(255, 255, 255, 0.15);
 	--glass-border: rgba(255, 255, 255, 0.15);
 	--glass-border-light: rgba(255, 255, 255, 0.08);
-	--glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-	--glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2);
-	--glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.4);
-	--glass-blur: blur(20px);
-	--glass-blur-sm: blur(10px);
-	--glass-blur-lg: blur(40px);
+	--glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+	--glass-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+	--glass-shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.25);
+	--glass-blur: blur(8px);
+	--glass-blur-sm: blur(4px);
+	--glass-blur-lg: blur(12px);
 
 	/* ===== Primary Theme Colors (Violet) ===== */
 	--color-primary: #8b5cf6;
@@ -23,7 +23,7 @@
 	--color-primary-dark: #7c3aed;
 	--color-primary-hover: #7c3aed;
 	--color-primary-rgb: 139, 92, 246;
-	--color-accent-glow: rgba(139, 92, 246, 0.4);
+	--color-accent-glow: rgba(139, 92, 246, 0.15);
 
 	/* ===== Accent Colors ===== */
 	--color-accent: #06b6d4;
@@ -112,7 +112,7 @@
 	--shadow-sm: var(--glass-shadow-sm);
 	--shadow-md: var(--glass-shadow);
 	--shadow-lg: var(--glass-shadow-lg);
-	--shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.5);
+	--shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.3);
 
 	/* ===== Font ===== */
 	--font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -160,9 +160,9 @@
 	--glass-bg-strong: rgba(255, 255, 255, 0.75);
 	--glass-border: rgba(255, 255, 255, 0.5);
 	--glass-border-light: rgba(255, 255, 255, 0.3);
-	--glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-	--glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08);
-	--glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.15);
+	--glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+	--glass-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+	--glass-shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.1);
 
 	--color-primary: #8b5cf6;
 	--color-primary-light: #a78bfa;
@@ -202,7 +202,7 @@
 	--shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08);
 	--shadow-md: 0 8px 32px rgba(0, 0, 0, 0.1);
 	--shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.15);
-	--shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.2);
+	--shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* ===== Reset & Base Styles ===== */
@@ -832,10 +832,10 @@ img {
 @keyframes glowPulse {
 	0%,
 	100% {
-		box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+		box-shadow: 0 0 5px rgba(139, 92, 246, 0.1);
 	}
 	50% {
-		box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+		box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
 	}
 }
 
@@ -863,10 +863,10 @@ img {
 	animation: spin 1s linear infinite;
 }
 .animate-pulse {
-	animation: pulse 2s ease-in-out 3;
+	animation: pulse 2s ease-in-out 1;
 }
 .animate-glow {
-	animation: glowPulse 2s ease-in-out 2;
+	animation: glowPulse 2s ease-in-out 1;
 }
 .animate-slide-right {
 	animation: slideInRight 0.3s ease-out;
@@ -978,7 +978,7 @@ img {
 .view-mode-btn.active {
 	background: var(--color-primary);
 	color: var(--color-text-inverse);
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 /* ===== Grid Layouts ===== */
@@ -1053,8 +1053,8 @@ img {
 .stock-grid-card:hover {
 	background: var(--glass-bg-hover);
 	border-color: rgba(139, 92, 246, 0.3);
-	box-shadow: var(--glass-shadow-sm), 0 0 15px rgba(139, 92, 246, 0.1);
-	transform: translateY(-2px);
+	box-shadow: var(--glass-shadow-sm);
+	transform: translateY(-1px);
 }
 
 .stock-grid-card-header {
@@ -1142,7 +1142,7 @@ img {
 	background: var(--color-primary);
 	border-color: var(--color-primary);
 	color: var(--color-text-inverse);
-	box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
 }
 
 .pagination-btn:disabled {
@@ -1186,15 +1186,15 @@ img {
 }
 
 .glow-violet {
-	box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1);
+	box-shadow: 0 0 8px rgba(139, 92, 246, 0.15);
 }
 
 .glow-emerald {
-	box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 40px rgba(16, 185, 129, 0.1);
+	box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);
 }
 
 .glow-rose {
-	box-shadow: 0 0 20px rgba(244, 63, 94, 0.3), 0 0 40px rgba(244, 63, 94, 0.1);
+	box-shadow: 0 0 8px rgba(244, 63, 94, 0.15);
 }
 
 .gradient-text {

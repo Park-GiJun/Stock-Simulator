@@ -25,7 +25,7 @@
 
 .btn:focus {
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .btn:disabled,
@@ -40,7 +40,7 @@
 	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 	color: var(--color-text-inverse);
 	border-color: rgba(139, 92, 246, 0.5);
-	box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+	box-shadow: 0 0 6px rgba(139, 92, 246, 0.15);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -62,7 +62,7 @@
 	background: linear-gradient(135deg, #06b6d4, #0891b2);
 	color: var(--color-text-inverse);
 	border-color: rgba(6, 182, 212, 0.5);
-	box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+	box-shadow: 0 0 6px rgba(6, 182, 212, 0.15);
 }
 
 .btn-accent:hover:not(:disabled) {
@@ -73,7 +73,7 @@
 	background: rgba(244, 63, 94, 0.2);
 	color: #f43f5e;
 	border-color: rgba(244, 63, 94, 0.3);
-	box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
+	box-shadow: 0 0 4px rgba(244, 63, 94, 0.08);
 }
 
 .btn-danger:hover:not(:disabled) {
@@ -84,7 +84,7 @@
 	background: rgba(16, 185, 129, 0.2);
 	color: #10b981;
 	border-color: rgba(16, 185, 129, 0.3);
-	box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.08);
 }
 
 .btn-success:hover:not(:disabled) {
@@ -248,7 +248,7 @@
 	background: rgba(16, 185, 129, 0.2);
 	color: #10b981;
 	border-color: rgba(16, 185, 129, 0.3);
-	box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.08);
 }
 
 .btn-buy:hover:not(:disabled) {
@@ -259,7 +259,7 @@
 	background: rgba(244, 63, 94, 0.2);
 	color: #f43f5e;
 	border-color: rgba(244, 63, 94, 0.3);
-	box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
+	box-shadow: 0 0 4px rgba(244, 63, 94, 0.08);
 }
 
 .btn-sell:hover:not(:disabled) {

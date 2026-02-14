@@ -59,7 +59,7 @@
 
 .news-featured:hover {
 	border-color: rgba(139, 92, 246, 0.4);
-	box-shadow: var(--glass-shadow-lg), 0 0 30px rgba(139, 92, 246, 0.15);
+	box-shadow: var(--glass-shadow-lg);
 	transform: translateY(-2px);
 }
 
@@ -163,7 +163,7 @@
 .news-card-timeline:hover {
 	background: var(--glass-bg-hover);
 	border-color: rgba(139, 92, 246, 0.3);
-	box-shadow: var(--glass-shadow-sm), 0 0 15px rgba(139, 92, 246, 0.1);
+	box-shadow: var(--glass-shadow-sm);
 	transform: translateX(4px);
 }
 

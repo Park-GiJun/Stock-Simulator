@@ -123,25 +123,25 @@
 .stat-icon-emerald {
 	background: rgba(16, 185, 129, 0.15) !important;
 	color: var(--color-success) !important;
-	box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.08);
 }
 
 .stat-icon-violet {
 	background: rgba(139, 92, 246, 0.15) !important;
 	color: var(--color-primary) !important;
-	box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.08);
 }
 
 .stat-icon-amber {
 	background: rgba(245, 158, 11, 0.15) !important;
 	color: var(--color-warning) !important;
-	box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+	box-shadow: 0 0 4px rgba(245, 158, 11, 0.08);
 }
 
 .stat-icon-cyan {
 	background: rgba(6, 182, 212, 0.15) !important;
 	color: var(--color-accent) !important;
-	box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+	box-shadow: 0 0 4px rgba(6, 182, 212, 0.08);
 }
 
 /* ===== Market Cards Grid ===== */

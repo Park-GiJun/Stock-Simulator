@@ -147,12 +147,12 @@
 
 .card-stock-price.up {
 	color: var(--color-stock-up);
-	text-shadow: 0 0 20px var(--color-stock-up-glow);
+	text-shadow: 0 0 4px var(--color-stock-up-glow);
 }
 
 .card-stock-price.down {
 	color: var(--color-stock-down);
-	text-shadow: 0 0 20px var(--color-stock-down-glow);
+	text-shadow: 0 0 4px var(--color-stock-down-glow);
 }
 
 .card-stock-change {
@@ -197,7 +197,7 @@
 	background: rgba(139, 92, 246, 0.15);
 	border-radius: var(--radius-lg);
 	color: var(--color-primary);
-	box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+	box-shadow: 0 0 6px rgba(139, 92, 246, 0.05);
 }
 
 .card-stat-value {
@@ -226,13 +226,13 @@
 .card-stat-change.up {
 	background: rgba(16, 185, 129, 0.15);
 	color: var(--color-success);
-	box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+	box-shadow: 0 0 4px rgba(16, 185, 129, 0.05);
 }
 
 .card-stat-change.down {
 	background: rgba(244, 63, 94, 0.15);
 	color: var(--color-stock-down);
-	box-shadow: 0 0 10px rgba(244, 63, 94, 0.1);
+	box-shadow: 0 0 4px rgba(244, 63, 94, 0.05);
 }
 
 /* ===== News Card ===== */
@@ -313,19 +313,19 @@
 .card-ranking-rank.gold {
 	background: linear-gradient(135deg, #FFD700, #FFA500);
 	color: #000;
-	box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+	box-shadow: 0 0 4px rgba(255, 215, 0, 0.15);
 }
 
 .card-ranking-rank.silver {
 	background: linear-gradient(135deg, #C0C0C0, #808080);
 	color: #000;
-	box-shadow: 0 0 12px rgba(192, 192, 192, 0.3);
+	box-shadow: 0 0 4px rgba(192, 192, 192, 0.15);
 }
 
 .card-ranking-rank.bronze {
 	background: linear-gradient(135deg, #CD7F32, #8B4513);
 	color: #fff;
-	box-shadow: 0 0 12px rgba(205, 127, 50, 0.3);
+	box-shadow: 0 0 4px rgba(205, 127, 50, 0.15);
 }
 
 .card-ranking-rank.default {
@@ -362,10 +362,10 @@
 
 .card-ranking-return.positive {
 	color: var(--color-stock-up);
-	text-shadow: 0 0 15px var(--color-stock-up-glow);
+	text-shadow: 0 0 4px var(--color-stock-up-glow);
 }
 
 .card-ranking-return.negative {
 	color: var(--color-stock-down);
-	text-shadow: 0 0 15px var(--color-stock-down-glow);
+	text-shadow: 0 0 4px var(--color-stock-down-glow);
 }
