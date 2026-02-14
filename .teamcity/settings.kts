@@ -33,6 +33,7 @@ project {
     buildType(StockSimulatorDeploy)
 
     params {
+        param("env.DOCKER_PASSWORD", "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")
         param("env.DOCKER_USER", "env.DOCKER_USER")
     }
 }
@@ -45,15 +46,15 @@ object StockSimulatorDeploy : BuildType({
     params {
         password("env.DOCKER_PASSWORD", "zxx775d03cbe80d301b", label = "Docker Registry Password", display = ParameterDisplay.HIDDEN)
         text("env.IMAGE_PREFIX", "park-gijun/stocksim", display = ParameterDisplay.HIDDEN)
-        select("environment", "production", label = "Environment", description = "Deployment environment", display = ParameterDisplay.NORMAL,
+        select("environment", "production", label = "Environment", description = "Deployment environment", display = ParameterDisplay.PROMPT,
                 options = listOf("production", "staging"))
-        checkbox("cleanBuild", "false", label = "Clean Build", description = "Clean build (ignore cache)", display = ParameterDisplay.NORMAL,
+        checkbox("cleanBuild", "false", label = "Clean Build", description = "Clean build (ignore cache)", display = ParameterDisplay.PROMPT,
                   checked = "true", unchecked = "false")
         text("env.REGISTRY", "ghcr.io", display = ParameterDisplay.HIDDEN)
-        text("version", "", label = "Version", description = "Auto-generated from git commit. Leave empty for auto.", display = ParameterDisplay.NORMAL)
-        checkbox("skipBuild", "false", label = "Skip Build", description = "Skip build (deploy images only)", display = ParameterDisplay.NORMAL,
+        text("version", "v1.4.2", label = "Version", description = "Version to deploy (e.g., v1.4.2)", display = ParameterDisplay.PROMPT)
+        checkbox("skipBuild", "false", label = "Skip Build", description = "Skip build (deploy images only)", display = ParameterDisplay.PROMPT,
                   checked = "true", unchecked = "false")
-        select("buildTarget", "all", label = "Build Target", description = "Build target selection", display = ParameterDisplay.NORMAL,
+        select("buildTarget", "all", label = "Build Target", description = "Build target selection", display = ParameterDisplay.PROMPT,
                 options = listOf("all", "frontend-only", "backend-only"))
         password("env.DOCKER_USER", "zxx775d03cbe80d301b", label = "Docker Registry User", display = ParameterDisplay.HIDDEN)
     }
@@ -63,21 +64,6 @@ object StockSimulatorDeploy : BuildType({
     }
 
     steps {
-        script {
-            name = "Resolve Version"
-            scriptContent = """
-                #!/bin/bash
-                if [ -z "%version%" ]; then
-                    SHORT_SHA=${'$'}(git rev-parse --short HEAD)
-                    BUILD_NUM="%build.counter%"
-                    AUTO_VERSION="build-${'$'}{BUILD_NUM}-${'$'}{SHORT_SHA}"
-                    echo "##teamcity[setParameter name='version' value='${'$'}AUTO_VERSION']"
-                    echo "Auto-generated version: ${'$'}AUTO_VERSION"
-                else
-                    echo "Using specified version: %version%"
-                fi
-            """.trimIndent()
-        }
         gradle {
             name = "Gradle Build"
 
@@ -186,7 +172,7 @@ object StockSimulatorDeploy : BuildType({
                 cd /deploy
                 
                 # Login to registry
-                echo "${'$'}DOCKER_PASSWORD" | docker login ${'$'}REGISTRY -u "${'$'}DOCKER_USER" --password-stdin
+                echo %env.DOCKER_PASSWORD% | docker login ${'$'}REGISTRY -u %env.DOCKER_USER% --password-stdin
                 
                 # Update .env file with version
                 sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${'$'}VERSION/" .env || echo "IMAGE_TAG=${'$'}VERSION" >> .env
@@ -327,6 +313,10 @@ object StockSimulatorDeploy : BuildType({
     }
 
     features {
-        dockerRegistryConnections {}
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_1"
+            }
+        }
     }
 })
