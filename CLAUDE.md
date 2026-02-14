@@ -106,6 +106,8 @@ Stock-Simulator/
 │   │   ├── dashboards/    # Dashboard JSON files
 │   │   └── datasources/   # Datasource configs
 │   └── prometheus/        # Prometheus config
+├── teamcity/               # TeamCity CI/CD (docker-compose, setup)
+├── .teamcity/              # TeamCity Kotlin DSL pipeline (settings.kts)
 └── docker-compose.yml
 ```
 
@@ -211,7 +213,8 @@ news.published       # AI-generated news
 | Promtail | stockSimulator-promtail | - | - |
 | Eureka | stockSimulator-eureka-server | 8761 | http://localhost:8761 |
 | API Gateway | stockSimulator-api-gateway | 9832 | - |
-| Jenkins | jenkins-blueocean | 8180 (http), 50000 (agent) | - |
+| TeamCity Server | stockSimulator-teamcity-server | 8111 | http://localhost:8111 |
+| TeamCity Agent | stockSimulator-teamcity-agent | - | - |
 
 ## Monitoring
 
@@ -292,27 +295,43 @@ docker-compose --profile all up -d
 
 ## CI/CD
 
-### Jenkins Pipeline
-- **URL**: http://localhost:8180
-- **Jenkinsfile**: Located at project root
+### TeamCity Pipeline (Kotlin DSL)
+- **URL**: http://localhost:8111
+- **Config**: `.teamcity/settings.kts` (Kotlin DSL)
+- **Infrastructure**: `teamcity/docker-compose.yml` (Server + Agent)
 - **Features**:
-  - Multi-stage pipeline (Clean → Build → Deploy)
+  - Kotlin DSL pipeline configuration (versioned in Git)
   - Selective build options (All, Backend only, Frontend only)
+  - Clean build / Skip build options
   - Docker image build and push to GHCR (GitHub Container Registry)
-  - Automatic deployment with health checks
-  - Slack notifications (optional)
-  
+  - Ordered deployment with health checks (Eureka → Services → Gateway → Frontend)
+  - 30-minute build timeout
+
+**Build Parameters**:
+- `version`: Deploy version tag (default: v1.4.2)
+- `environment`: production / staging
+- `buildTarget`: all / frontend-only / backend-only
+- `cleanBuild`: Ignore cache (default: false)
+- `skipBuild`: Deploy existing images only (default: false)
+
 **Build Triggers**:
-- Webhook from GitHub on push to `master` branch
-- Manual trigger via Jenkins UI
+- VCS trigger on push to `master` branch
+- Manual trigger via TeamCity UI (Run with parameters)
 
 **Deployment Flow**:
-1. Clean workspace and old Docker images
-2. Build backend services with Gradle (Java 25)
-3. Build frontend with pnpm
-4. Build and push Docker images to GHCR
-5. Deploy via docker-compose
+1. Gradle build (backend services, parallel)
+2. Docker login to GHCR
+3. Build and push backend Docker images
+4. Build and push frontend Docker image
+5. Deploy via docker-compose (ordered: infra → eureka → services → gateway → frontend)
 6. Health check (Eureka, API Gateway)
+
+**TeamCity Setup**:
+```bash
+cd teamcity
+chmod +x setup.sh
+./setup.sh
+```
 
 ### GitHub Container Registry (GHCR)
 All Docker images are now hosted on GHCR:

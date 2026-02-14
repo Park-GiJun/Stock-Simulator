@@ -1,0 +1,42 @@
+services:
+  teamcity-server:
+    image: jetbrains/teamcity-server:latest
+    container_name: stockSimulator-teamcity-server
+    restart: unless-stopped
+    ports:
+      - "8111:8111"
+    volumes:
+      - teamcity_data:/data/teamcity_server/datadir
+      - teamcity_logs:/opt/teamcity/logs
+    networks:
+      - teamcity
+      - stocksim-network
+
+  teamcity-agent:
+    image: jetbrains/teamcity-agent:latest
+    container_name: stockSimulator-teamcity-agent
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - teamcity_agent:/opt/buildagent/work
+      - ../:/workspace
+      - /home/gijunpark/Stock-Simulator:/deploy
+    environment:
+      SERVER_URL: http://teamcity-server:8111
+      DOCKER_IN_DOCKER: start
+    networks:
+      - teamcity
+      - stocksim-network
+
+networks:
+  teamcity:
+    driver: bridge
+  stocksim-network:
+    external: true
+    name: stock-simulator_stocksim-network
+
+volumes:
+  teamcity_data:
+  teamcity_logs:
+  teamcity_agent:
