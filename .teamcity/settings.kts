@@ -90,7 +90,7 @@ object StockSimulatorDeploy : BuildType({
 
                 # Copy infrastructure configuration files to /deploy
                 echo "Copying infrastructure and config files..."
-                cp -rf docker compose.yml /deploy/
+                cp -rf docker-compose.yml /deploy/
                 cp -rf infra /deploy/
 
                 cd /deploy
