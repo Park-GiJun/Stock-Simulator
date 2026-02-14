@@ -31,10 +31,6 @@ version = "2025.11"
 project {
 
     buildType(StockSimulatorDeploy)
-
-    params {
-        param("env.DOCKER_USER", "env.DOCKER_USER")
-    }
 }
 
 object StockSimulatorDeploy : BuildType({
@@ -86,7 +82,7 @@ object StockSimulatorDeploy : BuildType({
                 doesNotEqual("buildTarget", "frontend-only")
             }
             tasks = "build -x test --parallel"
-            buildFile = "build.gradle.kts"
+            useGradleWrapper = true
         }
         gradle {
             name = "Gradle Clean Build"
@@ -97,7 +93,7 @@ object StockSimulatorDeploy : BuildType({
                 doesNotEqual("buildTarget", "frontend-only")
             }
             tasks = "clean build -x test --parallel"
-            buildFile = "build.gradle.kts"
+            useGradleWrapper = true
         }
         script {
             name = "Docker Login"
