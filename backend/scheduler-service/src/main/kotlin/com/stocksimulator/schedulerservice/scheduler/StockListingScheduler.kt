@@ -24,16 +24,16 @@ class StockListingScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 1_800_000) // 30분
+    @Scheduled(fixedRate = 60_000) // 30분
     fun checkForIPO() {
-        if (Random.nextDouble() < 0.3) {
+        if (Random.nextDouble() < 1) {
             initiateIPO()
         }
     }
 
-    @Scheduled(fixedRate = 3_600_000) // 1시간
+    @Scheduled(fixedRate = 120_000) // 1시간
     fun checkForDelisting() {
-        if (Random.nextDouble() < 0.1) {
+        if (Random.nextDouble() < 0.5) {
             initiateDelisting()
         }
     }

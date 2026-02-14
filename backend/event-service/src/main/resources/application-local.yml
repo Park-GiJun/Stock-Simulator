@@ -1,14 +1,11 @@
-# Local 환경 설정 (IDE에서 실행, 인프라는 Docker)
-server:
-  port: 8084
-
+# Local 환경 설정 - IDE에서 실행, 인프라는 원격 서버 (.env.local)
 spring:
-  application:
-    name: event-service
+  config:
+    import: optional:file:.env.local[.properties]
   datasource:
-    url: jdbc:postgresql://210.121.177.150:5432/stocksimulator?currentSchema=events
-    username: stocksim
-    password: stocksim123
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=events
+    username: ${POSTGRES_USER:stocksim}
+    password: ${POSTGRES_PASSWORD:stocksim123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -19,7 +16,7 @@ spring:
         format_sql: true
         default_schema: events
   kafka:
-    bootstrap-servers: 210.121.177.150:9094
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -32,7 +29,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://210.121.177.150:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:

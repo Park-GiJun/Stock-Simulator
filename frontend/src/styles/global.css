@@ -220,7 +220,7 @@ html {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Animated Mesh Gradient Background ===== */
+/* ===== Background ===== */
 body {
 	font-family: var(--font-family);
 	font-size: var(--font-size-md);
@@ -228,34 +228,12 @@ body {
 	color: var(--color-text-primary);
 	min-height: 100vh;
 	background: linear-gradient(135deg, #1a0533 0%, #0f172a 30%, #0d3b4a 60%, #2d1b69 100%);
-	background-size: 400% 400%;
-	animation: meshGradient 15s ease infinite;
 	background-attachment: fixed;
 }
 
 [data-theme='light'] body {
 	background: linear-gradient(135deg, #e8dff5 0%, #dbeafe 30%, #d1fae5 60%, #ede9fe 100%);
-	background-size: 400% 400%;
-	animation: meshGradient 15s ease infinite;
 	background-attachment: fixed;
-}
-
-@keyframes meshGradient {
-	0% {
-		background-position: 0% 50%;
-	}
-	25% {
-		background-position: 50% 0%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	75% {
-		background-position: 50% 100%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
 }
 
 a {
@@ -885,10 +863,10 @@ img {
 	animation: spin 1s linear infinite;
 }
 .animate-pulse {
-	animation: pulse 2s ease-in-out infinite;
+	animation: pulse 2s ease-in-out 3;
 }
 .animate-glow {
-	animation: glowPulse 2s ease-in-out infinite;
+	animation: glowPulse 2s ease-in-out 2;
 }
 .animate-slide-right {
 	animation: slideInRight 0.3s ease-out;
@@ -1301,4 +1279,15 @@ img {
 
 [data-theme='light'] ::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }

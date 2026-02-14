@@ -89,7 +89,7 @@
 
 /* Animated striped */
 .progress-animated .progress-bar {
-	animation: progressStripes 1s linear infinite;
+	animation: progressStripes 1s linear 5;
 }
 
 @keyframes progressStripes {
@@ -104,7 +104,7 @@
 /* Indeterminate */
 .progress-indeterminate .progress-bar {
 	width: 30% !important;
-	animation: progressIndeterminate 1.5s ease-in-out infinite;
+	animation: progressIndeterminate 1.5s ease-in-out 5;
 }
 
 @keyframes progressIndeterminate {

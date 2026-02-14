@@ -6,7 +6,7 @@
 
 /* ===== Page Header ===== */
 .stocks-page-header {
-	animation: slideUp 0.3s ease-out;
+	animation: fadeIn 0.3s ease-out;
 }
 
 /* ===== Filter Section ===== */
@@ -17,33 +17,17 @@
 	border: 1px solid var(--glass-border);
 	border-radius: var(--radius-xl);
 	padding: var(--spacing-md);
-	animation: slideUp 0.3s ease-out 0.1s both;
+	animation: fadeIn 0.3s ease-out;
 }
 
 /* ===== Stock Table Glass ===== */
 .stocks-page .table-wrapper {
-	animation: slideUp 0.4s ease-out 0.2s both;
+	animation: fadeIn 0.3s ease-out;
 }
 
 /* ===== Stock Table Row Hover Enhancement ===== */
 .stocks-page .table-stock tbody tr.clickable:hover {
 	background: var(--glass-bg-hover);
-	box-shadow: inset 3px 0 0 var(--color-primary);
-}
-
-.stocks-page .table-stock tbody tr.clickable:hover .stock-icon {
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
-	transform: scale(1.05);
-	transition: all 0.2s ease;
-}
-
-/* ===== Stock Price Glow on Hover ===== */
-.stocks-page .table-stock tbody tr.clickable:hover .stock-change.up {
-	text-shadow: 0 0 15px var(--color-stock-up-glow);
-}
-
-.stocks-page .table-stock tbody tr.clickable:hover .stock-change.down {
-	text-shadow: 0 0 15px var(--color-stock-down-glow);
 }
 
 /* ===== Loading State ===== */

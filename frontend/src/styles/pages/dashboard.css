@@ -103,49 +103,12 @@
 
 /* ===== Stats Grid ===== */
 .dashboard-stats {
-	animation: slideUp 0.4s ease-out;
+	animation: fadeIn 0.3s ease-out;
 }
 
 .dashboard-stats .card {
 	position: relative;
 	overflow: visible;
-}
-
-.dashboard-stats .card:nth-child(1) {
-	animation: slideUp 0.4s ease-out 0.05s both;
-}
-
-.dashboard-stats .card:nth-child(2) {
-	animation: slideUp 0.4s ease-out 0.1s both;
-}
-
-.dashboard-stats .card:nth-child(3) {
-	animation: slideUp 0.4s ease-out 0.15s both;
-}
-
-.dashboard-stats .card:nth-child(4) {
-	animation: slideUp 0.4s ease-out 0.2s both;
-}
-
-/* ===== Stat Card Accent Glows ===== */
-.dashboard-stats .card:nth-child(1):hover {
-	box-shadow: var(--glass-shadow), 0 0 30px rgba(16, 185, 129, 0.2);
-	border-color: rgba(16, 185, 129, 0.3);
-}
-
-.dashboard-stats .card:nth-child(2):hover {
-	box-shadow: var(--glass-shadow), 0 0 30px rgba(139, 92, 246, 0.2);
-	border-color: rgba(139, 92, 246, 0.3);
-}
-
-.dashboard-stats .card:nth-child(3):hover {
-	box-shadow: var(--glass-shadow), 0 0 30px rgba(245, 158, 11, 0.2);
-	border-color: rgba(245, 158, 11, 0.3);
-}
-
-.dashboard-stats .card:nth-child(4):hover {
-	box-shadow: var(--glass-shadow), 0 0 30px rgba(6, 182, 212, 0.2);
-	border-color: rgba(6, 182, 212, 0.3);
 }
 
 /* ===== Stat Card Header (Icon + Sparkline) ===== */
@@ -183,15 +146,7 @@
 
 /* ===== Market Cards Grid ===== */
 .dashboard-market-cards .card {
-	animation: slideUp 0.4s ease-out 0.25s both;
-}
-
-.dashboard-market-cards .card:nth-child(2) {
-	animation-delay: 0.3s;
-}
-
-.dashboard-market-cards .card:nth-child(3) {
-	animation-delay: 0.35s;
+	animation: fadeIn 0.3s ease-out;
 }
 
 /* ===== Stock Row ===== */
@@ -249,11 +204,7 @@
 
 /* ===== Bottom Section (News + Ranking) ===== */
 .dashboard-bottom .card {
-	animation: slideUp 0.4s ease-out 0.4s both;
-}
-
-.dashboard-bottom .card:nth-child(2) {
-	animation-delay: 0.45s;
+	animation: fadeIn 0.3s ease-out;
 }
 
 /* ===== News Item ===== */

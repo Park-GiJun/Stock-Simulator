@@ -1,14 +1,11 @@
-# Local 환경 설정 - IDE에서 실행, 인프라는 Docker (docker-compose-local.yml)
-server:
-  port: 8082
-
+# Local 환경 설정 - IDE에서 실행, 인프라는 원격 서버 (.env.local)
 spring:
-  application:
-    name: stock-service
+  config:
+    import: optional:file:.env.local[.properties]
   datasource:
-    url: jdbc:postgresql://210.121.177.150:5432/stocksimulator?currentSchema=stocks
-    username: stocksim
-    password: stocksim123
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=stocks
+    username: ${POSTGRES_USER:stocksim}
+    password: ${POSTGRES_PASSWORD:stocksim123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -27,19 +24,24 @@ spring:
     baseline-version: 0
   data:
     redis:
-      host: 210.121.177.150
-      port: 6380
-      password: stocksim123
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD:stocksim123}
   kafka:
-    bootstrap-servers: 210.121.177.150:9094
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: stock-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
 eureka:
   client:
     service-url:
-      defaultZone: http://210.121.177.150:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:

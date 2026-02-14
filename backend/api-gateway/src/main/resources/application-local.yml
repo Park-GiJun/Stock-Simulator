@@ -1,13 +1,15 @@
-# Local 환경 설정 - IDE에서 실행, 인프라는 Docker (docker-compose-local.yml)
+# Local 환경 설정 - IDE에서 실행, 인프라는 원격 서버 (.env.local)
 server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env.local[.properties]
   data:
     redis:
-      host: 210.121.177.150
-      port: 6380
-      password: stocksim123
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD:stocksim123}
   cloud:
     gateway:
       discovery:
@@ -83,7 +85,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://210.121.177.150:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:

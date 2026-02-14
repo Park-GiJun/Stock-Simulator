@@ -14,7 +14,7 @@
 	border-radius: var(--radius-md);
 	border: 1px solid var(--glass-border);
 	cursor: pointer;
-	transition: all 0.3s ease;
+	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 	white-space: nowrap;
 	user-select: none;
 	background: var(--glass-bg);
@@ -45,12 +45,6 @@
 
 .btn-primary:hover:not(:disabled) {
 	background: linear-gradient(135deg, #7c3aed, #6d28d9);
-	box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
-	transform: scale(1.02);
-}
-
-.btn-primary:active:not(:disabled) {
-	transform: scale(0.98);
 }
 
 .btn-secondary {
@@ -72,12 +66,7 @@
 }
 
 .btn-accent:hover:not(:disabled) {
-	box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
-	transform: scale(1.02);
-}
-
-.btn-accent:active:not(:disabled) {
-	transform: scale(0.98);
+	background: linear-gradient(135deg, #0891b2, #0e7490);
 }
 
 .btn-danger {
@@ -89,12 +78,6 @@
 
 .btn-danger:hover:not(:disabled) {
 	background: rgba(244, 63, 94, 0.3);
-	box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
-	transform: scale(1.02);
-}
-
-.btn-danger:active:not(:disabled) {
-	transform: scale(0.98);
 }
 
 .btn-success {
@@ -106,12 +89,6 @@
 
 .btn-success:hover:not(:disabled) {
 	background: rgba(16, 185, 129, 0.3);
-	box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
-	transform: scale(1.02);
-}
-
-.btn-success:active:not(:disabled) {
-	transform: scale(0.98);
 }
 
 .btn-ghost {
@@ -137,7 +114,6 @@
 
 .btn-outline:hover:not(:disabled) {
 	background: rgba(139, 92, 246, 0.15);
-	box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
 }
 
 .btn-link {
@@ -277,12 +253,6 @@
 
 .btn-buy:hover:not(:disabled) {
 	background: rgba(16, 185, 129, 0.3);
-	box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
-	transform: scale(1.02);
-}
-
-.btn-buy:active:not(:disabled) {
-	transform: scale(0.98);
 }
 
 .btn-sell {
@@ -294,10 +264,4 @@
 
 .btn-sell:hover:not(:disabled) {
 	background: rgba(244, 63, 94, 0.3);
-	box-shadow: 0 0 25px rgba(244, 63, 94, 0.3);
-	transform: scale(1.02);
-}
-
-.btn-sell:active:not(:disabled) {
-	transform: scale(0.98);
 }

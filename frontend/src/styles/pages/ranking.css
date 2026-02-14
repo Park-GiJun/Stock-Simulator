@@ -15,7 +15,7 @@
 	border: 1px solid var(--glass-border);
 	border-radius: var(--radius-xl);
 	margin-bottom: var(--spacing-lg);
-	animation: slideUp 0.3s ease-out 0.1s both;
+	animation: fadeIn 0.3s ease-out;
 }
 
 .ranking-type-tab {
@@ -59,7 +59,7 @@
 	border-radius: var(--radius-xl);
 	box-shadow: var(--glass-shadow), 0 0 20px rgba(139, 92, 246, 0.1);
 	margin-bottom: var(--spacing-lg);
-	animation: slideUp 0.4s ease-out 0.15s both;
+	animation: fadeIn 0.3s ease-out;
 }
 
 .my-rank-label {
@@ -141,8 +141,7 @@
 .podium-crown {
 	color: #FFD700;
 	margin-bottom: var(--spacing-xs);
-	animation: glowPulse 2s ease-in-out infinite;
-	filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+	filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
 }
 
 .podium-avatar {
@@ -247,7 +246,7 @@
 
 /* ===== Ranking Table Enhancement ===== */
 .ranking-page .table-wrapper {
-	animation: slideUp 0.4s ease-out 0.3s both;
+	animation: fadeIn 0.3s ease-out;
 }
 
 .ranking-page .table-ranking tbody tr:hover {
