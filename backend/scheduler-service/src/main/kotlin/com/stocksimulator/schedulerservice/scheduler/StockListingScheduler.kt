@@ -15,7 +15,7 @@ import kotlin.random.Random
 /**
  * 주식 상장/상장폐지 스케줄러
  * - IPO (신규 상장): 30분마다 30% 확률로 발생
- * - 상장폐지: 1시간마다 10% 확률로 발생
+ * - 상장폐지: 1시간마다 5% 확률로 발생
  */
 @Component
 class StockListingScheduler(
@@ -24,16 +24,16 @@ class StockListingScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 60_000) // 30분
+    @Scheduled(fixedRate = 180_000) // 30분
     fun checkForIPO() {
         if (Random.nextDouble() < 1) {
             initiateIPO()
         }
     }
 
-    @Scheduled(fixedRate = 120_000) // 1시간
+    @Scheduled(fixedRate = 1_800_000) // 30분
     fun checkForDelisting() {
-        if (Random.nextDouble() < 0.5) {
+        if (Random.nextDouble() < 0.05) {
             initiateDelisting()
         }
     }

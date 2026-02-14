@@ -29,9 +29,8 @@ subprojects {
         "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
         "implementation"("org.jetbrains.kotlinx:kotlinx-serialization-json") // BOM managed by Spring Boot 4.0
 
-        // Jackson
-        "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
-        "implementation"("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+        // Jackson 3.x (kotlin module only; jsr310 is built into jackson-databind 3.x)
+        "implementation"("tools.jackson.module:jackson-module-kotlin")
 
         // dotenv
         "implementation"("me.paulschwarz:spring-dotenv:4.0.0")
