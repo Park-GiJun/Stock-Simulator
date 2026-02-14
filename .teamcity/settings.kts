@@ -31,6 +31,10 @@ version = "2025.11"
 project {
 
     buildType(StockSimulatorDeploy)
+
+    params {
+        param("env.DOCKER_USER", "env.DOCKER_USER")
+    }
 }
 
 object StockSimulatorDeploy : BuildType({
