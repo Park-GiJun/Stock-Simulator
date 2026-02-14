@@ -7,7 +7,7 @@
     <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="news-service"/>
 
     <!-- ==================== LOCAL/DEV Profile ==================== -->
-    <springProfile name="default | dev">
+    <springProfile name="default | dev | local">
 
         <property name="DEV_CONSOLE_PATTERN"
                   value="%clr(%d{HH:mm:ss.SSS}){faint} %clr([%15.15t]){magenta} %clr([%8.8X{traceId:--------}]){yellow} %clr(%-5level) %clr([${SERVICE_NAME}]){blue} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>

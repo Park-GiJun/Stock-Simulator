@@ -17,7 +17,7 @@
     <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="user-service"/>
 
     <!-- ==================== LOCAL/DEV Profile ==================== -->
-    <springProfile name="default | dev">
+    <springProfile name="default | dev | local">
 
         <!-- 콘솔 패턴: 날짜 [스레드] [traceId] LEVEL [클래스] : 메시지 -->
         <property name="DEV_CONSOLE_PATTERN"

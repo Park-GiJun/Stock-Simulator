@@ -6,7 +6,7 @@ spring:
   application:
     name: stock-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/stocksimulator?currentSchema=stocks
+    url: jdbc:postgresql://210.121.177.150:5432/stocksimulator?currentSchema=stocks
     username: stocksim
     password: stocksim123
     driver-class-name: org.postgresql.Driver
@@ -27,11 +27,11 @@ spring:
     baseline-version: 0
   data:
     redis:
-      host: localhost
+      host: 210.121.177.150
       port: 6380
       password: stocksim123
   kafka:
-    bootstrap-servers: localhost:9094
+    bootstrap-servers: 210.121.177.150:9094
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -39,7 +39,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://210.121.177.150:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:

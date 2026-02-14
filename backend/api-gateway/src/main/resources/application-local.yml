@@ -5,7 +5,7 @@ server:
 spring:
   data:
     redis:
-      host: localhost
+      host: 210.121.177.150
       port: 6380
       password: stocksim123
   cloud:
@@ -83,7 +83,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://210.121.177.150:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
