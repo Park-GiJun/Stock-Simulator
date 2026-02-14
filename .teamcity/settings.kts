@@ -14,14 +14,15 @@ object StockSimulatorDeploy : BuildType({
     name = "StockSimulatorDeploy"
 
     params {
-        text("version", "v1.4.2", display = ParameterDisplay.PROMPT, label = "Version", description = "Version to deploy (e.g., v1.4.2)")
-        select("environment", "production", display = ParameterDisplay.PROMPT, label = "Environment", description = "Deployment environment",
+        text("version", "", display = ParameterDisplay.NORMAL, label = "Version",
+            description = "Auto-generated from git. Leave empty for auto (commit hash). Override for manual builds.")
+        select("environment", "production", display = ParameterDisplay.NORMAL, label = "Environment", description = "Deployment environment",
             options = listOf("production", "staging"))
-        select("buildTarget", "all", display = ParameterDisplay.PROMPT, label = "Build Target", description = "Build target selection",
+        select("buildTarget", "all", display = ParameterDisplay.NORMAL, label = "Build Target", description = "Build target selection",
             options = listOf("all", "frontend-only", "backend-only"))
-        checkbox("cleanBuild", "false", display = ParameterDisplay.PROMPT, label = "Clean Build", description = "Clean build (ignore cache)",
+        checkbox("cleanBuild", "false", display = ParameterDisplay.NORMAL, label = "Clean Build", description = "Clean build (ignore cache)",
             checked = "true", unchecked = "false")
-        checkbox("skipBuild", "false", display = ParameterDisplay.PROMPT, label = "Skip Build", description = "Skip build (deploy images only)",
+        checkbox("skipBuild", "false", display = ParameterDisplay.NORMAL, label = "Skip Build", description = "Skip build (deploy images only)",
             checked = "true", unchecked = "false")
         text("env.REGISTRY", "ghcr.io", display = ParameterDisplay.HIDDEN)
         text("env.IMAGE_PREFIX", "park-gijun/stocksim", display = ParameterDisplay.HIDDEN)
@@ -34,6 +35,23 @@ object StockSimulatorDeploy : BuildType({
     }
 
     steps {
+        // Step 0: Auto-generate version from git if not specified
+        script {
+            name = "Resolve Version"
+            scriptContent = """
+                #!/bin/bash
+                if [ -z "%version%" ]; then
+                    SHORT_SHA=${'$'}(git rev-parse --short HEAD)
+                    BUILD_NUM="%build.counter%"
+                    AUTO_VERSION="build-${'$'}{BUILD_NUM}-${'$'}{SHORT_SHA}"
+                    echo "##teamcity[setParameter name='version' value='${'$'}AUTO_VERSION']"
+                    echo "Auto-generated version: ${'$'}AUTO_VERSION"
+                else
+                    echo "Using specified version: %version%"
+                fi
+            """.trimIndent()
+        }
+
         // Step 1: Gradle Build
         gradle {
             name = "Gradle Build"
