@@ -3,9 +3,8 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerSupport
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
-import jetbrains.buildServer.configs.kotlin.ui.*
 
-version = "2024.12"
+version = "2025.11"
 
 project {
     buildType(StockSimulatorDeploy)
