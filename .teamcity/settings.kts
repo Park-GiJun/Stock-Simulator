@@ -90,7 +90,7 @@ object StockSimulatorDeploy : BuildType({
 
                 # Copy infrastructure configuration files to /deploy
                 echo "Copying infrastructure and config files..."
-                cp -rf docker-compose.yml /deploy/
+                cp -rf docker compose.yml /deploy/
                 cp -rf infra /deploy/
 
                 cd /deploy
@@ -99,12 +99,12 @@ object StockSimulatorDeploy : BuildType({
                 echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin
 
                 # Pull new images
-                docker-compose -p stock-simulator --profile all pull --ignore-pull-failures
+                docker compose -p stock-simulator --profile all pull --ignore-pull-failures
 
                 echo "Full deployment..."
 
                 # 1. Eureka first
-                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
+                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
                 echo "Waiting for Eureka to start..."
                 for i in ${'$'}(seq 1 12); do
                     if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
@@ -116,15 +116,15 @@ object StockSimulatorDeploy : BuildType({
                 done
 
                 # 2. Backend services
-                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
                 sleep 15
 
                 # 3. API Gateway
-                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
+                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
                 sleep 10
 
                 # 4. Frontend
-                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
+                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
 
                 echo "Deployment complete"
             """.trimIndent()
