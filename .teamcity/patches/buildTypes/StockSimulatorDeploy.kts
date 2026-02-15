@@ -1,6 +1,7 @@
 package patches.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
@@ -164,6 +165,11 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
         }
     }
     steps {
+        update<GradleBuildStep>(0) {
+            clearConditions()
+            tasks = "clean build -x test --parallel"
+            param("teamcity.kubernetes.executor.pull.policy", "")
+        }
         update<ScriptBuildStep>(1) {
             clearConditions()
             scriptContent = "docker login ghcr.io -u %env.DOCKER_USER% -p %env.DOCKER_PASSWORD%"
