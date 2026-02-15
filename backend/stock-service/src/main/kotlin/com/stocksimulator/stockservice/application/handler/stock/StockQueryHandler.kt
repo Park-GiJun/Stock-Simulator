@@ -9,6 +9,7 @@ import com.stocksimulator.stockservice.application.dto.query.stock.StockListQuer
 import com.stocksimulator.stockservice.application.dto.result.stock.StockDetailResult
 import com.stocksimulator.stockservice.application.dto.result.stock.StockListItemResult
 import com.stocksimulator.stockservice.application.port.`in`.stock.CheckStockExistsUseCase
+import com.stocksimulator.stockservice.application.port.`in`.stock.GetRandomStockUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockDetailUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.SearchStockUseCase
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service
 @Service
 class StockQueryHandler(
     private val stockPersistencePort: StockPersistencePort
-) : GetStockListUseCase, GetStockDetailUseCase, SearchStockUseCase, CheckStockExistsUseCase {
+) : GetStockListUseCase, GetStockDetailUseCase, SearchStockUseCase, CheckStockExistsUseCase, GetRandomStockUseCase {
 
     override fun getStockList(query: StockListQuery): Page<StockListItemResult> {
         val sortField = mapSortField(query.sortBy)
@@ -73,6 +74,10 @@ class StockQueryHandler(
 
     override fun existsByStockName(stockName: String): Boolean {
         return stockPersistencePort.existsByName(stockName)
+    }
+
+    override fun getRandomListedStock(): StockListItemResult? {
+        return stockPersistencePort.findRandomListed()?.let { StockListItemResult.from(it) }
     }
 
     private fun mapSortField(sortBy: String): String = when (sortBy) {

@@ -30,4 +30,5 @@ interface StockPersistencePort {
         pageable: Pageable
     ): Page<StockModel>
     fun existsByName(stockName: String): Boolean
+    fun findRandomListed(): StockModel?
 }

@@ -8,6 +8,7 @@ import com.stocksimulator.stockservice.adapter.out.persistence.stock.repository.
 import com.stocksimulator.stockservice.application.port.out.stock.StockPersistencePort
 import com.stocksimulator.stockservice.domain.StockModel
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 
@@ -63,5 +64,10 @@ class StockPersistenceAdapter(
 
     override fun existsByName(stockName: String): Boolean {
         return stockJpaRepository.existsByStockName(stockName)
+    }
+
+    override fun findRandomListed(): StockModel? {
+        val page = stockJpaRepository.findRandomByStatus(StockStatus.LISTED, PageRequest.of(0, 1))
+        return page.content.firstOrNull()?.toDomain()
     }
 }

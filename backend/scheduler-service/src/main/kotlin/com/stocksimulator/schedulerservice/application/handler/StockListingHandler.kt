@@ -6,6 +6,7 @@ import com.stocksimulator.common.event.StockDelistedEvent
 import com.stocksimulator.common.event.StockListedEvent
 import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
 import com.stocksimulator.schedulerservice.application.port.out.StockEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.StockQueryPort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.random.Random
@@ -13,7 +14,8 @@ import kotlin.random.Random
 @Service
 class StockListingHandler(
     private val stockEventPublishPort: StockEventPublishPort,
-    private val companyNameGeneratePort: CompanyNameGeneratePort
+    private val companyNameGeneratePort: CompanyNameGeneratePort,
+    private val stockQueryPort: StockQueryPort
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -42,7 +44,12 @@ class StockListingHandler(
     }
 
     fun initiateDelisting() {
-        val stockId = "A${Random.nextInt(100000, 999999)}"
+        val stock = stockQueryPort.getRandomListedStock()
+        if (stock == null) {
+            log.warn("상장폐지 실패 - 상장된 종목이 없음")
+            return
+        }
+
         val reasons = listOf(
             "시가총액 50억 미만 지속",
             "거래량 부족 (30일 평균 1,000주 미만)",
@@ -52,10 +59,10 @@ class StockListingHandler(
         )
 
         val event = StockDelistedEvent(
-            stockId = stockId,
-            stockName = "상장폐지 대상",
+            stockId = stock.stockId,
+            stockName = stock.stockName,
             reason = reasons.random(),
-            finalPrice = Random.nextLong(500, 5000)
+            finalPrice = stock.currentPrice
         )
 
         stockEventPublishPort.publishStockDelisted(event)

@@ -57,4 +57,7 @@ interface StockJpaRepository : JpaRepository<StockJpaEntity, String> {
     ): Page<StockJpaEntity>
 
     fun existsByStockName(stockName: String): Boolean
+
+    @Query("SELECT s FROM StockJpaEntity s WHERE s.status = :status ORDER BY FUNCTION('RANDOM')")
+    fun findRandomByStatus(status: StockStatus, pageable: Pageable): Page<StockJpaEntity>
 }

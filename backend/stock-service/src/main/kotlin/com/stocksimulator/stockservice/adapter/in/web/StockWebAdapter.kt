@@ -8,6 +8,7 @@ import com.stocksimulator.stockservice.adapter.`in`.web.dto.StockExistsResponse
 import com.stocksimulator.stockservice.adapter.`in`.web.dto.StockListItemResponse
 import com.stocksimulator.stockservice.application.dto.query.stock.StockListQuery
 import com.stocksimulator.stockservice.application.port.`in`.stock.CheckStockExistsUseCase
+import com.stocksimulator.stockservice.application.port.`in`.stock.GetRandomStockUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockDetailUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.GetStockListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.SearchStockUseCase
@@ -26,7 +27,8 @@ class StockWebAdapter(
     private val getStockListUseCase: GetStockListUseCase,
     private val getStockDetailUseCase: GetStockDetailUseCase,
     private val searchStockUseCase: SearchStockUseCase,
-    private val checkStockExistsUseCase: CheckStockExistsUseCase
+    private val checkStockExistsUseCase: CheckStockExistsUseCase,
+    private val getRandomStockUseCase: GetRandomStockUseCase
 ) {
 
     @GetMapping
@@ -60,6 +62,14 @@ class StockWebAdapter(
         )
 
         ApiResponse.success(pageResponse).toResponseEntity()
+    }
+
+    @GetMapping("/random")
+    @Operation(summary = "랜덤 종목 조회", description = "상장된 종목 중 랜덤으로 1개 조회")
+    fun getRandomStock(): Mono<ResponseEntity<ApiResponse<StockListItemResponse?>>> = mono {
+        val result = getRandomStockUseCase.getRandomListedStock()
+        val response = result?.let { StockListItemResponse.from(it) }
+        ApiResponse.success(response).toResponseEntity()
     }
 
     @GetMapping("/exists")
