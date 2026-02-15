@@ -191,8 +191,24 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
-        items.removeAt(2)
+        update<ScriptBuildStep>(2) {
+            name = "Build & Push Frontend Image"
+            clearConditions()
+            scriptContent = """
+                #!/bin/bash
+                  set -e
+                
+                  echo "Building Frontend..."
+                  cd frontend
+                  docker build --no-cache -t stocksim/frontend:latest .
+                  cd ..
+                
+                  echo "Frontend image built."
+            """.trimIndent()
+            param("teamcity.kubernetes.executor.pull.policy", "")
+        }
         update<ScriptBuildStep>(3) {
+            name = "Deploy"
             clearConditions()
             scriptContent = """
                 #!/bin/bash
@@ -231,5 +247,6 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
+        items.removeAt(4)
     }
 }
