@@ -188,18 +188,6 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                   done
                 
                   echo "All backend images built."
-                
-                  4. "Build & Push Frontend Image" 스텝 → 스크립트를 이걸로 교체:
-                
-                  #!/bin/bash
-                  set -e
-                
-                  echo "Building Frontend..."
-                  cd frontend
-                  docker build --no-cache -t stocksim/frontend:latest .
-                  cd ..
-                
-                  echo "Frontend image built."
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
