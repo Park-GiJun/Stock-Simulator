@@ -208,47 +208,38 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             clearConditions()
             scriptContent = """
                 #!/bin/bash
-                set -e
+                  set -e
                 
-                # Copy infrastructure configuration files to /deploy
-                echo "Copying infrastructure and config files..."
-                cp -rf docker-compose.yml /deploy/
-                cp -rf infra /deploy/
+                  echo "Copying infrastructure and config files..."
+                  cp -rf docker-compose.yml /deploy/
+                  cp -rf infra /deploy/
                 
-                cd /deploy
+                  cd /deploy
                 
-                # Login to registry
-                echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin
+                  sed -i 's|^DOCKER_REGISTRY=.*|DOCKER_REGISTRY=stocksim|' /deploy/.env || true
                 
-                # Pull new images
-                docker compose -p stock-simulator --profile all pull --ignore-pull-failures
+                  echo "Full deployment..."
                 
-                echo "Full deployment..."
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
+                  echo "Waiting for Eureka to start..."
+                  for i in ${'$'}(seq 1 12); do
+                      if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
+                          echo "Eureka is ready!"
+                          break
+                      fi
+                      echo "  Attempt ${'$'}i/12 - Eureka not ready yet, waiting 10s..."
+                      sleep 10
+                  done
                 
-                # 1. Eureka first
-                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate eureka-server
-                echo "Waiting for Eureka to start..."
-                for i in ${'$'}(seq 1 12); do
-                    if curl -sf http://stockSimulator-eureka-server:8761/actuator/health > /dev/null 2>&1; then
-                        echo "Eureka is ready!"
-                        break
-                    fi
-                    echo "  Attempt ${'$'}i/12 - Eureka not ready yet, waiting 10s..."
-                    sleep 10
-                done
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                  sleep 15
                 
-                # 2. Backend services
-                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
-                sleep 15
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
+                  sleep 10
                 
-                # 3. API Gateway
-                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
-                sleep 10
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
                 
-                # 4. Frontend
-                docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate frontend
-                
-                echo "Deployment complete"
+                  echo "Deployment complete"
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
