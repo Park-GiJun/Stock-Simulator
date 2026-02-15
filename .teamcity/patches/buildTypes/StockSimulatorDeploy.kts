@@ -171,11 +171,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
         update<ScriptBuildStep>(1) {
-            clearConditions()
-            scriptContent = "docker login ghcr.io -u %env.DOCKER_USER% -p %env.DOCKER_PASSWORD%"
-            param("teamcity.kubernetes.executor.pull.policy", "")
-        }
-        update<ScriptBuildStep>(2) {
+            name = "Build & Push Backend Images"
             clearConditions()
             scriptContent = """
                 #!/bin/bash
@@ -194,7 +190,8 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
-        update<ScriptBuildStep>(4) {
+        items.removeAt(2)
+        update<ScriptBuildStep>(3) {
             clearConditions()
             scriptContent = """
                 #!/bin/bash
