@@ -169,6 +169,25 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             scriptContent = "docker login ghcr.io -u %env.DOCKER_USER% -p %env.DOCKER_PASSWORD%"
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
+        update<ScriptBuildStep>(2) {
+            clearConditions()
+            scriptContent = """
+                #!/bin/bash
+                set -e
+                
+                 REGISTRY="ghcr.io"
+                  IMAGE_PREFIX="park-gijun/stocksim"
+                  for SERVICE in eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service; do
+                      cd backend/${'$'}SERVICE
+                      docker build --no-cache -t ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
+                      docker push ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest
+                      cd ../..
+                  done
+                  
+                echo "All backend images built and pushed."
+            """.trimIndent()
+            param("teamcity.kubernetes.executor.pull.policy", "")
+        }
         update<ScriptBuildStep>(4) {
             clearConditions()
             scriptContent = """
