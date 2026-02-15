@@ -29,7 +29,7 @@ object StockSimulatorDeploy : BuildType({
         // Step 1: Gradle Build
         gradle {
             name = "Gradle Build"
-            tasks = "build -x test --parallel"
+            tasks = "clean build -x test --parallel"
             useGradleWrapper = true
         }
 
@@ -54,7 +54,7 @@ object StockSimulatorDeploy : BuildType({
                 for SERVICE in ${'$'}SERVICES; do
                     echo "Building ${'$'}SERVICE..."
                     cd backend/${'$'}SERVICE
-                    docker build -t ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
+                    docker build --no-cache -t ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
                     docker push ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest
                     cd ../..
                     echo "${'$'}SERVICE done."
@@ -73,7 +73,7 @@ object StockSimulatorDeploy : BuildType({
 
                 echo "Building Frontend..."
                 cd frontend
-                docker build -t ghcr.io/park-gijun/stocksim/frontend:latest .
+                docker build --no-cache -t ghcr.io/park-gijun/stocksim/frontend:latest .
                 docker push ghcr.io/park-gijun/stocksim/frontend:latest
                 cd ..
 
