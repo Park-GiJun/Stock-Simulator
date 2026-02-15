@@ -151,10 +151,17 @@ Each service follows **Hexagonal Architecture**:
 service/
 └── src/main/kotlin/com/stocksimulator/{service}/
     ├── domain/            # Entities, domain logic
-    ├── application/       # Use cases, services
-    └── adapter/
-        ├── in/web/        # REST controllers
-        └── out/persistence/ # JPA repositories
+    ├── application/       # Use cases, ports, handlers
+    └── infrastructure/    # Framework & external dependencies
+        ├── config/        # Security, Redis, Swagger configs
+        └── adapter/
+            ├── in/
+            │   ├── web/       # REST controllers
+            │   └── event/     # Kafka consumers
+            └── out/
+                ├── persistence/ # JPA repositories
+                ├── event/       # Kafka producers
+                └── client/      # Feign clients
 ```
 
 **Service Dependencies:**

@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     scanBasePackages = ["com.stocksimulator.stockservice", "com.stocksimulator.common"]
 )
 @EnableDiscoveryClient
-@EnableJpaRepositories(basePackages = ["com.stocksimulator.stockservice.adapter.out.persistence"])
-@EntityScan(basePackages = ["com.stocksimulator.stockservice.adapter.out.persistence"])
+@EnableJpaRepositories(basePackages = ["com.stocksimulator.stockservice.infrastructure.adapter.out.persistence"])
+@EntityScan(basePackages = ["com.stocksimulator.stockservice.infrastructure.adapter.out.persistence"])
 class StockServiceApplication
 
 fun main(args: Array<String>) {

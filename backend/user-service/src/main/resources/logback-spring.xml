@@ -194,7 +194,7 @@
         </logger>
 
         <!-- Controller/Service 로그 → application.log -->
-        <logger name="com.stocksimulator.userservice.adapter.in.web" level="INFO" additivity="false">
+        <logger name="com.stocksimulator.userservice.infrastructure.adapter.in.web" level="INFO" additivity="false">
             <appender-ref ref="APP_FILE"/>
         </logger>
 
