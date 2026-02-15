@@ -20,15 +20,23 @@ class StockListingScheduler(
 
     @Scheduled(fixedRate = 1_800_000)
     fun checkForIPO() {
-        if (Random.nextDouble() < 0.4) {
+        val roll = Random.nextDouble()
+        log.info("IPO 스케줄러 실행 - 확률: {} (기준: 0.4)", "%.2f".format(roll))
+        if (roll < 0.4) {
             runBlocking { stockListingHandler.initiateIPO() }
+        } else {
+            log.info("IPO 스킵 (확률 미달)")
         }
     }
 
     @Scheduled(fixedRate = 3_600_000)
     fun checkForDelisting() {
-        if (Random.nextDouble() < 0.1) {
+        val roll = Random.nextDouble()
+        log.info("상장폐지 스케줄러 실행 - 확률: {} (기준: 0.1)", "%.2f".format(roll))
+        if (roll < 0.1) {
             stockListingHandler.initiateDelisting()
+        } else {
+            log.info("상장폐지 스킵 (확률 미달)")
         }
     }
 }
