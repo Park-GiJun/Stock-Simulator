@@ -175,18 +175,31 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
             clearConditions()
             scriptContent = """
                 #!/bin/bash
-                set -e
+                  set -e
                 
-                 REGISTRY="ghcr.io"
-                  IMAGE_PREFIX="park-gijun/stocksim"
+                  IMAGE_PREFIX="stocksim"
+                
                   for SERVICE in eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service; do
+                      echo "Building ${'$'}SERVICE..."
                       cd backend/${'$'}SERVICE
-                      docker build --no-cache -t ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
-                      docker push ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest
+                      docker build --no-cache -t ${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
                       cd ../..
+                      echo "${'$'}SERVICE done."
                   done
-                  
-                echo "All backend images built and pushed."
+                
+                  echo "All backend images built."
+                
+                  4. "Build & Push Frontend Image" 스텝 → 스크립트를 이걸로 교체:
+                
+                  #!/bin/bash
+                  set -e
+                
+                  echo "Building Frontend..."
+                  cd frontend
+                  docker build --no-cache -t stocksim/frontend:latest .
+                  cd ..
+                
+                  echo "Frontend image built."
             """.trimIndent()
             param("teamcity.kubernetes.executor.pull.policy", "")
         }
