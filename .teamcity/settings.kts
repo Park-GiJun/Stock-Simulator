@@ -15,8 +15,8 @@ object StockSimulatorDeploy : BuildType({
     maxRunningBuilds = 1
 
     params {
-        password("env.DOCKER_PASSWORD", "zxx775d03cbe80d301b", label = "Docker Registry Password", display = ParameterDisplay.HIDDEN)
-        password("env.DOCKER_USER", "zxx775d03cbe80d301b", label = "Docker Registry User", display = ParameterDisplay.HIDDEN)
+        password("env.DOCKER_PASSWORD", "zxxf4d764c104bd5c231db1675f6ac32a92fb67040debd0eda21daa394c6c1e5e51287c897735de911c775d03cbe80d301b", label = "Docker Registry Password", display = ParameterDisplay.HIDDEN)
+        password("env.DOCKER_USER", "zxx6e32f17b12479f7b86d484196ab72657", label = "Docker Registry User", display = ParameterDisplay.HIDDEN)
         text("env.IMAGE_PREFIX", "park-gijun/stocksim", display = ParameterDisplay.HIDDEN)
         text("env.REGISTRY", "ghcr.io", display = ParameterDisplay.HIDDEN)
     }
@@ -36,10 +36,10 @@ object StockSimulatorDeploy : BuildType({
         // Step 2: Docker Login
         script {
             name = "Docker Login"
-            scriptContent = "echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin"
+            scriptContent = "docker login ghcr.io -u %env.DOCKER_USER% -p %env.DOCKER_PASSWORD%"
         }
 
-        // Step 3: Build & Push Backend Images (always latest)
+        // Step 3: Build & Push Backend Images
         script {
             name = "Build & Push Backend Images"
             scriptContent = """
@@ -49,9 +49,7 @@ object StockSimulatorDeploy : BuildType({
                 REGISTRY="ghcr.io"
                 IMAGE_PREFIX="park-gijun/stocksim"
 
-                SERVICES="eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service"
-
-                for SERVICE in ${'$'}SERVICES; do
+                for SERVICE in eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service; do
                     echo "Building ${'$'}SERVICE..."
                     cd backend/${'$'}SERVICE
                     docker build --no-cache -t ${'$'}REGISTRY/${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
@@ -64,7 +62,7 @@ object StockSimulatorDeploy : BuildType({
             """.trimIndent()
         }
 
-        // Step 4: Build & Push Frontend Image (always latest)
+        // Step 4: Build & Push Frontend Image
         script {
             name = "Build & Push Frontend Image"
             scriptContent = """
@@ -96,7 +94,7 @@ object StockSimulatorDeploy : BuildType({
                 cd /deploy
 
                 # Login to registry
-                echo %env.DOCKER_PASSWORD% | docker login ghcr.io -u %env.DOCKER_USER% --password-stdin
+                docker login ghcr.io -u %env.DOCKER_USER% -p %env.DOCKER_PASSWORD%
 
                 # Pull new images
                 docker compose -p stock-simulator --profile all pull --ignore-pull-failures
