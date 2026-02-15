@@ -605,7 +605,7 @@ services:
   # ===========================================================================
 
   frontend:
-    image: ghcr.io/park-gijun/stocksim/frontend:latest
+    image: ${DOCKER_REGISTRY:-stocksim}/frontend:${IMAGE_TAG:-latest}
     container_name: stockSimulator-frontend
     profiles: ["frontend", "all"]
     build:
