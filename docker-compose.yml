@@ -544,6 +544,7 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     networks:
       - stocksim-network
     depends_on:
