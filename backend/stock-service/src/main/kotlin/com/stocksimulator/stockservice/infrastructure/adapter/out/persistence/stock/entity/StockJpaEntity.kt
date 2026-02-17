@@ -3,7 +3,7 @@ package com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.s
 import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.StockStatus
-import com.stocksimulator.stockservice.domain.StockModel
+import com.stocksimulator.stockservice.domain.model.StockModel
 import jakarta.persistence.*
 import java.time.Instant
 

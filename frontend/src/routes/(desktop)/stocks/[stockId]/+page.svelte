@@ -2,8 +2,12 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { ArrowLeft, TrendingUp, TrendingDown, Star, Users, Building2 } from 'lucide-svelte';
+	import { get } from 'svelte/store';
 	import { StockChart } from '$lib/components';
 	import { getStock, getOrderBook, getCandles } from '$lib/api/stockApi.js';
+	import { createOrder } from '$lib/api/tradingApi.js';
+	import { authStore } from '$lib/stores/authStore.js';
+	import { toastStore } from '$lib/stores/toastStore.js';
 	import { getActiveNews } from '$lib/mock/news.js';
 	import { SECTOR_NAMES, MARKET_CAP_NAMES, type Stock, type OrderBook as OrderBookType, type Candle } from '$lib/types/stock.js';
 	import { EVENT_LEVEL_NAMES, SENTIMENT_NAMES } from '$lib/types/news.js';
@@ -17,7 +21,9 @@
 
 	let orderSide = $state<'BUY' | 'SELL'>('BUY');
 	let orderType = $state<'LIMIT' | 'MARKET'>('LIMIT');
+	let orderPrice = $state(0);
 	let orderQuantity = $state(1);
+	let orderSubmitting = $state(false);
 	let selectedInterval = $state<string>('1d');
 
 	const intervals = [
@@ -73,6 +79,7 @@
 
 			if (stockRes.success && stockRes.data) {
 				stock = stockRes.data;
+				orderPrice = stockRes.data.currentPrice;
 			}
 			if (orderBookRes.success && orderBookRes.data) {
 				orderBook = orderBookRes.data;
@@ -96,10 +103,55 @@
 		return `${sign}${percent.toFixed(2)}%`;
 	}
 
-	function handleOrder() {
-		const typeLabel = orderType === 'LIMIT' ? '지정가' : '시장가';
-		const sideLabel = orderSide === 'BUY' ? '매수' : '매도';
-		alert(`${typeLabel} ${sideLabel} 주문: ${stock?.stockName} ${orderQuantity}주`);
+	async function handleOrder() {
+		if (!stock) return;
+
+		const auth = get(authStore);
+		if (!auth.isAuthenticated || !auth.user) {
+			toastStore.error('로그인이 필요합니다.');
+			return;
+		}
+
+		if (orderQuantity <= 0) {
+			toastStore.error('주문 수량은 1주 이상이어야 합니다.');
+			return;
+		}
+
+		if (orderType === 'LIMIT' && orderPrice <= 0) {
+			toastStore.error('지정가 주문에는 가격을 입력해야 합니다.');
+			return;
+		}
+
+		orderSubmitting = true;
+		try {
+			const result = await createOrder({
+				userId: String(auth.user.userId),
+				stockId,
+				orderType: orderSide,
+				orderKind: orderType,
+				price: orderType === 'LIMIT' ? orderPrice : null,
+				quantity: orderQuantity
+			});
+
+			if (result.success && result.data) {
+				const sideLabel = orderSide === 'BUY' ? '매수' : '매도';
+				const statusLabel = result.data.status === 'FILLED' ? '체결 완료'
+					: result.data.status === 'PARTIALLY_FILLED' ? '부분 체결'
+					: result.data.status === 'REJECTED' ? '거부됨'
+					: '접수 완료';
+				toastStore.success(`${sideLabel} 주문 ${statusLabel}: ${stock.stockName} ${orderQuantity}주`);
+
+				// 호가창 새로고침
+				const orderBookRes = await getOrderBook(stockId);
+				if (orderBookRes.success && orderBookRes.data) {
+					orderBook = orderBookRes.data;
+				}
+			}
+		} catch {
+			// api.ts에서 이미 toast 처리됨
+		} finally {
+			orderSubmitting = false;
+		}
 	}
 
 	function getTimeAgo(dateStr: string): string {
@@ -385,6 +437,23 @@
 							</div>
 						</div>
 
+						<!-- Price (LIMIT only) -->
+						{#if orderType === 'LIMIT'}
+							<div class="form-group">
+								<label class="input-label" for="order-price">주문 가격</label>
+								<div class="input-addon-wrapper">
+									<input
+										id="order-price"
+										type="number"
+										class="input input-number"
+										min="1"
+										bind:value={orderPrice}
+									/>
+									<span class="input-addon">원</span>
+								</div>
+							</div>
+						{/if}
+
 						<!-- Quantity -->
 						<div class="form-group">
 							<label class="input-label" for="order-quantity">주문 수량</label>
@@ -414,18 +483,22 @@
 						<div class="form-group">
 							<span class="input-label" id="estimated-amount-label">예상 금액</span>
 							<div class="stock-detail-estimated-amount" aria-labelledby="estimated-amount-label">
-								₩{formatPrice(stock.currentPrice * orderQuantity)}
+								{#if orderType === 'MARKET'}
+									≈ ₩{formatPrice(stock.currentPrice * orderQuantity)}
+								{:else}
+									₩{formatPrice(orderPrice * orderQuantity)}
+								{/if}
 							</div>
 						</div>
 
 						<!-- Action Button -->
 						{#if orderSide === 'BUY'}
-							<button class="stock-detail-btn-buy" onclick={handleOrder}>
-								매수 주문
+							<button class="stock-detail-btn-buy" onclick={handleOrder} disabled={orderSubmitting}>
+								{orderSubmitting ? '주문 처리 중...' : '매수 주문'}
 							</button>
 						{:else}
-							<button class="stock-detail-btn-sell" onclick={handleOrder}>
-								매도 주문
+							<button class="stock-detail-btn-sell" onclick={handleOrder} disabled={orderSubmitting}>
+								{orderSubmitting ? '주문 처리 중...' : '매도 주문'}
 							</button>
 						{/if}
 					</div>

@@ -85,3 +85,16 @@ enum class RankingType(val displayName: String) {
     TOTAL_ASSET("총자산"),
     TRADE_VOLUME("거래량")
 }
+
+enum class OrderKind(val displayName: String) {
+    LIMIT("지정가"),
+    MARKET("시장가")
+}
+
+enum class InstitutionType(val displayName: String) {
+    INSTITUTIONAL_INVESTOR("기관투자자"),
+    FOREIGN_INVESTOR("외인"),
+    PENSION_FUNDS("연기금"),
+    ASSET_MANAGEMENT("자산운용사")
+
+}

@@ -6,7 +6,7 @@ import com.stocksimulator.common.dto.StockStatus
 import com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.stock.entity.StockJpaEntity
 import com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.stock.repository.StockJpaRepository
 import com.stocksimulator.stockservice.application.port.out.stock.StockPersistencePort
-import com.stocksimulator.stockservice.domain.StockModel
+import com.stocksimulator.stockservice.domain.model.StockModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable

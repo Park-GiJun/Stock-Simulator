@@ -42,14 +42,16 @@ export interface StockChange {
 export interface OrderBookEntry {
 	price: number;
 	quantity: number;
-	count: number;
+	orderCount: number;
 }
 
 export interface OrderBook {
 	stockId: string;
 	asks: OrderBookEntry[]; // 매도 호가 (높은 가격 → 낮은 가격)
 	bids: OrderBookEntry[]; // 매수 호가 (높은 가격 → 낮은 가격)
-	timestamp: string;
+	bestBid: number | null;
+	bestAsk: number | null;
+	spread: number | null;
 }
 
 export interface Trade {

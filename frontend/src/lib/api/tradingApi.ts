@@ -3,13 +3,32 @@ import { api, useMock, type ApiResponse } from './api.js';
 import type { Trade } from '$lib/types/stock.js';
 
 // Types
+export interface PlaceOrderResponse {
+	orderId: string;
+	userId: string;
+	stockId: string;
+	orderType: 'BUY' | 'SELL';
+	orderKind: 'LIMIT' | 'MARKET';
+	price: number | null;
+	quantity: number;
+	filledQuantity: number;
+	status: 'PENDING' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+	matches: MatchDetail[];
+}
+
+export interface MatchDetail {
+	tradeId: string;
+	price: number;
+	quantity: number;
+}
+
 export interface Order {
 	orderId: string;
 	stockId: string;
 	stockName: string;
 	side: 'BUY' | 'SELL';
 	orderType: 'LIMIT' | 'MARKET';
-	status: 'PENDING' | 'PARTIAL' | 'FILLED' | 'CANCELLED';
+	status: 'PENDING' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELLED' | 'REJECTED';
 	price: number;
 	quantity: number;
 	filledQuantity: number;
@@ -38,10 +57,11 @@ export interface Portfolio {
 }
 
 export interface OrderRequest {
+	userId: string;
 	stockId: string;
-	side: 'BUY' | 'SELL';
-	orderType: 'LIMIT' | 'MARKET';
-	price?: number;
+	orderType: 'BUY' | 'SELL';
+	orderKind: 'LIMIT' | 'MARKET';
+	price?: number | null;
 	quantity: number;
 }
 
@@ -101,43 +121,12 @@ export async function getOrder(orderId: string): Promise<ApiResponse<Order>> {
 	return api.get<Order>(ENDPOINTS.order(orderId));
 }
 
-export async function createOrder(order: OrderRequest): Promise<ApiResponse<Order>> {
-	if (useMock()) {
-		const mockOrder: Order = {
-			orderId: `order-${Date.now()}`,
-			stockId: order.stockId,
-			stockName: '모의 종목',
-			side: order.side,
-			orderType: order.orderType,
-			status: 'PENDING',
-			price: order.price ?? 0,
-			quantity: order.quantity,
-			filledQuantity: 0,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
-		};
-		return {
-			success: true,
-			data: mockOrder,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	return api.post<Order>(ENDPOINTS.orders, order);
+export async function createOrder(order: OrderRequest): Promise<ApiResponse<PlaceOrderResponse>> {
+	return api.post<PlaceOrderResponse>(ENDPOINTS.orders, order);
 }
 
-export async function cancelOrder(orderId: string): Promise<ApiResponse<Order>> {
-	if (useMock()) {
-		return {
-			success: true,
-			data: null,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
-	return api.delete<Order>(ENDPOINTS.order(orderId));
+export async function cancelOrder(orderId: string, userId: string): Promise<ApiResponse<void>> {
+	return api.delete<void>(ENDPOINTS.order(orderId), { params: { userId } });
 }
 
 export async function getPortfolio(): Promise<ApiResponse<Portfolio>> {

@@ -8,7 +8,7 @@ import com.stocksimulator.stockservice.application.dto.result.stock.StockDetailR
 import com.stocksimulator.stockservice.application.port.`in`.stock.CreateStockUseCase
 import com.stocksimulator.stockservice.application.port.`in`.stock.DelistStockUseCase
 import com.stocksimulator.stockservice.application.port.out.stock.StockPersistencePort
-import com.stocksimulator.stockservice.domain.StockModel
+import com.stocksimulator.stockservice.domain.model.StockModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
