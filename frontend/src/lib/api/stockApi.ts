@@ -1,18 +1,12 @@
 // Stock API - Stock related API functions
-import { api, useMock, type ApiResponse } from './api.js';
+import { api, type ApiResponse } from './api.js';
 import type { Stock, StockListItem, OrderBook, Candle, Trade } from '$lib/types/stock.js';
-import {
-	getMockStocks,
-	getMockStockById,
-	getMockCandleData,
-	getMockOrderBook
-} from '$lib/mock/stocks.js';
 
 // API Endpoints
 const ENDPOINTS = {
 	stocks: '/stock-service/api/stocks',
 	stock: (id: string) => `/stock-service/api/stocks/${id}`,
-	orderBook: (id: string) => `/stock-service/api/stocks/${id}/orderbook`,
+	orderBook: (id: string) => `/trading-service/api/trading/order-book/${id}`,
 	candles: (id: string) => `/stock-service/api/stocks/${id}/candles`,
 	trades: (id: string) => `/stock-service/api/stocks/${id}/trades`
 };
@@ -68,21 +62,6 @@ export interface CandlesQueryParams {
 
 // API Functions
 export async function getStocks(params?: StocksQueryParams): Promise<ApiResponse<StocksResponse>> {
-	if (useMock()) {
-		const stocks = getMockStocks();
-		return {
-			success: true,
-			data: {
-				stocks,
-				total: stocks.length,
-				page: params?.page ?? 0,
-				size: params?.size ?? 20
-			},
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	const res = await api.get<PageResponse<StockListItem>>(ENDPOINTS.stocks, { params: params as Record<string, string | number | boolean | undefined> });
 	return {
 		...res,
@@ -98,38 +77,10 @@ export async function getStocks(params?: StocksQueryParams): Promise<ApiResponse
 }
 
 export async function getStock(stockId: string): Promise<ApiResponse<Stock>> {
-	if (useMock()) {
-		const stock = getMockStockById(stockId);
-		if (!stock) {
-			return {
-				success: false,
-				data: null,
-				error: '종목을 찾을 수 없습니다.',
-				timestamp: new Date().toISOString()
-			};
-		}
-		return {
-			success: true,
-			data: stock,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	return api.get<Stock>(ENDPOINTS.stock(stockId));
 }
 
 export async function getOrderBook(stockId: string): Promise<ApiResponse<OrderBook>> {
-	if (useMock()) {
-		const orderBook = getMockOrderBook(stockId);
-		return {
-			success: true,
-			data: orderBook,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	return api.get<OrderBook>(ENDPOINTS.orderBook(stockId));
 }
 
@@ -137,20 +88,6 @@ export async function getCandles(
 	stockId: string,
 	params?: CandlesQueryParams
 ): Promise<ApiResponse<CandlesResponse>> {
-	if (useMock()) {
-		const candles = getMockCandleData(stockId, params?.limit ?? 30);
-		return {
-			success: true,
-			data: {
-				candles,
-				stockId,
-				interval: params?.interval ?? '1d'
-			},
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	return api.get<CandlesResponse>(ENDPOINTS.candles(stockId), { params: params as Record<string, string | number | boolean | undefined> });
 }
 
@@ -158,48 +95,10 @@ export async function getTrades(
 	stockId: string,
 	limit?: number
 ): Promise<ApiResponse<TradesResponse>> {
-	if (useMock()) {
-		const stock = getMockStockById(stockId);
-		const trades: Trade[] = [];
-		if (stock) {
-			for (let i = 0; i < (limit ?? 20); i++) {
-				trades.push({
-					tradeId: `trade-${i}`,
-					stockId,
-					price: stock.currentPrice + (Math.random() - 0.5) * stock.currentPrice * 0.01,
-					quantity: Math.floor(Math.random() * 1000) + 1,
-					side: Math.random() > 0.5 ? 'BUY' : 'SELL',
-					timestamp: new Date(Date.now() - i * 60000).toISOString()
-				});
-			}
-		}
-		return {
-			success: true,
-			data: { trades, stockId },
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	return api.get<TradesResponse>(ENDPOINTS.trades(stockId), { params: { limit } });
 }
 
 // Search stocks
 export async function searchStocks(query: string): Promise<ApiResponse<StockListItem[]>> {
-	if (useMock()) {
-		const allStocks = getMockStocks();
-		const filtered = allStocks.filter(
-			(s) =>
-				s.stockName.toLowerCase().includes(query.toLowerCase()) ||
-				s.stockId.toLowerCase().includes(query.toLowerCase())
-		);
-		return {
-			success: true,
-			data: filtered,
-			error: null,
-			timestamp: new Date().toISOString()
-		};
-	}
-
 	return api.get<StockListItem[]>(`${ENDPOINTS.stocks}/search`, { params: { q: query } });
 }

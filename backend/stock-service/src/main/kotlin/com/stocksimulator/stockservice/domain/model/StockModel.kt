@@ -1,4 +1,4 @@
-package com.stocksimulator.stockservice.domain
+package com.stocksimulator.stockservice.domain.model
 
 import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector

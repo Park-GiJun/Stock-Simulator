@@ -3,7 +3,7 @@ package com.stocksimulator.stockservice.application.port.out.stock
 import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.StockStatus
-import com.stocksimulator.stockservice.domain.StockModel
+import com.stocksimulator.stockservice.domain.model.StockModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 

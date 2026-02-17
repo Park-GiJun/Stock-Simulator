@@ -11,12 +11,19 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         format_sql: true
         default_schema: trading
+  flyway:
+    enabled: true
+    schemas:
+      - trading
+    default-schema: trading
+    baseline-on-migrate: true
+    baseline-version: 0
   data:
     redis:
       host: localhost
@@ -32,6 +39,8 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.stocksimulator.common.event,com.stocksimulator.common.dto"
 
 eureka:
   client:

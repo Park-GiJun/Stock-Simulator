@@ -257,20 +257,22 @@ export function getMockOrderBook(stockId: string): OrderBook {
 	const asks = Array.from({ length: 5 }, (_, i) => ({
 		price: basePrice + (i + 1) * 100,
 		quantity: Math.floor(Math.random() * 500 + 100),
-		count: Math.floor(Math.random() * 10 + 1)
+		orderCount: Math.floor(Math.random() * 10 + 1)
 	}));
 
 	const bids = Array.from({ length: 5 }, (_, i) => ({
 		price: basePrice - (i + 1) * 100,
 		quantity: Math.floor(Math.random() * 500 + 100),
-		count: Math.floor(Math.random() * 10 + 1)
+		orderCount: Math.floor(Math.random() * 10 + 1)
 	}));
 
 	return {
 		stockId,
 		asks,
 		bids,
-		timestamp: new Date().toISOString()
+		bestBid: bids[0]?.price ?? null,
+		bestAsk: asks[0]?.price ?? null,
+		spread: asks[0] && bids[0] ? asks[0].price - bids[0].price : null
 	};
 }
 

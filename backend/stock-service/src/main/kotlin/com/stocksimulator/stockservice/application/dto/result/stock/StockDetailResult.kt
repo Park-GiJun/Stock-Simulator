@@ -3,7 +3,7 @@ package com.stocksimulator.stockservice.application.dto.result.stock
 import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.StockStatus
-import com.stocksimulator.stockservice.domain.StockModel
+import com.stocksimulator.stockservice.domain.model.StockModel
 
 data class StockDetailResult(
     val stockId: String,

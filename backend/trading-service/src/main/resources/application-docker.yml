@@ -7,6 +7,19 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:postgres-primary}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=trading
     username: ${POSTGRES_USER:stocksim}
     password: ${POSTGRES_PASSWORD:stocksim123}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: trading
+  flyway:
+    enabled: true
+    schemas:
+      - trading
+    default-schema: trading
+    baseline-on-migrate: true
+    baseline-version: 0
   data:
     redis:
       host: ${REDIS_HOST:redis}
