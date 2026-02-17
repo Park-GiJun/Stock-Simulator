@@ -31,7 +31,12 @@ class StockEventConsumer(
                 sector = Sector.valueOf(event.sector),
                 basePrice = event.basePrice,
                 totalShares = event.totalShares,
-                marketCapGrade = MarketCapGrade.valueOf(event.marketCapGrade)
+                marketCapGrade = MarketCapGrade.valueOf(event.marketCapGrade),
+                volatility = event.volatility,
+                per = event.per,
+                dividendRate = event.dividendRate,
+                growthRate = event.growthRate,
+                eventSensitivity = event.eventSensitivity
             )
             createStockUseCase.createStock(command)
 

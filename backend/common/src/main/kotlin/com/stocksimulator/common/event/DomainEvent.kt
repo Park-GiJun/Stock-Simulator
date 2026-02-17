@@ -208,6 +208,11 @@ data class StockListedEvent(
     val basePrice: Long,
     val totalShares: Long,
     val marketCapGrade: String,
+    val volatility: Long = 0L,
+    val per: Double = 0.0,
+    val dividendRate: Double = 0.0,
+    val growthRate: Double = 0.0,
+    val eventSensitivity: Double = 0.0,
     val listedAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "STOCK_LISTED"
