@@ -17,7 +17,10 @@ import java.time.Duration
  * - SameSite: Lax
  */
 @Configuration
-@EnableRedisWebSession(maxInactiveIntervalInSeconds = 1800) // 30분
+@EnableRedisWebSession(
+    maxInactiveIntervalInSeconds = 1800, // 30분
+    redisNamespace = "stock-simulator:session"
+)
 class RedisSessionConfig {
 
     /**

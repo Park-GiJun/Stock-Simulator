@@ -9,14 +9,10 @@ import org.springframework.data.redis.connection.RedisPassword
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
-/**
- * Redis Configuration for API Gateway
- *
- * Provides reactive Redis connection for session validation.
- */
 @Configuration
 class RedisConfig {
 
@@ -43,13 +39,14 @@ class RedisConfig {
     @Primary
     fun reactiveRedisTemplate(
         connectionFactory: ReactiveRedisConnectionFactory
-    ): ReactiveRedisTemplate<String, String> {
-        val serializer = StringRedisSerializer()
-        val context = RedisSerializationContext.newSerializationContext<String, String>(serializer)
-            .key(serializer)
-            .value(serializer)
-            .hashKey(serializer)
-            .hashValue(serializer)
+    ): ReactiveRedisTemplate<String, Any> {
+        val stringSerializer = StringRedisSerializer()
+        val jdkSerializer = JdkSerializationRedisSerializer()
+        val context = RedisSerializationContext.newSerializationContext<String, Any>(stringSerializer)
+            .key(stringSerializer)
+            .value(jdkSerializer)
+            .hashKey(stringSerializer)
+            .hashValue(jdkSerializer)
             .build()
         return ReactiveRedisTemplate(connectionFactory, context)
     }
