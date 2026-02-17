@@ -139,6 +139,7 @@ gateway:
       # Public read-only service endpoints
       - /stock-service/api/stocks/**
       - /stock-service/api/stocks
+      - /trading-service/api/trading/order-book/**
       - /news-service/api/news/**
       - /news-service/api/news
       # Monitoring
