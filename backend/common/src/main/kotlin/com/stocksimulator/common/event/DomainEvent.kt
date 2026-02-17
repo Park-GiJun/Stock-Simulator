@@ -52,6 +52,8 @@ object KafkaTopics {
 
     // Investor 관련
     const val INVESTOR_CREATED = "investor.created"
+    const val INSTITUTION_CREATED = "institution.created"
+    const val NPC_CREATED = "npc.created"
 }
 
 // ===== Trading Events =====
@@ -229,6 +231,33 @@ data class StockDelistedEvent(
 }
 
 // ===== Investor Events =====
+
+data class InstitutionCreatedEvent(
+    val institutionName: String,
+    val institutionType: String,
+    val investmentStyle: String,
+    val capital: Long,
+    val dailyIncome: Long,
+    val riskTolerance: Double,
+    val preferredSectors: List<String>,
+    val tradingFrequency: String,
+    val createdAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "INSTITUTION_CREATED"
+}
+
+data class NpcCreatedEvent(
+    val npcName: String,
+    val investmentStyle: String,
+    val capital: Long,
+    val weeklyIncome: Long,
+    val riskTolerance: Double,
+    val preferredSectors: List<String>,
+    val tradingFrequency: String,
+    val createdAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "NPC_CREATED"
+}
 
 data class InvestorCreatedEvent(
     val investorId: String,

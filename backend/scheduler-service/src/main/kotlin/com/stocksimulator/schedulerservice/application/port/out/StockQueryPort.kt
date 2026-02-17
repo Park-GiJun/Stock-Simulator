@@ -1,11 +1,8 @@
 package com.stocksimulator.schedulerservice.application.port.out
 
+import com.stocksimulator.schedulerservice.domain.RandomStockInfo
+
 interface StockQueryPort {
     fun getRandomListedStock(): RandomStockInfo?
 }
 
-data class RandomStockInfo(
-    val stockId: String,
-    val stockName: String,
-    val currentPrice: Long
-)

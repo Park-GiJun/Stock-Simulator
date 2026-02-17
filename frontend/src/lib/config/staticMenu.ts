@@ -20,11 +20,19 @@ export const STATIC_MENU: MenuItem[] = [
 		isVisible: true
 	},
 	{
+		id: 'investors',
+		name: '투자자',
+		path: '/investors',
+		icon: 'Users',
+		order: 3,
+		isVisible: true
+	},
+	{
 		id: 'news',
 		name: '뉴스',
 		path: '/news',
 		icon: 'Newspaper',
-		order: 3,
+		order: 4,
 		isVisible: true
 	},
 	{
@@ -32,7 +40,7 @@ export const STATIC_MENU: MenuItem[] = [
 		name: '마이페이지',
 		path: '/mypage',
 		icon: 'User',
-		order: 4,
+		order: 5,
 		isVisible: true
 	},
 	{
@@ -40,7 +48,7 @@ export const STATIC_MENU: MenuItem[] = [
 		name: '랭킹',
 		path: '/ranking',
 		icon: 'Trophy',
-		order: 5,
+		order: 6,
 		isVisible: true
 	}
 ];

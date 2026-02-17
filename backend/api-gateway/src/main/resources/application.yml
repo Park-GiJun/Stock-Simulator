@@ -118,6 +118,8 @@ gateway:
       # Public read-only service endpoints
       - /stock-service/api/stocks/**
       - /stock-service/api/stocks
+      - /stock-service/api/investors/**
+      - /stock-service/api/investors
       - /trading-service/api/trading/order-book/**
       - /news-service/api/news/**
       - /news-service/api/news

@@ -6,6 +6,7 @@
 		TrendingUp,
 		Newspaper,
 		User,
+		Users,
 		Trophy
 	} from 'lucide-svelte';
 
@@ -14,6 +15,7 @@
 		TrendingUp,
 		Newspaper,
 		User,
+		Users,
 		Trophy
 	};
 
