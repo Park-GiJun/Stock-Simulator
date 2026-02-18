@@ -5,7 +5,9 @@ import org.springframework.boot.runApplication
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 import org.springframework.cloud.openfeign.EnableFeignClients
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = ["com.stocksimulator.eventservice", "com.stocksimulator.common"]
+)
 @EnableDiscoveryClient
 @EnableFeignClients
 class EventServiceApplication
