@@ -259,6 +259,7 @@ pnpm run lint
 |------|--------|--------|------|
 | `stock.listed` | Scheduler | Stock Service | IPO (신규 상장) |
 | `stock.delisted` | Scheduler | Stock Service | 상장폐지 |
+| `order.matched` | Trading Service | Stock Service | 주문 체결 → 주가 변동 |
 | `investor.created` | Scheduler | Trading Service | NPC/기관 투자자 생성 |
 | `price.updated` | Stock Service | 전체 | 주가 변동 |
 | `orderbook.updated` | Trading Service | 전체 | 호가창 변경 |
@@ -442,6 +443,7 @@ docker exec -it stockSimulator-redis redis-cli -a <your-redis-password> FLUSHALL
 - [ ] **Phase 3**: 이벤트 시스템
   - [x] IPO/상장폐지 스케줄러
   - [x] 투자자 생성 스케줄러
+  - [x] 체결 기반 주가 변동 (order.matched → price.updated)
   - [ ] AI 뉴스 생성
 - [ ] **Phase 4**: Frontend 구현
   - [x] 인증 (로그인/회원가입)

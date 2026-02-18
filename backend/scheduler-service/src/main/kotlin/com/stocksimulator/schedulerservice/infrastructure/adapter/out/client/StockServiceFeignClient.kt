@@ -4,6 +4,8 @@ import com.stocksimulator.common.dto.ApiResponse
 import com.stocksimulator.schedulerservice.domain.RandomStockInfo
 import com.stocksimulator.schedulerservice.application.port.out.StockExistenceCheckPort
 import com.stocksimulator.schedulerservice.application.port.out.StockQueryPort
+import com.stocksimulator.schedulerservice.infrastructure.adapter.out.client.dto.RandomStockResponse
+import com.stocksimulator.schedulerservice.infrastructure.adapter.out.client.dto.StockExistsResponse
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.stereotype.Component
@@ -22,17 +24,6 @@ interface StockServiceFeignClient {
     @GetMapping("/api/stocks/random")
     fun getRandomStock(): ApiResponse<RandomStockResponse?>
 }
-
-data class StockExistsResponse(
-    val stockIdExists: Boolean = false,
-    val stockNameExists: Boolean = false
-)
-
-data class RandomStockResponse(
-    val stockId: String,
-    val stockName: String,
-    val currentPrice: Long
-)
 
 @Component
 class StockExistenceCheckAdapter(
