@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		TrendingUp,
 		TrendingDown,
@@ -12,30 +13,68 @@
 		Minus
 	} from 'lucide-svelte';
 	import { Card, MiniSparkline } from '$lib/components';
-	import { getTopGainers, getTopLosers, getTopVolume, getMockStocks } from '$lib/mock/stocks.js';
+	import { getStocks } from '$lib/api/stockApi.js';
+	import { getEnrichedPortfolio } from '$lib/api/portfolioHelper.js';
 	import { getActiveNews } from '$lib/mock/news.js';
 	import { getTopRankers } from '$lib/mock/ranking.js';
 	import { currentUser } from '$lib/stores/authStore.js';
 	import { isMarketOpen } from '$lib/stores/gameTimeStore.js';
-	import { SECTOR_NAMES, type Sector } from '$lib/types/stock.js';
+	import { SECTOR_NAMES, type Sector, type StockListItem } from '$lib/types/stock.js';
 	import { EVENT_LEVEL_NAMES, SENTIMENT_NAMES } from '$lib/types/news.js';
+	import type { Portfolio } from '$lib/types/user.js';
 
-	const topGainers = getTopGainers(5);
-	const topLosers = getTopLosers(5);
-	const topVolume = getTopVolume(5);
+	let topGainers = $state<StockListItem[]>([]);
+	let topLosers = $state<StockListItem[]>([]);
+	let topVolume = $state<StockListItem[]>([]);
+	let upCount = $state(0);
+	let downCount = $state(0);
+	let flatCount = $state(0);
+	let totalCount = $state(0);
+	let portfolio = $state<Portfolio | null>(null);
+	let loading = $state(true);
+
 	const activeNews = getActiveNews().slice(0, 5);
 	const topRankers = getTopRankers(5);
-	const allStocks = getMockStocks();
-
-	const upCount = allStocks.filter((s) => s.changePercent > 0).length;
-	const downCount = allStocks.filter((s) => s.changePercent < 0).length;
-	const flatCount = allStocks.filter((s) => s.changePercent === 0).length;
-	const totalCount = allStocks.length;
 
 	const sparkData7d = [100, 103, 101, 106, 104, 109, 117];
 	const sparkDataHoldings = [8, 8, 9, 9, 10, 10, 10];
 	const sparkDataRank = [22, 20, 19, 18, 16, 15, 15];
 	const sparkDataProfit = [500000, 550000, 600000, 650000, 700000, 780000, 850000];
+
+	onMount(async () => {
+		try {
+			const [gainersRes, losersRes, volumeRes, allRes] = await Promise.all([
+				getStocks({ sortBy: 'changePercent', sortOrder: 'desc', size: 5 }),
+				getStocks({ sortBy: 'changePercent', sortOrder: 'asc', size: 5 }),
+				getStocks({ sortBy: 'volume', sortOrder: 'desc', size: 5 }),
+				getStocks({ page: 0, size: 500 })
+			]);
+
+			if (gainersRes.success && gainersRes.data) topGainers = gainersRes.data.stocks;
+			if (losersRes.success && losersRes.data) topLosers = losersRes.data.stocks;
+			if (volumeRes.success && volumeRes.data) topVolume = volumeRes.data.stocks;
+
+			if (allRes.success && allRes.data) {
+				const allStocks = allRes.data.stocks;
+				upCount = allStocks.filter((s) => s.changePercent > 0).length;
+				downCount = allStocks.filter((s) => s.changePercent < 0).length;
+				flatCount = allStocks.filter((s) => s.changePercent === 0).length;
+				totalCount = allStocks.length;
+			}
+		} catch (e) {
+			console.error('Failed to fetch stock data:', e);
+		}
+
+		if ($currentUser) {
+			try {
+				portfolio = await getEnrichedPortfolio(String($currentUser.userId));
+			} catch (e) {
+				console.error('Failed to fetch portfolio:', e);
+			}
+		}
+
+		loading = false;
+	});
 
 	function formatPrice(price: number): string {
 		return price.toLocaleString();
@@ -88,9 +127,11 @@
 			<div class="dashboard-hero-right">
 				<div class="dashboard-hero-market-bar">
 					<div class="market-ratio-bar">
-						<div class="market-ratio-up" style="width: {(upCount / totalCount) * 100}%"></div>
-						<div class="market-ratio-flat" style="width: {(flatCount / totalCount) * 100}%"></div>
-						<div class="market-ratio-down" style="width: {(downCount / totalCount) * 100}%"></div>
+						{#if totalCount > 0}
+							<div class="market-ratio-up" style="width: {(upCount / totalCount) * 100}%"></div>
+							<div class="market-ratio-flat" style="width: {(flatCount / totalCount) * 100}%"></div>
+							<div class="market-ratio-down" style="width: {(downCount / totalCount) * 100}%"></div>
+						{/if}
 					</div>
 					<div class="market-ratio-legend">
 						<span class="market-ratio-item text-stock-up">
@@ -119,12 +160,18 @@
 						</div>
 						<MiniSparkline data={sparkData7d} color="auto" width={60} height={20} />
 					</div>
-					<div class="card-stat-value">{$currentUser.capital?.toLocaleString() ?? '0'}</div>
+					<div class="card-stat-value">{portfolio ? formatPrice(portfolio.totalAssetValue) : ($currentUser.capital?.toLocaleString() ?? '0')}</div>
 					<div class="card-stat-label">보유 자산</div>
-					<div class="card-stat-change up">
-						<TrendingUp size={12} />
-						+17.0%
-					</div>
+					{#if portfolio && portfolio.totalProfitLossPercent !== 0}
+						<div class="card-stat-change" class:up={portfolio.totalProfitLossPercent >= 0} class:down={portfolio.totalProfitLossPercent < 0}>
+							{#if portfolio.totalProfitLossPercent >= 0}
+								<TrendingUp size={12} />
+							{:else}
+								<TrendingDown size={12} />
+							{/if}
+							{formatPercent(portfolio.totalProfitLossPercent)}
+						</div>
+					{/if}
 				</div>
 			</Card>
 			<Card hover={true}>
@@ -135,7 +182,7 @@
 						</div>
 						<MiniSparkline data={sparkDataHoldings} color="#8b5cf6" width={60} height={20} />
 					</div>
-					<div class="card-stat-value">10</div>
+					<div class="card-stat-value">{portfolio ? portfolio.holdings.length : 0}</div>
 					<div class="card-stat-label">보유 종목</div>
 				</div>
 			</Card>
@@ -147,12 +194,8 @@
 						</div>
 						<MiniSparkline data={sparkDataRank} color="#f59e0b" width={60} height={20} />
 					</div>
-					<div class="card-stat-value">#15</div>
+					<div class="card-stat-value">#-</div>
 					<div class="card-stat-label">현재 순위</div>
-					<div class="card-stat-change up">
-						<TrendingUp size={12} />
-						+3
-					</div>
 				</div>
 			</Card>
 			<Card hover={true}>
@@ -163,7 +206,7 @@
 						</div>
 						<MiniSparkline data={sparkDataProfit} color="auto" width={60} height={20} />
 					</div>
-					<div class="card-stat-value">850,000</div>
+					<div class="card-stat-value">{portfolio ? formatPrice(portfolio.totalProfitLoss) : '0'}</div>
 					<div class="card-stat-label">총 수익</div>
 				</div>
 			</Card>
@@ -196,6 +239,9 @@
 						</div>
 					</a>
 				{/each}
+				{#if topGainers.length === 0 && !loading}
+					<div class="text-secondary text-sm text-center p-md">데이터가 없습니다</div>
+				{/if}
 			</div>
 		</Card>
 
@@ -224,6 +270,9 @@
 						</div>
 					</a>
 				{/each}
+				{#if topLosers.length === 0 && !loading}
+					<div class="text-secondary text-sm text-center p-md">데이터가 없습니다</div>
+				{/if}
 			</div>
 		</Card>
 
@@ -254,6 +303,9 @@
 						</div>
 					</a>
 				{/each}
+				{#if topVolume.length === 0 && !loading}
+					<div class="text-secondary text-sm text-center p-md">데이터가 없습니다</div>
+				{/if}
 			</div>
 		</Card>
 	</div>
