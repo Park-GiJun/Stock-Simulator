@@ -235,7 +235,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                       sleep 10
                   done
                 
-                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service
                   sleep 15
                 
                   docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway
