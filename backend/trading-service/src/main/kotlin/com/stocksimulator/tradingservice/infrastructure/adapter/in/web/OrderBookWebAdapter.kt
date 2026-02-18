@@ -46,7 +46,8 @@ class OrderBookWebAdapter(
             orderType = request.orderType,
             orderKind = request.orderKind,
             price = request.price,
-            quantity = request.quantity
+            quantity = request.quantity,
+            investorType = com.stocksimulator.common.dto.TradingInvestorType.USER
         )
         val result = placeOrderUseCase.placeOrder(command)
         ApiResponse.created(PlaceOrderResponse.from(result)).toCreatedResponseEntity()

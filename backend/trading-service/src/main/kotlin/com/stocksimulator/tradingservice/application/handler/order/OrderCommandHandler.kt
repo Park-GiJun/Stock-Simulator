@@ -2,6 +2,7 @@ package com.stocksimulator.tradingservice.application.handler.order
 
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderStatus
+import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.common.exception.BusinessException
 import com.stocksimulator.common.exception.ErrorCode
 import com.stocksimulator.common.exception.InvalidInputException
@@ -14,6 +15,7 @@ import com.stocksimulator.tradingservice.application.port.`in`.order.CancelOrder
 import com.stocksimulator.tradingservice.application.port.`in`.order.PlaceOrderUseCase
 import com.stocksimulator.tradingservice.application.port.out.order.OrderPersistencePort
 import com.stocksimulator.tradingservice.application.port.out.order.TradingEventPort
+import com.stocksimulator.tradingservice.application.handler.portfolio.PortfolioCommandHandler
 import com.stocksimulator.tradingservice.domain.model.OrderModel
 import com.stocksimulator.tradingservice.domain.vo.MatchResult
 import com.stocksimulator.tradingservice.domain.vo.OrderEntry
@@ -25,7 +27,8 @@ import org.springframework.transaction.annotation.Transactional
 class OrderCommandHandler(
     private val orderPersistencePort: OrderPersistencePort,
     private val orderBookRegistry: OrderBookRegistry,
-    private val tradingEventPort: TradingEventPort
+    private val tradingEventPort: TradingEventPort,
+    private val portfolioCommandHandler: PortfolioCommandHandler
 ) : PlaceOrderUseCase, CancelOrderUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -50,7 +53,8 @@ class OrderCommandHandler(
             orderType = command.orderType,
             orderKind = command.orderKind,
             price = command.price,
-            quantity = command.quantity
+            quantity = command.quantity,
+            investorType = command.investorType
         )
         orderPersistencePort.save(order)
 
@@ -72,6 +76,10 @@ class OrderCommandHandler(
             updatedOrder = updatedOrder.fill(totalFilledQuantity)
             orderPersistencePort.update(updatedOrder)
             updateMatchedOrders(matches)
+
+            // 포트폴리오 & 잔고 정산
+            val sellerTypes = resolveSellerTypes(matches)
+            portfolioCommandHandler.settleMatches(matches, command.investorType, sellerTypes)
         }
 
         // 5. 시장가 유동성 없으면 REJECTED
@@ -130,5 +138,16 @@ class OrderCommandHandler(
                 orderPersistencePort.update(existing.fill(matchedQty))
             }
         }
+    }
+
+    private fun resolveSellerTypes(matches: List<MatchResult>): Map<String, TradingInvestorType> {
+        val sellerTypes = mutableMapOf<String, TradingInvestorType>()
+        for (match in matches) {
+            if (!sellerTypes.containsKey(match.sellUserId)) {
+                val sellerOrder = orderPersistencePort.findById(match.sellOrderId)
+                sellerTypes[match.sellUserId] = sellerOrder?.investorType ?: TradingInvestorType.USER
+            }
+        }
+        return sellerTypes
     }
 }

@@ -3,6 +3,7 @@ package com.stocksimulator.tradingservice.infrastructure.adapter.out.persistence
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderStatus
 import com.stocksimulator.common.dto.OrderType
+import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.tradingservice.domain.model.OrderModel
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -31,6 +32,10 @@ class OrderJpaEntity(
 
     @Column(name = "user_id", nullable = false, length = 36)
     val userId: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "investor_type", nullable = false, length = 20)
+    val investorType: TradingInvestorType = TradingInvestorType.USER,
 
     @Column(name = "stock_id", nullable = false, length = 20)
     val stockId: String,
@@ -65,6 +70,7 @@ class OrderJpaEntity(
     fun toDomain(): OrderModel = OrderModel.of(
         orderId = orderId,
         userId = userId,
+        investorType = investorType,
         stockId = stockId,
         orderType = orderType,
         orderKind = orderKind,
@@ -86,6 +92,7 @@ class OrderJpaEntity(
         fun fromDomain(domain: OrderModel): OrderJpaEntity = OrderJpaEntity(
             orderId = domain.orderId,
             userId = domain.userId,
+            investorType = domain.investorType,
             stockId = domain.stockId,
             orderType = domain.orderType,
             orderKind = domain.orderKind,
