@@ -2,7 +2,7 @@ package com.stocksimulator.schedulerservice.infrastructure.adapter.out.event
 
 import com.stocksimulator.common.event.KafkaTopics
 import com.stocksimulator.common.event.NpcCreatedEvent
-import com.stocksimulator.schedulerservice.application.port.out.NpcEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.npc.NpcEventPublishPort
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 

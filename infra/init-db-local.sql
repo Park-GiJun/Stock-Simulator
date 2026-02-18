@@ -24,10 +24,6 @@ GRANT ALL PRIVILEGES ON SCHEMA events TO stocksim;
 CREATE SCHEMA IF NOT EXISTS scheduler;
 GRANT ALL PRIVILEGES ON SCHEMA scheduler TO stocksim;
 
--- news schema (news-service)
-CREATE SCHEMA IF NOT EXISTS news;
-GRANT ALL PRIVILEGES ON SCHEMA news TO stocksim;
-
 DO $$
 BEGIN
     RAISE NOTICE 'All schemas created successfully for local development!';

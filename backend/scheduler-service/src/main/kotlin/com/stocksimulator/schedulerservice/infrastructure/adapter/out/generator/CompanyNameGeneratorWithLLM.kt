@@ -4,8 +4,8 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
 import ai.koog.prompt.executor.model.PromptExecutor
 import com.stocksimulator.common.dto.Sector
-import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
-import com.stocksimulator.schedulerservice.application.port.out.StockExistenceCheckPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.CompanyNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockExistenceCheckPort
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component

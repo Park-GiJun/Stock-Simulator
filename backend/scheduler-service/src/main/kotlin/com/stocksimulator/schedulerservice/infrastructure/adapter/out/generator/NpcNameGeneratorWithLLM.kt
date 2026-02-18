@@ -3,7 +3,7 @@ package com.stocksimulator.schedulerservice.infrastructure.adapter.out.generator
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
 import ai.koog.prompt.executor.model.PromptExecutor
-import com.stocksimulator.schedulerservice.application.port.out.NpcNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.npc.NpcNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import kotlin.random.Random

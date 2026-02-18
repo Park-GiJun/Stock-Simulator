@@ -1,4 +1,4 @@
-package com.stocksimulator.schedulerservice.application.port.out
+package com.stocksimulator.schedulerservice.application.port.out.stock
 
 interface StockExistenceCheckPort {
     fun existsByStockId(stockId: String): Boolean

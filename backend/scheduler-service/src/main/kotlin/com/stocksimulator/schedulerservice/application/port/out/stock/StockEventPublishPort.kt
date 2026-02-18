@@ -1,4 +1,4 @@
-package com.stocksimulator.schedulerservice.application.port.out
+package com.stocksimulator.schedulerservice.application.port.out.stock
 
 import com.stocksimulator.common.event.StockDelistedEvent
 import com.stocksimulator.common.event.StockListedEvent

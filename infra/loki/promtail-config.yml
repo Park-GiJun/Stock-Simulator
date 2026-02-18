@@ -24,7 +24,7 @@ scrape_configs:
         target_label: 'service'
       # Spring Boot 서비스만 필터링
       - source_labels: ['__meta_docker_container_name']
-        regex: '.*(user-service|stock-service|trading-service|event-service|scheduler-service|news-service|api-gateway|eureka-server).*'
+        regex: '.*(user-service|stock-service|trading-service|event-service|scheduler-service|api-gateway|eureka-server).*'
         action: keep
       # 로그 경로 설정
       - source_labels: ['__meta_docker_container_name']

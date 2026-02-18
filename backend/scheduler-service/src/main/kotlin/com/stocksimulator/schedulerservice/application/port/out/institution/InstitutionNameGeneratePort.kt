@@ -1,4 +1,4 @@
-package com.stocksimulator.schedulerservice.application.port.out
+package com.stocksimulator.schedulerservice.application.port.out.institution
 
 import com.stocksimulator.common.dto.InstitutionType
 

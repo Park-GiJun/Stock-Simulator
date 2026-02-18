@@ -2,8 +2,8 @@ package com.stocksimulator.schedulerservice.infrastructure.adapter.out.client
 
 import com.stocksimulator.common.dto.ApiResponse
 import com.stocksimulator.schedulerservice.domain.RandomStockInfo
-import com.stocksimulator.schedulerservice.application.port.out.StockExistenceCheckPort
-import com.stocksimulator.schedulerservice.application.port.out.StockQueryPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockExistenceCheckPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockQueryPort
 import com.stocksimulator.schedulerservice.infrastructure.adapter.out.client.dto.RandomStockResponse
 import com.stocksimulator.schedulerservice.infrastructure.adapter.out.client.dto.StockExistsResponse
 import org.slf4j.LoggerFactory

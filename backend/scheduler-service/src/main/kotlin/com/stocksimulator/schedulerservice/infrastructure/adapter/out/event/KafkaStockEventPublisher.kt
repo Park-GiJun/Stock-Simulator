@@ -3,7 +3,7 @@ package com.stocksimulator.schedulerservice.infrastructure.adapter.out.event
 import com.stocksimulator.common.event.KafkaTopics
 import com.stocksimulator.common.event.StockDelistedEvent
 import com.stocksimulator.common.event.StockListedEvent
-import com.stocksimulator.schedulerservice.application.port.out.StockEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockEventPublishPort
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 

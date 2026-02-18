@@ -4,7 +4,7 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
 import ai.koog.prompt.executor.model.PromptExecutor
 import com.stocksimulator.common.dto.InstitutionType
-import com.stocksimulator.schedulerservice.application.port.out.InstitutionNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.institution.InstitutionNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import kotlin.random.Random

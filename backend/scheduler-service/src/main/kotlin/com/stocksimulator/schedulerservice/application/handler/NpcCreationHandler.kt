@@ -4,8 +4,8 @@ import com.stocksimulator.common.dto.InvestmentStyle
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.TradingFrequency
 import com.stocksimulator.common.event.NpcCreatedEvent
-import com.stocksimulator.schedulerservice.application.port.out.NpcEventPublishPort
-import com.stocksimulator.schedulerservice.application.port.out.NpcNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.npc.NpcEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.npc.NpcNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.math.roundToInt

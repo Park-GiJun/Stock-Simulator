@@ -5,8 +5,8 @@ import com.stocksimulator.common.dto.InvestmentStyle
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.TradingFrequency
 import com.stocksimulator.common.event.InstitutionCreatedEvent
-import com.stocksimulator.schedulerservice.application.port.out.InstitutionEventPublishPort
-import com.stocksimulator.schedulerservice.application.port.out.InstitutionNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.institution.InstitutionEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.institution.InstitutionNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.math.roundToInt

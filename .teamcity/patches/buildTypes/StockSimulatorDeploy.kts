@@ -47,7 +47,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                 REGISTRY="ghcr.io"
                 IMAGE_PREFIX="park-gijun/stocksim"
                 
-                SERVICES="eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service"
+                SERVICES="eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service"
                 
                 for SERVICE in ${'$'}SERVICES; do
                     echo "Building ${'$'}SERVICE..."
@@ -110,7 +110,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                 done
                 
                 # 2. Backend services
-                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                docker-compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service
                 sleep 15
                 
                 # 3. API Gateway
@@ -179,7 +179,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                 
                   IMAGE_PREFIX="stocksim"
                 
-                  for SERVICE in eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service news-service; do
+                  for SERVICE in eureka-server api-gateway user-service stock-service trading-service event-service scheduler-service; do
                       echo "Building ${'$'}SERVICE..."
                       cd backend/${'$'}SERVICE
                       docker build --no-cache -t ${'$'}IMAGE_PREFIX/${'$'}SERVICE:latest .
@@ -235,7 +235,7 @@ changeBuildType(RelativeId("StockSimulatorDeploy")) {
                       sleep 10
                   done
                 
-                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service news-service
+                  docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate user-service stock-service trading-service event-service scheduler-service
                   sleep 15
                 
                   docker compose -p stock-simulator --profile all up -d --no-deps --force-recreate api-gateway

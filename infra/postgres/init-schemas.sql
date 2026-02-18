@@ -24,10 +24,6 @@ GRANT ALL PRIVILEGES ON SCHEMA events TO stocksim;
 CREATE SCHEMA IF NOT EXISTS scheduler;
 GRANT ALL PRIVILEGES ON SCHEMA scheduler TO stocksim;
 
--- news 스키마 (news-service)
-CREATE SCHEMA IF NOT EXISTS news;
-GRANT ALL PRIVILEGES ON SCHEMA news TO stocksim;
-
 -- 확인 메시지
 DO $$
 BEGIN

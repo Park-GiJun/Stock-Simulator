@@ -32,9 +32,6 @@ object KafkaTopics {
     // Event 관련
     const val EVENT_OCCURRED = "event.occurred"
 
-    // News 관련
-    const val NEWS_PUBLISHED = "news.published"
-
     // Ranking 관련
     const val RANKING_UPDATED = "ranking.updated"
 
@@ -137,20 +134,6 @@ data class EventOccurredEvent(
     val occurredAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "EVENT_OCCURRED"
-}
-
-// ===== News Events =====
-
-data class NewsPublishedEvent(
-    val newsId: String,
-    val gameEventId: String?,
-    val headline: String,
-    val summary: String,
-    val sector: String?,
-    val stockId: String?,
-    val publishedAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "NEWS_PUBLISHED"
 }
 
 // ===== Ranking Events =====

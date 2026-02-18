@@ -33,7 +33,6 @@ class SwaggerConfig(
             "stock-service" to "Stock Service", 
             "trading-service" to "Trading Service",
             "event-service" to "Event Service",
-            "news-service" to "News Service",
             "scheduler-service" to "Scheduler Service"
         )
         

@@ -1,7 +1,7 @@
 package com.stocksimulator.schedulerservice.infrastructure.adapter.out.generator
 
 import com.stocksimulator.common.dto.Sector
-import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.stock.CompanyNameGeneratePort
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 

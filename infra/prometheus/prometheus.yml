@@ -84,16 +84,6 @@ scrape_configs:
         target_label: instance
         replacement: 'scheduler-service'
 
-  # News Service
-  - job_name: 'news-service'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['news-service:8086']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'news-service'
-
   # =============================================================================
   # Frontend
   # =============================================================================

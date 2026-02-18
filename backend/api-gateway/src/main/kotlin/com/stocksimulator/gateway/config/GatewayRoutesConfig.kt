@@ -43,14 +43,6 @@ class GatewayRoutesConfig {
                     }
                     .uri("lb://event-service")
             }
-            // News Service Routes
-            .route("news-service") { r ->
-                r.path("/news-service/**")
-                    .filters { f ->
-                        f.rewritePath("/news-service/(?<segment>.*)", "/\${segment}")
-                    }
-                    .uri("lb://news-service")
-            }
             // Scheduler Service Routes
             .route("scheduler-service") { r ->
                 r.path("/scheduler-service/**")

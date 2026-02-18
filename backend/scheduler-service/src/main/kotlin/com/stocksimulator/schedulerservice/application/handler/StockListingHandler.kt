@@ -4,9 +4,9 @@ import com.stocksimulator.common.dto.MarketCapGrade
 import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.event.StockDelistedEvent
 import com.stocksimulator.common.event.StockListedEvent
-import com.stocksimulator.schedulerservice.application.port.out.CompanyNameGeneratePort
-import com.stocksimulator.schedulerservice.application.port.out.StockEventPublishPort
-import com.stocksimulator.schedulerservice.application.port.out.StockQueryPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.CompanyNameGeneratePort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockEventPublishPort
+import com.stocksimulator.schedulerservice.application.port.out.stock.StockQueryPort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.math.roundToInt
