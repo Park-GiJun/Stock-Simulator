@@ -7,6 +7,7 @@ import com.stocksimulator.common.event.StockListedEvent
 import com.stocksimulator.eventservice.application.port.out.stock.CompanyNameGeneratePort
 import com.stocksimulator.eventservice.application.port.out.stock.StockEventPublishPort
 import com.stocksimulator.eventservice.application.port.out.stock.StockQueryPort
+import com.stocksimulator.common.util.PriceUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.math.roundToInt
@@ -87,11 +88,12 @@ class StockListingHandler(
     }
 
     private fun generateBasePrice(): Long {
-        return when {
+        val rawPrice = when {
             Random.nextDouble() < 0.3 -> Random.nextLong(1_000, 5_000)
             Random.nextDouble() < 0.7 -> Random.nextLong(5_000, 50_000)
             else -> Random.nextLong(50_000, 500_000)
         }
+        return PriceUtil.adjustPriceDown(rawPrice)
     }
 
     private fun calculateTotalShares(grade: MarketCapGrade, basePrice: Long): Long {
