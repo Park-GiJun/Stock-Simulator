@@ -1,7 +1,6 @@
 package com.stocksimulator.schedulerservice.infrastructure.adapter.`in`.scheduler
 
-import com.stocksimulator.schedulerservice.application.handler.InstitutionCreationHandler
-import kotlinx.coroutines.runBlocking
+import com.stocksimulator.schedulerservice.application.port.out.TriggerPublishPort
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -13,7 +12,7 @@ import kotlin.random.Random
  */
 @Component
 class InstitutionCreationScheduler(
-    private val institutionCreationHandler: InstitutionCreationHandler
+    private val triggerPublishPort: TriggerPublishPort
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -22,7 +21,7 @@ class InstitutionCreationScheduler(
         val roll = Random.nextDouble()
         log.info("기관투자자 생성 스케줄러 실행 - 확률: {} (기준: 0.5)", "%.2f".format(roll))
         if (roll < 0.5) {
-            runBlocking { institutionCreationHandler.createInstitution() }
+            triggerPublishPort.publishInstitutionCreationTrigger()
         } else {
             log.info("기관투자자 생성 스킵 (확률 미달)")
         }

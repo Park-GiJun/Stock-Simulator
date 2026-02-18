@@ -51,6 +51,12 @@ object KafkaTopics {
     const val INVESTOR_CREATED = "investor.created"
     const val INSTITUTION_CREATED = "institution.created"
     const val NPC_CREATED = "npc.created"
+
+    // Scheduler Trigger 관련 (scheduler → event-service)
+    const val TRIGGER_STOCK_LISTING = "trigger.stock-listing"
+    const val TRIGGER_STOCK_DELISTING = "trigger.stock-delisting"
+    const val TRIGGER_NPC_CREATION = "trigger.npc-creation"
+    const val TRIGGER_INSTITUTION_CREATION = "trigger.institution-creation"
 }
 
 // ===== Trading Events =====
@@ -240,6 +246,33 @@ data class NpcCreatedEvent(
     val createdAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "NPC_CREATED"
+}
+
+// ===== Scheduler Trigger Events (scheduler → event-service) =====
+
+data class StockListingTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "STOCK_LISTING_TRIGGER"
+}
+
+data class StockDelistingTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "STOCK_DELISTING_TRIGGER"
+}
+
+data class NpcCreationTriggerEvent(
+    val count: Int,
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "NPC_CREATION_TRIGGER"
+}
+
+data class InstitutionCreationTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "INSTITUTION_CREATION_TRIGGER"
 }
 
 data class InvestorCreatedEvent(

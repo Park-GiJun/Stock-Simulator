@@ -9,4 +9,5 @@ interface NpcPersistencePort {
     fun findByName(name: String): NpcModel?
     fun existsByName(name: String): Boolean
     fun findAll(pageable: Pageable): Page<NpcModel>
+    fun findAllNames(): List<String>
 }

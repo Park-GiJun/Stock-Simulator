@@ -1,6 +1,7 @@
 package com.stocksimulator.stockservice.application.handler.institution
 
 import com.stocksimulator.stockservice.application.dto.command.institution.CreateInstitutionCommand
+import com.stocksimulator.stockservice.application.port.`in`.institution.CheckInstitutionExistsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.CreateInstitutionUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionListUseCase
 import com.stocksimulator.stockservice.application.port.out.institution.InstitutionPersistencePort
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class InstitutionCommandHandler(
     private val institutionPersistencePort: InstitutionPersistencePort
-) : CreateInstitutionUseCase, GetInstitutionListUseCase {
+) : CreateInstitutionUseCase, GetInstitutionListUseCase, CheckInstitutionExistsUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -43,5 +44,10 @@ class InstitutionCommandHandler(
     @Transactional(readOnly = true)
     override fun getInstitutions(page: Int, size: Int): Page<InstitutionModel> {
         return institutionPersistencePort.findAll(PageRequest.of(page, size))
+    }
+
+    @Transactional(readOnly = true)
+    override fun existsByInstitutionName(name: String): Boolean {
+        return institutionPersistencePort.existsByName(name)
     }
 }

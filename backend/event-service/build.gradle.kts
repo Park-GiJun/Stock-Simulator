@@ -9,6 +9,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // JPA & PostgreSQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -33,4 +34,7 @@ dependencies {
     // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
+
+    // Koog (LLM)
+    implementation("ai.koog:koog-agents:0.6.2")
 }

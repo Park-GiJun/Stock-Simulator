@@ -22,7 +22,7 @@ class NpcJpaEntity(
     @Column(name = "npc_id")
     val npcId: Long? = null,
 
-    @Column(name = "npc_name", nullable = false, unique = true, length = 100)
+    @Column(name = "npc_name", nullable = false, length = 100)
     val npcName: String,
 
     @Enumerated(EnumType.STRING)

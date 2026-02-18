@@ -1,0 +1,8 @@
+package com.stocksimulator.schedulerservice.application.port.out
+
+interface TriggerPublishPort {
+    fun publishStockListingTrigger()
+    fun publishStockDelistingTrigger()
+    fun publishNpcCreationTrigger(count: Int)
+    fun publishInstitutionCreationTrigger()
+}

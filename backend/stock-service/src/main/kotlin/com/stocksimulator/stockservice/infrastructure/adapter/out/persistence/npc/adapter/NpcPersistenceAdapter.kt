@@ -28,4 +28,8 @@ class NpcPersistenceAdapter(
     override fun findAll(pageable: Pageable): Page<NpcModel> {
         return npcJpaRepository.findAll(pageable).map { it.toDomain() }
     }
+
+    override fun findAllNames(): List<String> {
+        return npcJpaRepository.findAllNpcNames()
+    }
 }

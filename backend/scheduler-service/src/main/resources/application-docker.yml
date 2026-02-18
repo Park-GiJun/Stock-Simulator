@@ -3,15 +3,6 @@ server:
   port: 8085
 
 spring:
-  datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:postgres-primary}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stocksimulator}?currentSchema=scheduler
-    username: ${POSTGRES_USER:stocksim}
-    password: ${POSTGRES_PASSWORD:stocksim123}
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:stocksim123}
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
 
@@ -22,16 +13,3 @@ eureka:
   instance:
     hostname: scheduler-service
     prefer-ip-address: false
-
-koog:
-  anthropic:
-    api-key: ${ANTHROPIC_API_KEY}
-
-# SpringDoc / OpenAPI Configuration
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
