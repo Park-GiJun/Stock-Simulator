@@ -2,7 +2,7 @@ package com.stocksimulator.tradingservice.domain.vo
 
 import java.time.Instant
 
-data class OrderEntry(
+data class OrderEntryVo(
     val orderId: String,
     val userId: String,
     val price: Long,

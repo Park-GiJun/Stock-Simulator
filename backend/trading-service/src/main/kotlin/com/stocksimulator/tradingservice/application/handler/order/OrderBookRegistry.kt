@@ -3,10 +3,10 @@ package com.stocksimulator.tradingservice.application.handler.order
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderType
 import com.stocksimulator.tradingservice.application.port.out.order.OrderBookCachePort
-import com.stocksimulator.tradingservice.domain.service.OrderBook
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
-import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshot
-import com.stocksimulator.tradingservice.domain.vo.OrderEntry
+import com.stocksimulator.tradingservice.domain.service.OrderBookDomainService
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
+import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshotVo
+import com.stocksimulator.tradingservice.domain.vo.OrderEntryVo
 import org.redisson.api.RedissonClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -20,9 +20,9 @@ class OrderBookRegistry(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val orderBooks = ConcurrentHashMap<String, OrderBook>()
+    private val orderBooks = ConcurrentHashMap<String, OrderBookDomainService>()
 
-    fun placeOrder(stockId: String, entry: OrderEntry, orderType: OrderType, orderKind: OrderKind): List<MatchResult> {
+    fun placeOrder(stockId: String, entry: OrderEntryVo, orderType: OrderType, orderKind: OrderKind): List<MatchResultVo> {
         return withStockLock(stockId) {
             getOrCreate(stockId).addOrder(entry, orderType, orderKind)
         }
@@ -34,7 +34,7 @@ class OrderBookRegistry(
         }
     }
 
-    fun getSnapshot(stockId: String, depth: Int = 10): OrderBookSnapshot {
+    fun getSnapshot(stockId: String, depth: Int = 10): OrderBookSnapshotVo {
         return withStockLock(stockId) {
             getOrCreate(stockId).getSnapshot(depth)
         }
@@ -50,9 +50,9 @@ class OrderBookRegistry(
         }
     }
 
-    private fun getOrCreate(stockId: String): OrderBook {
+    private fun getOrCreate(stockId: String): OrderBookDomainService {
         return orderBooks.getOrPut(stockId) {
-            val orderBook = OrderBook(stockId)
+            val orderBook = OrderBookDomainService(stockId)
             try {
                 val bidEntries = orderBookCachePort.loadEntries(stockId, OrderType.BUY)
                 val askEntries = orderBookCachePort.loadEntries(stockId, OrderType.SELL)

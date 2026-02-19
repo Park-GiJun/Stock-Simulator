@@ -2,26 +2,26 @@ package com.stocksimulator.tradingservice.domain.service
 
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderType
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
-import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshot
-import com.stocksimulator.tradingservice.domain.vo.OrderEntry
-import com.stocksimulator.tradingservice.domain.vo.PriceLevel
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
+import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshotVo
+import com.stocksimulator.tradingservice.domain.vo.OrderEntryVo
+import com.stocksimulator.tradingservice.domain.vo.PriceLevelVo
 import java.time.Instant
 import java.util.TreeMap
 import java.util.UUID
 
-class OrderBook(
+class OrderBookDomainService(
     val stockId: String
 ) {
     // 매수호가: 높은 가격 우선 (내림차순)
-    private val bids: TreeMap<Long, MutableList<OrderEntry>> = TreeMap(reverseOrder())
+    private val bids: TreeMap<Long, MutableList<OrderEntryVo>> = TreeMap(reverseOrder())
     // 매도호가: 낮은 가격 우선 (오름차순)
-    private val asks: TreeMap<Long, MutableList<OrderEntry>> = TreeMap()
-    // 주문ID → OrderEntry 인덱스 (O(1) 취소용)
-    private val orderIndex: MutableMap<String, OrderEntry> = mutableMapOf()
+    private val asks: TreeMap<Long, MutableList<OrderEntryVo>> = TreeMap()
+    // 주문ID → OrderEntryVo 인덱스 (O(1) 취소용)
+    private val orderIndex: MutableMap<String, OrderEntryVo> = mutableMapOf()
 
-    fun addOrder(entry: OrderEntry, orderType: OrderType, orderKind: OrderKind): List<MatchResult> {
-        val matches = mutableListOf<MatchResult>()
+    fun addOrder(entry: OrderEntryVo, orderType: OrderType, orderKind: OrderKind): List<MatchResultVo> {
+        val matches = mutableListOf<MatchResultVo>()
 
         when (orderKind) {
             OrderKind.LIMIT -> {
@@ -40,7 +40,7 @@ class OrderBook(
         return matches
     }
 
-    private fun matchOrder(entry: OrderEntry, orderType: OrderType, matches: MutableList<MatchResult>) {
+    private fun matchOrder(entry: OrderEntryVo, orderType: OrderType, matches: MutableList<MatchResultVo>) {
         val oppositeBook = if (orderType == OrderType.BUY) asks else bids
 
         val iterator = oppositeBook.entries.iterator()
@@ -65,7 +65,7 @@ class OrderBook(
                 }
 
                 matches.add(
-                    MatchResult(
+                    MatchResultVo(
                         tradeId = UUID.randomUUID().toString(),
                         buyOrderId = buyOrderId,
                         sellOrderId = sellOrderId,
@@ -93,7 +93,7 @@ class OrderBook(
         }
     }
 
-    private fun addToBook(entry: OrderEntry, orderType: OrderType) {
+    private fun addToBook(entry: OrderEntryVo, orderType: OrderType) {
         val book = if (orderType == OrderType.BUY) bids else asks
         book.getOrPut(entry.price) { mutableListOf() }.add(entry)
         orderIndex[entry.orderId] = entry
@@ -109,7 +109,7 @@ class OrderBook(
         return true
     }
 
-    private fun removeFromBook(book: TreeMap<Long, MutableList<OrderEntry>>, entry: OrderEntry) {
+    private fun removeFromBook(book: TreeMap<Long, MutableList<OrderEntryVo>>, entry: OrderEntryVo) {
         val orders = book[entry.price] ?: return
         orders.remove(entry)
         if (orders.isEmpty()) {
@@ -117,9 +117,9 @@ class OrderBook(
         }
     }
 
-    fun getSnapshot(depth: Int = 10): OrderBookSnapshot {
+    fun getSnapshot(depth: Int = 10): OrderBookSnapshotVo {
         val bidLevels = bids.entries.take(depth).map { (price, orders) ->
-            PriceLevel(
+            PriceLevelVo(
                 price = price,
                 quantity = orders.sumOf { it.remainingQuantity },
                 orderCount = orders.size
@@ -127,7 +127,7 @@ class OrderBook(
         }
 
         val askLevels = asks.entries.take(depth).map { (price, orders) ->
-            PriceLevel(
+            PriceLevelVo(
                 price = price,
                 quantity = orders.sumOf { it.remainingQuantity },
                 orderCount = orders.size
@@ -138,7 +138,7 @@ class OrderBook(
         val bestAsk = asks.firstEntry()?.key
         val spread = if (bestBid != null && bestAsk != null) bestAsk - bestBid else null
 
-        return OrderBookSnapshot(
+        return OrderBookSnapshotVo(
             stockId = stockId,
             bids = bidLevels,
             asks = askLevels,
@@ -148,13 +148,13 @@ class OrderBook(
         )
     }
 
-    fun getAllEntries(): Pair<List<Pair<OrderEntry, OrderType>>, List<Pair<OrderEntry, OrderType>>> {
+    fun getAllEntries(): Pair<List<Pair<OrderEntryVo, OrderType>>, List<Pair<OrderEntryVo, OrderType>>> {
         val bidEntries = bids.values.flatten().map { it to OrderType.BUY }
         val askEntries = asks.values.flatten().map { it to OrderType.SELL }
         return bidEntries to askEntries
     }
 
-    fun restore(entries: List<OrderEntry>, side: OrderType) {
+    fun restore(entries: List<OrderEntryVo>, side: OrderType) {
         val book = if (side == OrderType.BUY) bids else asks
         for (entry in entries) {
             book.getOrPut(entry.price) { mutableListOf() }.add(entry)

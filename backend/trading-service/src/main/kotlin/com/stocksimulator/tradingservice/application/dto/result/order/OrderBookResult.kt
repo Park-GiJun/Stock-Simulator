@@ -1,7 +1,7 @@
 package com.stocksimulator.tradingservice.application.dto.result.order
 
-import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshot
-import com.stocksimulator.tradingservice.domain.vo.PriceLevel
+import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshotVo
+import com.stocksimulator.tradingservice.domain.vo.PriceLevelVo
 
 data class OrderBookResult(
     val stockId: String,
@@ -17,7 +17,7 @@ data class OrderBookResult(
         val orderCount: Int
     ) {
         companion object {
-            fun from(level: PriceLevel): PriceLevelResult {
+            fun from(level: PriceLevelVo): PriceLevelResult {
                 return PriceLevelResult(
                     price = level.price,
                     quantity = level.quantity,
@@ -28,7 +28,7 @@ data class OrderBookResult(
     }
 
     companion object {
-        fun from(snapshot: OrderBookSnapshot): OrderBookResult {
+        fun from(snapshot: OrderBookSnapshotVo): OrderBookResult {
             return OrderBookResult(
                 stockId = snapshot.stockId,
                 bids = snapshot.bids.map { PriceLevelResult.from(it) },

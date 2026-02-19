@@ -3,7 +3,7 @@ package com.stocksimulator.tradingservice.domain.vo
 import java.time.Instant
 import java.util.UUID
 
-data class MatchResult(
+data class MatchResultVo(
     val tradeId: String = UUID.randomUUID().toString(),
     val buyOrderId: String,
     val sellOrderId: String,

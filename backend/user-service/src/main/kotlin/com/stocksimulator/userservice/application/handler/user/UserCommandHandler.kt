@@ -8,8 +8,8 @@ import com.stocksimulator.userservice.application.dto.result.user.SingUpResult
 import com.stocksimulator.userservice.application.port.`in`.user.SignUpUseCase
 import com.stocksimulator.userservice.application.port.out.balance.BalancePersistencePort
 import com.stocksimulator.userservice.application.port.out.user.UserPersistencePort
-import com.stocksimulator.userservice.domain.BalanceModel
-import com.stocksimulator.userservice.domain.UserModel
+import com.stocksimulator.userservice.domain.model.BalanceModel
+import com.stocksimulator.userservice.domain.model.UserModel
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

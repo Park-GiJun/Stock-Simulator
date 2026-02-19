@@ -1,6 +1,6 @@
 package com.stocksimulator.userservice.application.port.out.balance
 
-import com.stocksimulator.userservice.domain.BalanceModel
+import com.stocksimulator.userservice.domain.model.BalanceModel
 
 /**
  * Balance 영속성 Port (Driven Port)

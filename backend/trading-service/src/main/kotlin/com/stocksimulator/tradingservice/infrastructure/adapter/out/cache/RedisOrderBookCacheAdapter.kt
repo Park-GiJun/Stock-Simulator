@@ -2,8 +2,8 @@ package com.stocksimulator.tradingservice.infrastructure.adapter.out.cache
 
 import com.stocksimulator.common.dto.OrderType
 import com.stocksimulator.tradingservice.application.port.out.order.OrderBookCachePort
-import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshot
-import com.stocksimulator.tradingservice.domain.vo.OrderEntry
+import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshotVo
+import com.stocksimulator.tradingservice.domain.vo.OrderEntryVo
 import org.redisson.api.RedissonClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -16,7 +16,7 @@ class RedisOrderBookCacheAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun saveSnapshot(stockId: String, snapshot: OrderBookSnapshot) {
+    override fun saveSnapshot(stockId: String, snapshot: OrderBookSnapshotVo) {
         try {
             val bucket = redissonClient.getBucket<Map<String, Any>>("orderbook:$stockId:snapshot")
             bucket.set(mapOf(
@@ -31,7 +31,7 @@ class RedisOrderBookCacheAdapter(
         }
     }
 
-    override fun loadEntries(stockId: String, side: OrderType): List<OrderEntry> {
+    override fun loadEntries(stockId: String, side: OrderType): List<OrderEntryVo> {
         try {
             val sideName = if (side == OrderType.BUY) "bids" else "asks"
             val map = redissonClient.getMap<String, String>("orderbook:$stockId:$sideName")
@@ -41,7 +41,7 @@ class RedisOrderBookCacheAdapter(
                 try {
                     val parts = value.split("|")
                     if (parts.size >= 4) {
-                        OrderEntry(
+                        OrderEntryVo(
                             orderId = orderId,
                             userId = parts[0],
                             price = parts[1].toLong(),
@@ -60,7 +60,7 @@ class RedisOrderBookCacheAdapter(
         }
     }
 
-    override fun saveEntries(stockId: String, entries: List<OrderEntry>, side: OrderType) {
+    override fun saveEntries(stockId: String, entries: List<OrderEntryVo>, side: OrderType) {
         try {
             val sideName = if (side == OrderType.BUY) "bids" else "asks"
             val map = redissonClient.getMap<String, String>("orderbook:$stockId:$sideName")
