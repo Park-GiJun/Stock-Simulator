@@ -16,6 +16,7 @@ data class OrderModel(
     val quantity: Long,
     val filledQuantity: Long,
     val status: OrderStatus,
+    val investorType: String = "USER",
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 ) {
@@ -68,7 +69,8 @@ data class OrderModel(
             orderType: OrderType,
             orderKind: OrderKind,
             price: Long?,
-            quantity: Long
+            quantity: Long,
+            investorType: String = "USER"
         ): OrderModel {
             return OrderModel(
                 orderId = UUID.randomUUID().toString(),
@@ -79,7 +81,8 @@ data class OrderModel(
                 price = price,
                 quantity = quantity,
                 filledQuantity = 0,
-                status = OrderStatus.PENDING
+                status = OrderStatus.PENDING,
+                investorType = investorType
             )
         }
 
@@ -93,6 +96,7 @@ data class OrderModel(
             quantity: Long,
             filledQuantity: Long,
             status: OrderStatus,
+            investorType: String = "USER",
             createdAt: Instant,
             updatedAt: Instant = Instant.now()
         ): OrderModel {
@@ -106,6 +110,7 @@ data class OrderModel(
                 quantity = quantity,
                 filledQuantity = filledQuantity,
                 status = status,
+                investorType = investorType,
                 createdAt = createdAt,
                 updatedAt = updatedAt
             )

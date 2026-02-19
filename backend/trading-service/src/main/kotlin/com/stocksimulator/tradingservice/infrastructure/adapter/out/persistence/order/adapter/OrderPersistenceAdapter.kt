@@ -16,6 +16,11 @@ class OrderPersistenceAdapter(
         return orderJpaRepository.save(OrderJpaEntity.fromDomain(order)).toDomain()
     }
 
+    override fun saveAll(orders: List<OrderModel>): List<OrderModel> {
+        val entities = orders.map { OrderJpaEntity.fromDomain(it) }
+        return orderJpaRepository.saveAll(entities).map { it.toDomain() }
+    }
+
     override fun findById(orderId: String): OrderModel? {
         return orderJpaRepository.findByOrderId(orderId)?.toDomain()
     }

@@ -56,6 +56,9 @@ class OrderJpaEntity(
     @Column(name = "status", nullable = false, length = 20)
     var status: OrderStatus,
 
+    @Column(name = "investor_type", nullable = false, length = 20)
+    val investorType: String = "USER",
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
 
@@ -72,6 +75,7 @@ class OrderJpaEntity(
         quantity = quantity,
         filledQuantity = filledQuantity,
         status = status,
+        investorType = investorType,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -93,6 +97,7 @@ class OrderJpaEntity(
             quantity = domain.quantity,
             filledQuantity = domain.filledQuantity,
             status = domain.status,
+            investorType = domain.investorType,
             createdAt = domain.createdAt,
             updatedAt = domain.updatedAt
         )
