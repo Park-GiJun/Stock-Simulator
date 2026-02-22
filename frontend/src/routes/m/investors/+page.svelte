@@ -136,12 +136,12 @@
 		<div class="stack-sm">
 			{#each institutions as inst}
 				<Card>
-					<div class="m-investor-card-header">
+					<a href="/m/investors/institution/{inst.institutionId}" class="m-investor-card-header" style="text-decoration: none; color: inherit; cursor: pointer;">
 						<div class="m-investor-card-name">{inst.institutionName}</div>
 						<span class="badge badge-inst-type">
 							{INSTITUTION_TYPE_NAMES[inst.institutionType]}
 						</span>
-					</div>
+					</a>
 					<div class="m-investor-card-meta">
 						<span class="m-investor-card-label">투자성향</span>
 						<span class="badge {getStyleBadgeClass(inst.investmentStyle)}">
@@ -182,12 +182,12 @@
 		<div class="stack-sm">
 			{#each npcs as npc}
 				<Card>
-					<div class="m-investor-card-header">
+					<a href="/m/investors/npc/{npc.npcId}" class="m-investor-card-header" style="text-decoration: none; color: inherit; cursor: pointer;">
 						<div class="m-investor-card-name">{npc.npcName}</div>
 						<span class="badge {getStyleBadgeClass(npc.investmentStyle)}">
 							{INVESTMENT_STYLE_NAMES[npc.investmentStyle]}
 						</span>
-					</div>
+					</a>
 					<div class="m-investor-card-meta">
 						<span class="m-investor-card-label">자본금</span>
 						<span class="font-semibold capital-text">{formatCapital(npc.capital)}</span>

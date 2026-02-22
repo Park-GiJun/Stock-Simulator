@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import {
 		Building2,
 		Users,
@@ -287,7 +288,7 @@
 					</thead>
 					<tbody>
 						{#each institutions as inst}
-							<tr>
+							<tr class="investor-row-clickable" onclick={() => goto(`/investors/institution/${inst.institutionId}`)}>
 								<td>
 									<div class="investor-name-cell">
 										<div class="investor-avatar">
@@ -404,7 +405,7 @@
 					</thead>
 					<tbody>
 						{#each npcs as npc}
-							<tr>
+							<tr class="investor-row-clickable" onclick={() => goto(`/investors/npc/${npc.npcId}`)}>
 								<td>
 									<div class="investor-name-cell">
 										<div class="investor-avatar npc">

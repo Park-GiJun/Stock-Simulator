@@ -1,0 +1,122 @@
+/* ===== Investor Detail Page Styles - Glassmorphism ===== */
+
+.investor-detail-page {
+	animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== Profile Card ===== */
+.investor-detail-profile {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xl);
+	padding: var(--spacing-xl);
+	background: var(--glass-bg-strong);
+	backdrop-filter: var(--glass-blur-lg);
+	-webkit-backdrop-filter: var(--glass-blur-lg);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--glass-shadow);
+	margin-bottom: var(--spacing-lg);
+	position: relative;
+	overflow: hidden;
+	animation: slideUp 0.4s ease-out;
+}
+
+.investor-detail-profile::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+}
+
+.investor-detail-avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	flex-shrink: 0;
+	box-shadow: 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.investor-detail-avatar.npc {
+	background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.investor-detail-profile-info {
+	flex: 1;
+}
+
+.investor-detail-name {
+	font-size: var(--font-size-xl);
+	font-weight: 700;
+	color: var(--color-text-primary);
+	margin-bottom: var(--spacing-sm);
+}
+
+.investor-detail-meta {
+	display: flex;
+	gap: var(--spacing-sm);
+	flex-wrap: wrap;
+}
+
+.investor-detail-profile-stats {
+	display: flex;
+	gap: var(--spacing-xl);
+}
+
+.investor-detail-profile-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.investor-detail-profile-stat-value {
+	font-size: var(--font-size-lg);
+	font-weight: 700;
+	font-family: var(--font-mono);
+	color: var(--color-text-primary);
+}
+
+.investor-detail-profile-stat-label {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-secondary);
+	margin-top: var(--spacing-xs);
+}
+
+/* ===== Sectors Row ===== */
+.investor-detail-sectors {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-sm) 0;
+}
+
+/* ===== Clickable Table Row ===== */
+.table-stock tr.investor-row-clickable {
+	cursor: pointer;
+	transition: background 0.2s ease;
+}
+
+.table-stock tr.investor-row-clickable:hover {
+	background: var(--glass-bg-hover);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+	.investor-detail-profile {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.investor-detail-profile-stats {
+		width: 100%;
+		justify-content: space-around;
+	}
+}

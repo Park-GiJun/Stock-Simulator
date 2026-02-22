@@ -4,6 +4,13 @@
 -- 실행 대상: PostgreSQL (stocksim DB)
 -- =============================================================================
 
+-- 0. 시퀀스를 현재 max(id) 이후로 리셋 (PK 충돌 방지)
+SELECT setval(
+    pg_get_serial_sequence('trading.investor_balances', 'id'),
+    COALESCE((SELECT MAX(id) FROM trading.investor_balances), 0) + 1,
+    false
+);
+
 -- 1. 기존 NPC 잔고 초기화
 -- investorId 규칙: "NPC_{npcId}"
 INSERT INTO trading.investor_balances (investor_id, investor_type, cash, created_at, updated_at)

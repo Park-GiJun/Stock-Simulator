@@ -27,11 +27,14 @@ export async function getStockLookupMap(): Promise<Map<string, StockListItem>> {
  * Fetches portfolio + balance from backend and enriches holdings with stock info.
  * Returns a UI-friendly Portfolio object.
  */
-export async function getEnrichedPortfolio(investorId: string): Promise<Portfolio | null> {
+export async function getEnrichedPortfolio(
+	investorId: string,
+	investorType: string = 'USER'
+): Promise<Portfolio | null> {
 	try {
 		const [portfolioRes, balanceRes, stockMap] = await Promise.all([
-			getPortfolioRaw(investorId),
-			getBalance(investorId),
+			getPortfolioRaw(investorId, investorType),
+			getBalance(investorId, investorType),
 			getStockLookupMap()
 		]);
 
