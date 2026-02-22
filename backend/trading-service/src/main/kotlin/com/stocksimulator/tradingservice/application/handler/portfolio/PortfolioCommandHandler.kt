@@ -11,6 +11,8 @@ import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+private val SYSTEM_INVESTOR_TYPES = setOf(TradingInvestorType.MARKET_MAKER)
+
 @Service
 class PortfolioCommandHandler(
     private val portfolioPersistencePort: PortfolioPersistencePort,
@@ -85,6 +87,9 @@ class PortfolioCommandHandler(
         val updatedPortfolio = portfolio.addHolding(quantity, price)
         portfolioPersistencePort.save(updatedPortfolio)
 
+        // 시스템 투자자는 잔고 관리 불필요
+        if (buyerType in SYSTEM_INVESTOR_TYPES) return
+
         // 잔고 차감
         val balance = investorBalancePersistencePort.findByInvestor(buyerId, buyerType)
         if (balance != null && balance.cash >= tradeAmount) {
@@ -111,6 +116,9 @@ class PortfolioCommandHandler(
             log.warn("보유수량 부족 - 매도 포트폴리오 정산 스킵: sellerId={}, required={}, available={}",
                 sellerId, quantity, portfolio?.quantity ?: 0)
         }
+
+        // 시스템 투자자는 잔고 관리 불필요
+        if (sellerType in SYSTEM_INVESTOR_TYPES) return
 
         // 잔고 증가
         val balance = investorBalancePersistencePort.findByInvestor(sellerId, sellerType)
