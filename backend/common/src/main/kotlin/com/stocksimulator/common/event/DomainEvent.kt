@@ -52,6 +52,12 @@ object KafkaTopics {
 
     // Investor 관련
     const val INVESTOR_CREATED = "investor.created"
+
+    // Scheduler Trigger 관련
+    const val TRIGGER_STOCK_LISTING = "trigger.stock.listing"
+    const val TRIGGER_STOCK_DELISTING = "trigger.stock.delisting"
+    const val TRIGGER_NPC_CREATION = "trigger.npc.creation"
+    const val TRIGGER_INSTITUTION_CREATION = "trigger.institution.creation"
 }
 
 // ===== Trading Events =====
