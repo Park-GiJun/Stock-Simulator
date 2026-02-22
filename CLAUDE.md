@@ -375,8 +375,8 @@ Design specifications in `doc/`:
 
 ### Investors
 - **Users**: Players with 5,000,000 KRW initial capital
-- **Individual NPCs**: 20만 ~ 1억 KRW, generated every 10 min
-- **Institutions**: 10억 ~ 1조 KRW, generated every 2 hours
+- **Individual NPCs**: 20만 ~ 1억 KRW, generated every 24 hours
+- **Institutions**: 10억 ~ 1조 KRW, generated every 24 hours
 - **No seasonal reset**: Continuous gameplay, market evolves organically
 
 ## Code Style
@@ -401,3 +401,42 @@ Design specifications in `doc/`:
 - All responses follow `ApiResponse<T>` structure
 - Use `$lib/api/api.ts` for all API calls
 - Before backend: use mock data with `VITE_USE_MOCK=true`
+
+## Change History
+
+All changes are documented in `history/` with the following structure:
+
+```
+history/
+├── backend/       # 백엔드 서비스 변경 이력
+├── frontend/      # 프론트엔드 변경 이력
+└── infra/         # 인프라/CI/CD 변경 이력
+```
+
+### Naming Convention
+- **파일명**: `YYYY-MM-DD_NN.md` (예: `2026-02-22_01.md`)
+  - `YYYY-MM-DD`: 작업 날짜
+  - `NN`: 해당 날짜의 순번 (01부터 시작, 같은 날 여러 작업 시 02, 03...)
+- **카테고리**: 변경 내용에 따라 `backend/`, `frontend/`, `infra/` 중 해당 폴더에 저장
+  - 백엔드+프론트엔드 동시 변경 시 각각 별도 파일로 분리
+
+### History File Template
+```markdown
+# YYYY-MM-DD_NN: 변경 제목 (한줄 요약)
+
+## 변경 사항
+### 1. 변경 항목
+- 상세 내용
+
+## 수정 파일 목록
+| 파일 | 변경 |
+|------|------|
+| `경로/파일명` | 변경 내용 |
+
+## 배포 시 필요 작업 (있을 경우)
+```
+
+### Rules
+- **작업 완료 후 반드시 history 파일 작성**
+- 변경의 "왜"와 "무엇"을 명확히 기록
+- 배포 시 필요한 추가 작업(DB 마이그레이션, 스키마 재생성 등)이 있으면 반드시 포함
