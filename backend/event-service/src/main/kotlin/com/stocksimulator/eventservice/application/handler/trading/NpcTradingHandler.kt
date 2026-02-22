@@ -88,6 +88,17 @@ class NpcTradingHandler(
 
         val availableCash = if (balance > 0) balance else npc.capital
 
+        // 잔액/보유량 기반 허용 액션 결정
+        val allowedActions = mutableListOf("HOLD")
+        if (availableCash > 0 && stockCandidates.isNotEmpty()) allowedActions.add("BUY")
+        if (holdings.isNotEmpty()) allowedActions.add("SELL")
+
+        if (allowedActions.size == 1) {
+            log.info("NPC 매매 스킵 (가능한 액션 없음): npc={}, cash={}, holdings={}",
+                npc.npcName, availableCash, holdings.size)
+            return
+        }
+
         val request = TradingDecisionRequest(
             investorName = npc.npcName,
             investmentStyle = npc.investmentStyle,
@@ -96,7 +107,8 @@ class NpcTradingHandler(
             preferredSectors = npc.preferredSectors,
             currentHoldings = holdings,
             stockCandidates = stockCandidates,
-            recentNews = recentNews
+            recentNews = recentNews,
+            allowedActions = allowedActions
         )
 
         val decision = tradingDecisionGeneratePort.generateDecision(request)
@@ -104,7 +116,7 @@ class NpcTradingHandler(
         log.info("NPC 매매 결정: npc={}, action={}, stockId={}, quantity={}",
             npc.npcName, decision.action, decision.stockId, decision.quantity)
 
-        if (decision.action == "HOLD" || decision.stockId == null) {
+        if (decision.action == "HOLD" || decision.stockId == null || decision.action !in allowedActions) {
             return
         }
 

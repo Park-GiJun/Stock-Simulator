@@ -12,7 +12,8 @@ data class TradingDecisionRequest(
     val preferredSectors: List<String>,
     val currentHoldings: List<PortfolioHoldingDto>,
     val stockCandidates: List<StockCandidateDto>,
-    val recentNews: List<NewsInfoDto>
+    val recentNews: List<NewsInfoDto>,
+    val allowedActions: List<String> = listOf("BUY", "SELL", "HOLD")
 )
 
 data class NewsInfoDto(

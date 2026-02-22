@@ -55,7 +55,22 @@ class OrderCommandHandler(
 
         // 2. 잔액/보유량 사전 검증 (시스템 투자자 제외)
         if (command.investorType !in SYSTEM_INVESTOR_TYPES) {
-            validatePreOrder(command)
+            try {
+                validatePreOrder(command)
+            } catch (e: InsufficientResourceException) {
+                val rejectedOrder = OrderModel.create(
+                    userId = command.userId,
+                    stockId = command.stockId,
+                    orderType = command.orderType,
+                    orderKind = command.orderKind,
+                    price = command.price,
+                    quantity = command.quantity,
+                    investorType = command.investorType
+                ).reject()
+                orderPersistencePort.save(rejectedOrder)
+                log.info("주문 거부 (사전검증 실패): orderId={}, reason={}", rejectedOrder.orderId, e.message)
+                return PlaceOrderResult.from(rejectedOrder, emptyList())
+            }
         }
 
         // 3. 도메인 모델 생성 및 DB 저장

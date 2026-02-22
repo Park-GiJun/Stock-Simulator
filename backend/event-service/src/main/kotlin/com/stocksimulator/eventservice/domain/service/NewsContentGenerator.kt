@@ -10,14 +10,7 @@ class NewsContentGenerator {
     }
 
     fun generateIpoContent(stockName: String, sector: String, basePrice: Long, totalShares: Long, marketCapGrade: String): String {
-        val marketCapLabel = when (marketCapGrade) {
-            "LARGE" -> "대형주"
-            "MID" -> "중형주"
-            else -> "소형주"
-        }
-        return "$sector 섹터의 $stockName 이(가) 오늘 증권시장에 신규 상장했다. " +
-                "공모가는 ${basePrice}원이며, 총 발행 주식 수는 ${totalShares}주로, $marketCapLabel 로 분류된다. " +
-                "시장 관계자들은 해당 종목의 향후 실적에 대해 관심을 보이고 있다."
+        return ""
     }
 
     fun generateIpoSummary(stockName: String, sector: String): String {
@@ -29,9 +22,7 @@ class NewsContentGenerator {
     }
 
     fun generateDelistingContent(stockName: String, reason: String, finalPrice: Long): String {
-        return "$stockName 이(가) 상장폐지 결정을 받았다. " +
-                "폐지 사유는 '$reason'이며, 최종 거래가는 ${finalPrice}원이다. " +
-                "해당 종목을 보유한 투자자들은 주의가 필요하다."
+        return ""
     }
 
     fun generateDelistingSummary(stockName: String): String {

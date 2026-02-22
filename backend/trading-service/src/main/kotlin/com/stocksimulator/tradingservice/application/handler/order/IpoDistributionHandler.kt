@@ -79,7 +79,7 @@ class IpoDistributionHandler(
         val weights = (actualLevels downTo 1).toList()
         val totalWeight = weights.sum()
 
-        val ordersPerLevel = 5 // 각 호가에 3~5개 매도 주문
+        val ordersPerLevel = 2 // 각 호가에 2개 매도 주문
         val allOrders = mutableListOf<OrderModel>()
         val allEntries = mutableListOf<OrderEntryVo>()
 

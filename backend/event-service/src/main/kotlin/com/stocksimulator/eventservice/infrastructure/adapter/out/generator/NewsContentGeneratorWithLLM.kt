@@ -25,7 +25,6 @@ class NewsContentGeneratorWithLLM(
     @Serializable
     private data class LlmNewsResponse(
         val headline: String,
-        val content: String,
         val sentiment: String,
         val intensity: Double,
         val duration: Long
@@ -65,7 +64,7 @@ class NewsContentGeneratorWithLLM(
         }
 
         val stockDesc = if (stockName != null) {
-            "\n대상 기업: $stockName (이 종목명을 반드시 headline과 content에 포함)"
+            "\n대상 기업: $stockName (이 종목명을 반드시 headline에 포함)"
         } else {
             ""
         }
@@ -76,14 +75,13 @@ class NewsContentGeneratorWithLLM(
             $sectorDesc$stockDesc
 
             규칙:
-            - headline: 한국어 뉴스 제목 (20~40자)
-            - content: 한국어 뉴스 본문 (100~200자)
+            - headline: 한국어 뉴스 헤드라인 (20~40자)
             - sentiment: POSITIVE 또는 NEGATIVE 또는 NEUTRAL 중 하나
             - intensity: 영향 강도 (0.1 ~ 1.0 사이 소수)
             - duration: 영향 지속시간 (게임 시간 기준 분, 30 ~ 480)
 
             반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요:
-            {"headline":"...","content":"...","sentiment":"...","intensity":0.5,"duration":120}
+            {"headline":"...","sentiment":"...","intensity":0.5,"duration":120}
         """.trimIndent()
     }
 
@@ -99,7 +97,7 @@ class NewsContentGeneratorWithLLM(
 
         return GeneratedNewsContent(
             headline = parsed.headline,
-            content = parsed.content,
+            content = "",
             sentiment = sentiment,
             intensity = parsed.intensity.coerceIn(0.1, 1.0),
             duration = parsed.duration.coerceIn(30, 480)

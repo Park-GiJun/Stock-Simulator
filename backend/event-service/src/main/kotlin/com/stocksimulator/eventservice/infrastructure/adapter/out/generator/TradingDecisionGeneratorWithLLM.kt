@@ -80,6 +80,13 @@ class TradingDecisionGeneratorWithLLM(
             }
         }
 
+        val actionsDesc = request.allowedActions.joinToString("|")
+        val rulesDesc = buildList {
+            if ("BUY" in request.allowedActions) add("BUY(후보중 선택, qty*현재가<=${maxInvestment})")
+            if ("SELL" in request.allowedActions) add("SELL(보유중, qty<=보유수량)")
+            add("HOLD(매매안함)")
+        }.joinToString(", ")
+
         return """
             투자 결정 시스템. JSON만 응답.
 
@@ -90,8 +97,8 @@ class TradingDecisionGeneratorWithLLM(
             후보: $candidatesDesc
             뉴스: $newsDesc
 
-            규칙: BUY(후보중 선택, qty*현재가<=${maxInvestment}), SELL(보유중, qty<=보유수량), HOLD(매매안함)
-            JSON만: {"action":"BUY|SELL|HOLD","stockId":"ID|null","quantity":수량}
+            규칙: $rulesDesc
+            JSON만: {"action":"$actionsDesc","stockId":"ID|null","quantity":수량}
         """.trimIndent()
     }
 

@@ -97,12 +97,11 @@ class StockListingHandler(
     }
 
     private fun calculateTotalShares(grade: MarketCapGrade, basePrice: Long): Long {
-        val targetMarketCap = when (grade) {
-            MarketCapGrade.SMALL -> Random.nextLong(1_000_000_000, 10_000_000_000)
-            MarketCapGrade.MID -> Random.nextLong(10_000_000_000, 100_000_000_000)
-            MarketCapGrade.LARGE -> Random.nextLong(100_000_000_000, 1_000_000_000_000)
+        return when (grade) {
+            MarketCapGrade.SMALL -> Random.nextLong(5_000, 20_000)       // 소형주: 5천 ~ 2만주
+            MarketCapGrade.MID -> Random.nextLong(50_000, 200_000)       // 중형주: 5만 ~ 20만주
+            MarketCapGrade.LARGE -> Random.nextLong(500_000, 2_000_000)  // 대형주: 50만 ~ 200만주
         }
-        return targetMarketCap / basePrice
     }
 
     private fun generateVolatility(sector: Sector, grade: MarketCapGrade): Long {

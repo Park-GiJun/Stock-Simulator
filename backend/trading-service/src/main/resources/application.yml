@@ -69,8 +69,8 @@ management:
       application: ${spring.application.name}
 
 ipo:
-  price-levels: 20
-  price-spread-percent: 15
+  price-levels: 5
+  price-spread-percent: 10
 
 logging:
   level:

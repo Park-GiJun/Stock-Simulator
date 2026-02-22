@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getNewsList, getNewsById } from '$lib/api/newsApi.js';
+	import { getNewsList } from '$lib/api/newsApi.js';
 	import {
 		EVENT_LEVEL_NAMES,
 		SENTIMENT_NAMES,
@@ -120,15 +120,11 @@
 		return Math.min((intensity / 2.0) * 100, 100);
 	}
 
-	async function openNewsDetail(newsId: string) {
-		try {
-			const res = await getNewsById(newsId);
-			if (res.success && res.data) {
-				selectedNews = res.data;
-				showModal = true;
-			}
-		} catch (e) {
-			console.error('Failed to fetch news detail:', e);
+	function openNewsDetail(newsId: string) {
+		const found = allNews.find((n) => n.newsId === newsId);
+		if (found) {
+			selectedNews = found;
+			showModal = true;
 		}
 	}
 
@@ -353,8 +349,6 @@
 			</div>
 
 			<h2 class="news-modal-headline">{selectedNews.headline}</h2>
-
-			<p class="news-modal-body">{selectedNews.content}</p>
 
 			<div class="news-impact-bar" style="margin-bottom: var(--spacing-md)">
 				<span class="news-impact-label">
