@@ -40,6 +40,12 @@ interface StockServiceFeignClient {
         @RequestParam maxCount: Int
     ): ApiResponse<List<InstitutionProfileResponse>>
 
+    @GetMapping("/api/investors/npcs/all")
+    fun getAllNpcs(): ApiResponse<List<NpcProfileResponse>>
+
+    @GetMapping("/api/investors/institutions/all")
+    fun getAllInstitutions(): ApiResponse<List<InstitutionProfileResponse>>
+
     @GetMapping("/api/stocks")
     fun getStocks(
         @RequestParam(required = false) page: Int? = 0,

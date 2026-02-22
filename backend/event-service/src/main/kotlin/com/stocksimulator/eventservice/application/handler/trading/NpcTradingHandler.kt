@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import kotlin.random.Random
 
 @Service
 class NpcTradingHandler(
@@ -20,27 +21,43 @@ class NpcTradingHandler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun handleNpcTrading(tradingFrequency: String, maxBatchSize: Int) {
-        log.info("NPC 자동매매 처리 시작: frequency={}, maxBatchSize={}", tradingFrequency, maxBatchSize)
+    companion object {
+        private val TRADING_PROBABILITY = mapOf(
+            "HIGH" to 0.60,
+            "MEDIUM" to 0.30,
+            "LOW" to 0.15
+        )
+    }
 
-        val npcs = investorProfileQueryPort.getNpcsByFrequency(tradingFrequency, maxBatchSize)
+    suspend fun handleNpcTrading() {
+        log.info("NPC 자동매매 처리 시작 (전체 대상)")
+
+        val npcs = investorProfileQueryPort.getAllNpcs()
         if (npcs.isEmpty()) {
-            log.info("해당 빈도의 NPC 없음: frequency={}", tradingFrequency)
+            log.info("등록된 NPC 없음")
             return
         }
 
-        log.info("NPC {}명 매매 처리 시작: frequency={}", npcs.size, tradingFrequency)
+        var executedCount = 0
+        var skippedCount = 0
 
         for (npc in npcs) {
+            val probability = TRADING_PROBABILITY[npc.tradingFrequency] ?: 0.15
+            if (Random.nextDouble() > probability) {
+                skippedCount++
+                continue
+            }
+
             try {
                 processNpcTrading(npc)
+                executedCount++
             } catch (e: Exception) {
                 log.error("NPC 매매 처리 실패: npcId={}, name={}, error={}",
                     npc.npcId, npc.npcName, e.message, e)
             }
         }
 
-        log.info("NPC 자동매매 처리 완료: frequency={}, 처리수={}", tradingFrequency, npcs.size)
+        log.info("NPC 자동매매 처리 완료: 전체={}, 실행={}, 스킵={}", npcs.size, executedCount, skippedCount)
     }
 
     private suspend fun processNpcTrading(npc: NpcProfileDto) {

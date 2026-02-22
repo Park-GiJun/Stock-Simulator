@@ -37,4 +37,8 @@ class NpcPersistenceAdapter(
     override fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<NpcModel> {
         return npcJpaRepository.findByTradingFrequency(frequency, pageable).map { it.toDomain() }
     }
+
+    override fun findAllList(): List<NpcModel> {
+        return npcJpaRepository.findAll().map { it.toDomain() }
+    }
 }

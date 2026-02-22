@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import kotlin.random.Random
 
 @Service
 class InstitutionTradingHandler(
@@ -20,27 +21,43 @@ class InstitutionTradingHandler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun handleInstitutionTrading(tradingFrequency: String, maxBatchSize: Int) {
-        log.info("기관투자자 자동매매 처리 시작: frequency={}, maxBatchSize={}", tradingFrequency, maxBatchSize)
+    companion object {
+        private val TRADING_PROBABILITY = mapOf(
+            "HIGH" to 0.60,
+            "MEDIUM" to 0.30,
+            "LOW" to 0.15
+        )
+    }
 
-        val institutions = investorProfileQueryPort.getInstitutionsByFrequency(tradingFrequency, maxBatchSize)
+    suspend fun handleInstitutionTrading() {
+        log.info("기관투자자 자동매매 처리 시작 (전체 대상)")
+
+        val institutions = investorProfileQueryPort.getAllInstitutions()
         if (institutions.isEmpty()) {
-            log.info("해당 빈도의 기관투자자 없음: frequency={}", tradingFrequency)
+            log.info("등록된 기관투자자 없음")
             return
         }
 
-        log.info("기관투자자 {}곳 매매 처리 시작: frequency={}", institutions.size, tradingFrequency)
+        var executedCount = 0
+        var skippedCount = 0
 
         for (institution in institutions) {
+            val probability = TRADING_PROBABILITY[institution.tradingFrequency] ?: 0.15
+            if (Random.nextDouble() > probability) {
+                skippedCount++
+                continue
+            }
+
             try {
                 processInstitutionTrading(institution)
+                executedCount++
             } catch (e: Exception) {
                 log.error("기관투자자 매매 처리 실패: institutionId={}, name={}, error={}",
                     institution.institutionId, institution.institutionName, e.message, e)
             }
         }
 
-        log.info("기관투자자 자동매매 처리 완료: frequency={}, 처리수={}", tradingFrequency, institutions.size)
+        log.info("기관투자자 자동매매 처리 완료: 전체={}, 실행={}, 스킵={}", institutions.size, executedCount, skippedCount)
     }
 
     private suspend fun processInstitutionTrading(institution: InstitutionProfileDto) {

@@ -33,4 +33,8 @@ class InstitutionPersistenceAdapter(
     override fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<InstitutionModel> {
         return institutionJpaRepository.findByTradingFrequency(frequency, pageable).map { it.toDomain() }
     }
+
+    override fun findAllList(): List<InstitutionModel> {
+        return institutionJpaRepository.findAll().map { it.toDomain() }
+    }
 }

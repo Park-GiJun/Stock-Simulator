@@ -12,4 +12,5 @@ interface NpcPersistencePort {
     fun findAll(pageable: Pageable): Page<NpcModel>
     fun findAllNames(): List<String>
     fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<NpcModel>
+    fun findAllList(): List<NpcModel>
 }

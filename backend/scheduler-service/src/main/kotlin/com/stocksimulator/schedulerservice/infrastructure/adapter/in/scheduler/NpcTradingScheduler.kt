@@ -7,9 +7,8 @@ import org.springframework.stereotype.Component
 
 /**
  * NPC 자동매매 트리거 스케줄러 (Inbound Adapter)
- * - HIGH: 5분마다 (공격형)
- * - MEDIUM: 15분마다 (가치투자형)
- * - LOW: 30분마다 (안정형)
+ * - 5분마다 전체 NPC 대상 매매 트리거 발행
+ * - 개별 NPC의 tradingFrequency 기반 확률 판정은 event-service에서 수행
  */
 @Component
 class NpcTradingScheduler(
@@ -18,20 +17,8 @@ class NpcTradingScheduler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(fixedRate = 300_000)
-    fun triggerHighFrequencyTrading() {
-        log.info("NPC 자동매매 트리거 실행 - 빈도: HIGH")
-        triggerPublishPort.publishNpcTradingTrigger("HIGH", 5)
-    }
-
-    @Scheduled(fixedRate = 900_000)
-    fun triggerMediumFrequencyTrading() {
-        log.info("NPC 자동매매 트리거 실행 - 빈도: MEDIUM")
-        triggerPublishPort.publishNpcTradingTrigger("MEDIUM", 5)
-    }
-
-    @Scheduled(fixedRate = 1_800_000)
-    fun triggerLowFrequencyTrading() {
-        log.info("NPC 자동매매 트리거 실행 - 빈도: LOW")
-        triggerPublishPort.publishNpcTradingTrigger("LOW", 5)
+    fun triggerNpcTrading() {
+        log.info("NPC 자동매매 트리거 실행")
+        triggerPublishPort.publishNpcTradingTrigger()
     }
 }

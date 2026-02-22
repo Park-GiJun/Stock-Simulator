@@ -11,4 +11,5 @@ interface InstitutionPersistencePort {
     fun existsByName(name: String): Boolean
     fun findAll(pageable: Pageable): Page<InstitutionModel>
     fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<InstitutionModel>
+    fun findAllList(): List<InstitutionModel>
 }

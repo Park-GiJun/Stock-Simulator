@@ -5,6 +5,7 @@ import com.stocksimulator.stockservice.application.dto.command.npc.CreateNpcComm
 import com.stocksimulator.stockservice.application.port.`in`.npc.CreateNpcUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcNamesUseCase
+import com.stocksimulator.stockservice.application.port.`in`.npc.GetAllNpcsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcsByFrequencyUseCase
 import com.stocksimulator.stockservice.application.port.out.InvestorBalanceEventPublishPort
 import com.stocksimulator.stockservice.application.port.out.npc.NpcPersistencePort
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class NpcCommandHandler(
     private val npcPersistencePort: NpcPersistencePort,
     private val investorBalanceEventPublishPort: InvestorBalanceEventPublishPort
-) : CreateNpcUseCase, GetNpcListUseCase, GetNpcNamesUseCase, GetNpcsByFrequencyUseCase {
+) : CreateNpcUseCase, GetNpcListUseCase, GetNpcNamesUseCase, GetNpcsByFrequencyUseCase, GetAllNpcsUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -59,5 +60,10 @@ class NpcCommandHandler(
     override fun getNpcsByFrequency(frequency: String, maxCount: Int): List<NpcModel> {
         val tradingFrequency = TradingFrequency.valueOf(frequency)
         return npcPersistencePort.findByTradingFrequency(tradingFrequency, PageRequest.of(0, maxCount)).content
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllNpcs(): List<NpcModel> {
+        return npcPersistencePort.findAllList()
     }
 }

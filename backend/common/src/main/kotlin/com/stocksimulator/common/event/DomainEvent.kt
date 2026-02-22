@@ -322,16 +322,12 @@ data class NewsGenerationTriggerEvent(
 // ===== Trading Trigger Events =====
 
 data class NpcTradingTriggerEvent(
-    val tradingFrequency: String,
-    val maxBatchSize: Int,
     val triggeredAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "TRIGGER_NPC_TRADING"
 }
 
 data class InstitutionTradingTriggerEvent(
-    val tradingFrequency: String,
-    val maxBatchSize: Int,
     val triggeredAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "TRIGGER_INSTITUTION_TRADING"

@@ -17,10 +17,10 @@ class InstitutionTradingTriggerConsumer(
 
     @KafkaListener(topics = [KafkaTopics.TRIGGER_INSTITUTION_TRADING], groupId = "event-service")
     fun handleInstitutionTradingTrigger(event: InstitutionTradingTriggerEvent, ack: Acknowledgment) {
-        log.info("기관투자자 자동매매 트리거 수신 - frequency: {}, maxBatchSize: {}", event.tradingFrequency, event.maxBatchSize)
+        log.info("기관투자자 자동매매 트리거 수신: eventId={}", event.eventId)
         try {
             runBlocking {
-                institutionTradingHandler.handleInstitutionTrading(event.tradingFrequency, event.maxBatchSize)
+                institutionTradingHandler.handleInstitutionTrading()
             }
             ack.acknowledge()
         } catch (e: Exception) {

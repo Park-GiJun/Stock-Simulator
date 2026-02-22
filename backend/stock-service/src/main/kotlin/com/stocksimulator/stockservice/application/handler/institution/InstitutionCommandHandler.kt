@@ -5,6 +5,7 @@ import com.stocksimulator.stockservice.application.dto.command.institution.Creat
 import com.stocksimulator.stockservice.application.port.`in`.institution.CheckInstitutionExistsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.CreateInstitutionUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionListUseCase
+import com.stocksimulator.stockservice.application.port.`in`.institution.GetAllInstitutionsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionsByFrequencyUseCase
 import com.stocksimulator.stockservice.application.port.out.InvestorBalanceEventPublishPort
 import com.stocksimulator.stockservice.application.port.out.institution.InstitutionPersistencePort
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class InstitutionCommandHandler(
     private val institutionPersistencePort: InstitutionPersistencePort,
     private val investorBalanceEventPublishPort: InvestorBalanceEventPublishPort
-) : CreateInstitutionUseCase, GetInstitutionListUseCase, CheckInstitutionExistsUseCase, GetInstitutionsByFrequencyUseCase {
+) : CreateInstitutionUseCase, GetInstitutionListUseCase, CheckInstitutionExistsUseCase, GetInstitutionsByFrequencyUseCase, GetAllInstitutionsUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -65,5 +66,10 @@ class InstitutionCommandHandler(
     override fun getInstitutionsByFrequency(frequency: String, maxCount: Int): List<InstitutionModel> {
         val tradingFrequency = TradingFrequency.valueOf(frequency)
         return institutionPersistencePort.findByTradingFrequency(tradingFrequency, PageRequest.of(0, maxCount)).content
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAllInstitutions(): List<InstitutionModel> {
+        return institutionPersistencePort.findAllList()
     }
 }

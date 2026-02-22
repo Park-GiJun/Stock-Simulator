@@ -6,8 +6,10 @@ import com.stocksimulator.common.dto.toResponseEntity
 import com.stocksimulator.stockservice.application.dto.result.institution.InstitutionResult
 import com.stocksimulator.stockservice.application.dto.result.npc.NpcResult
 import com.stocksimulator.stockservice.application.port.`in`.institution.CheckInstitutionExistsUseCase
+import com.stocksimulator.stockservice.application.port.`in`.institution.GetAllInstitutionsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionsByFrequencyUseCase
+import com.stocksimulator.stockservice.application.port.`in`.npc.GetAllNpcsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcNamesUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcsByFrequencyUseCase
@@ -28,7 +30,9 @@ class InvestorWebAdapter(
     private val getNpcNamesUseCase: GetNpcNamesUseCase,
     private val checkInstitutionExistsUseCase: CheckInstitutionExistsUseCase,
     private val getNpcsByFrequencyUseCase: GetNpcsByFrequencyUseCase,
-    private val getInstitutionsByFrequencyUseCase: GetInstitutionsByFrequencyUseCase
+    private val getInstitutionsByFrequencyUseCase: GetInstitutionsByFrequencyUseCase,
+    private val getAllNpcsUseCase: GetAllNpcsUseCase,
+    private val getAllInstitutionsUseCase: GetAllInstitutionsUseCase
 ) {
 
     @GetMapping("/institutions")
@@ -100,6 +104,22 @@ class InvestorWebAdapter(
     ): Mono<ResponseEntity<ApiResponse<List<NpcResult>>>> = mono {
         val npcs = getNpcsByFrequencyUseCase.getNpcsByFrequency(frequency, maxCount)
         val results = npcs.map { NpcResult.from(it) }
+        ApiResponse.success(results).toResponseEntity()
+    }
+
+    @GetMapping("/npcs/all")
+    @Operation(summary = "전체 NPC 조회", description = "모든 NPC 목록을 조회 (자동매매용)")
+    fun getAllNpcs(): Mono<ResponseEntity<ApiResponse<List<NpcResult>>>> = mono {
+        val npcs = getAllNpcsUseCase.getAllNpcs()
+        val results = npcs.map { NpcResult.from(it) }
+        ApiResponse.success(results).toResponseEntity()
+    }
+
+    @GetMapping("/institutions/all")
+    @Operation(summary = "전체 기관투자자 조회", description = "모든 기관투자자 목록을 조회 (자동매매용)")
+    fun getAllInstitutions(): Mono<ResponseEntity<ApiResponse<List<InstitutionResult>>>> = mono {
+        val institutions = getAllInstitutionsUseCase.getAllInstitutions()
+        val results = institutions.map { InstitutionResult.from(it) }
         ApiResponse.success(results).toResponseEntity()
     }
 }

@@ -3,6 +3,8 @@ package com.stocksimulator.eventservice.application.port.out.trading
 interface InvestorProfileQueryPort {
     fun getNpcsByFrequency(frequency: String, maxCount: Int): List<NpcProfileDto>
     fun getInstitutionsByFrequency(frequency: String, maxCount: Int): List<InstitutionProfileDto>
+    fun getAllNpcs(): List<NpcProfileDto>
+    fun getAllInstitutions(): List<InstitutionProfileDto>
 }
 
 data class NpcProfileDto(

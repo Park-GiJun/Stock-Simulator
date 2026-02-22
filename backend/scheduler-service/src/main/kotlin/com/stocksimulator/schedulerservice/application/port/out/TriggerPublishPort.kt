@@ -6,6 +6,6 @@ interface TriggerPublishPort {
     fun publishNpcCreationTrigger(count: Int)
     fun publishInstitutionCreationTrigger()
     fun publishNewsGenerationTrigger(level: String)
-    fun publishNpcTradingTrigger(tradingFrequency: String, maxBatchSize: Int)
-    fun publishInstitutionTradingTrigger(tradingFrequency: String, maxBatchSize: Int)
+    fun publishNpcTradingTrigger()
+    fun publishInstitutionTradingTrigger()
 }

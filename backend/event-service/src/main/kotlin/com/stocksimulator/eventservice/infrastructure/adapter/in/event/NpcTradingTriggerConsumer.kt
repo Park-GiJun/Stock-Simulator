@@ -17,10 +17,10 @@ class NpcTradingTriggerConsumer(
 
     @KafkaListener(topics = [KafkaTopics.TRIGGER_NPC_TRADING], groupId = "event-service")
     fun handleNpcTradingTrigger(event: NpcTradingTriggerEvent, ack: Acknowledgment) {
-        log.info("NPC 자동매매 트리거 수신 - frequency: {}, maxBatchSize: {}", event.tradingFrequency, event.maxBatchSize)
+        log.info("NPC 자동매매 트리거 수신: eventId={}", event.eventId)
         try {
             runBlocking {
-                npcTradingHandler.handleNpcTrading(event.tradingFrequency, event.maxBatchSize)
+                npcTradingHandler.handleNpcTrading()
             }
             ack.acknowledge()
         } catch (e: Exception) {
