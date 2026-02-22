@@ -103,5 +103,6 @@ enum class InstitutionType(val displayName: String) {
 enum class TradingInvestorType(val displayName: String) {
     USER("사용자"),
     NPC("개인투자자"),
-    INSTITUTION("기관투자자")
+    INSTITUTION("기관투자자"),
+    MARKET_MAKER("관리기관")
 }

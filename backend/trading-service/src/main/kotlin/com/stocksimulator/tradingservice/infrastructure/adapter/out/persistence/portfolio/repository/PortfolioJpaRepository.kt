@@ -10,5 +10,10 @@ interface PortfolioJpaRepository : JpaRepository<PortfolioJpaEntity, Long> {
         stockId: String
     ): PortfolioJpaEntity?
 
+    fun findByInvestorIdAndInvestorType(
+        investorId: String,
+        investorType: String
+    ): List<PortfolioJpaEntity>
+
     fun findByStockId(stockId: String): List<PortfolioJpaEntity>
 }

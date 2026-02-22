@@ -1,5 +1,6 @@
 package com.stocksimulator.tradingservice.infrastructure.adapter.out.persistence.portfolio.adapter
 
+import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.tradingservice.application.port.out.portfolio.PortfolioPersistencePort
 import com.stocksimulator.tradingservice.domain.model.PortfolioModel
 import com.stocksimulator.tradingservice.infrastructure.adapter.out.persistence.portfolio.entity.PortfolioJpaEntity
@@ -22,11 +23,20 @@ class PortfolioPersistenceAdapter(
 
     override fun findByInvestorAndStock(
         investorId: String,
-        investorType: String,
+        investorType: TradingInvestorType,
         stockId: String
     ): PortfolioModel? {
         return portfolioJpaRepository.findByInvestorIdAndInvestorTypeAndStockId(
-            investorId, investorType, stockId
+            investorId, investorType.name, stockId
         )?.toDomain()
+    }
+
+    override fun findByInvestor(
+        investorId: String,
+        investorType: TradingInvestorType
+    ): List<PortfolioModel> {
+        return portfolioJpaRepository.findByInvestorIdAndInvestorType(
+            investorId, investorType.name
+        ).map { it.toDomain() }
     }
 }

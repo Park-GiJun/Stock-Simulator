@@ -2,6 +2,7 @@ package com.stocksimulator.tradingservice.application.handler.order
 
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderType
+import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.common.event.StockListedEvent
 import com.stocksimulator.common.util.PriceUtil
 import com.stocksimulator.tradingservice.application.port.`in`.order.SeedIpoOrderBookUseCase
@@ -41,7 +42,7 @@ class IpoDistributionHandler(
         // 1. 관리기관(Market Maker) 포트폴리오 생성 - 전체 주식 보유
         val marketMakerPortfolio = PortfolioModel(
             investorId = SystemConstants.SYSTEM_MARKET_MAKER_ID,
-            investorType = "MARKET_MAKER",
+            investorType = TradingInvestorType.MARKET_MAKER,
             stockId = stockId,
             quantity = totalShares,
             averagePrice = basePrice,
@@ -101,7 +102,7 @@ class IpoDistributionHandler(
                     orderKind = OrderKind.LIMIT,
                     price = price,
                     quantity = orderShares,
-                    investorType = "MARKET_MAKER"
+                    investorType = TradingInvestorType.MARKET_MAKER
                 )
                 allOrders.add(order)
 

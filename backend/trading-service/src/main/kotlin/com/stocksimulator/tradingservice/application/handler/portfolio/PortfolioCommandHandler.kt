@@ -7,7 +7,7 @@ import com.stocksimulator.tradingservice.application.port.out.trade.TradePersist
 import com.stocksimulator.tradingservice.domain.model.InvestorBalanceModel
 import com.stocksimulator.tradingservice.domain.model.PortfolioModel
 import com.stocksimulator.tradingservice.domain.model.TradeModel
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -20,7 +20,7 @@ class PortfolioCommandHandler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun settleMatches(
-        matches: List<MatchResult>,
+        matches: List<MatchResultVo>,
         buyerType: TradingInvestorType,
         sellerTypes: Map<String, TradingInvestorType>
     ) {

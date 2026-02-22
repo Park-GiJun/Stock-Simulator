@@ -3,6 +3,7 @@ package com.stocksimulator.tradingservice.domain.model
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderStatus
 import com.stocksimulator.common.dto.OrderType
+import com.stocksimulator.common.dto.TradingInvestorType
 import java.time.Instant
 import java.util.UUID
 
@@ -16,7 +17,7 @@ data class OrderModel(
     val quantity: Long,
     val filledQuantity: Long,
     val status: OrderStatus,
-    val investorType: String = "USER",
+    val investorType: TradingInvestorType = TradingInvestorType.USER,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 ) {
@@ -70,7 +71,7 @@ data class OrderModel(
             orderKind: OrderKind,
             price: Long?,
             quantity: Long,
-            investorType: String = "USER"
+            investorType: TradingInvestorType = TradingInvestorType.USER
         ): OrderModel {
             return OrderModel(
                 orderId = UUID.randomUUID().toString(),
@@ -96,7 +97,7 @@ data class OrderModel(
             quantity: Long,
             filledQuantity: Long,
             status: OrderStatus,
-            investorType: String = "USER",
+            investorType: TradingInvestorType = TradingInvestorType.USER,
             createdAt: Instant,
             updatedAt: Instant = Instant.now()
         ): OrderModel {

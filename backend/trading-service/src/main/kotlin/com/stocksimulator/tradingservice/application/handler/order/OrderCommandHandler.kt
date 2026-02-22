@@ -140,7 +140,7 @@ class OrderCommandHandler(
         }
     }
 
-    private fun resolveSellerTypes(matches: List<MatchResult>): Map<String, TradingInvestorType> {
+    private fun resolveSellerTypes(matches: List<MatchResultVo>): Map<String, TradingInvestorType> {
         val sellerTypes = mutableMapOf<String, TradingInvestorType>()
         for (match in matches) {
             if (!sellerTypes.containsKey(match.sellUserId)) {

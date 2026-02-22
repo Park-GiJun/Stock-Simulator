@@ -1,5 +1,6 @@
 package com.stocksimulator.tradingservice.infrastructure.adapter.out.persistence.portfolio.entity
 
+import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.tradingservice.domain.model.PortfolioModel
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -52,7 +53,7 @@ class PortfolioJpaEntity(
     fun toDomain(): PortfolioModel = PortfolioModel(
         id = id,
         investorId = investorId,
-        investorType = investorType,
+        investorType = TradingInvestorType.valueOf(investorType),
         stockId = stockId,
         quantity = quantity,
         averagePrice = averagePrice,
@@ -65,7 +66,7 @@ class PortfolioJpaEntity(
         fun fromDomain(domain: PortfolioModel): PortfolioJpaEntity = PortfolioJpaEntity(
             id = domain.id,
             investorId = domain.investorId,
-            investorType = domain.investorType,
+            investorType = domain.investorType.name,
             stockId = domain.stockId,
             quantity = domain.quantity,
             averagePrice = domain.averagePrice,
