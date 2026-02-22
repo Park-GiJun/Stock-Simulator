@@ -1,4 +1,4 @@
-// Game Time Store
+// Game Time Store - 24시간 연속 운영
 
 import { writable, derived } from 'svelte/store';
 
@@ -10,8 +10,6 @@ export interface GameTimeState {
 }
 
 const SPEED_MULTIPLIER = 4;
-const MARKET_OPEN_HOUR = 9;
-const MARKET_CLOSE_HOUR = 21;
 
 function createGameTimeStore() {
 	// Start with current real time
@@ -21,7 +19,7 @@ function createGameTimeStore() {
 	const initialState: GameTimeState = {
 		gameTime,
 		realTime: now,
-		isMarketOpen: false,
+		isMarketOpen: true,
 		speedMultiplier: SPEED_MULTIPLIER
 	};
 
@@ -42,15 +40,12 @@ function createGameTimeStore() {
 					const gameElapsed = realElapsed * state.speedMultiplier;
 
 					const newGameTime = new Date(state.gameTime.getTime() + gameElapsed);
-					const gameHour = newGameTime.getHours();
-					const isMarketOpen =
-						gameHour >= MARKET_OPEN_HOUR && gameHour < MARKET_CLOSE_HOUR;
 
 					return {
 						...state,
 						gameTime: newGameTime,
 						realTime: realNow,
-						isMarketOpen
+						isMarketOpen: true
 					};
 				});
 			}, 1000);
@@ -64,18 +59,12 @@ function createGameTimeStore() {
 		},
 
 		setGameTime: (date: Date) => {
-			update((state) => {
-				const gameHour = date.getHours();
-				const isMarketOpen =
-					gameHour >= MARKET_OPEN_HOUR && gameHour < MARKET_CLOSE_HOUR;
-
-				return {
-					...state,
-					gameTime: date,
-					realTime: new Date(),
-					isMarketOpen
-				};
-			});
+			update((state) => ({
+				...state,
+				gameTime: date,
+				realTime: new Date(),
+				isMarketOpen: true
+			}));
 		},
 
 		reset: () => {
@@ -83,7 +72,7 @@ function createGameTimeStore() {
 			set({
 				gameTime: now,
 				realTime: now,
-				isMarketOpen: false,
+				isMarketOpen: true,
 				speedMultiplier: SPEED_MULTIPLIER
 			});
 		}

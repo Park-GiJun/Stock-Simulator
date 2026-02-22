@@ -11,28 +11,21 @@ import java.time.ZoneId
  * 현실 시간:게임 시간 = 1:4
  * - 현실 15분 = 게임 1시간
  * - 현실 1시간 = 게임 4시간
- * - 현실 3시간 = 게임 12시간 (장 마감)
  * - 현실 6시간 = 게임 1일
+ *
+ * 24시간 연속 운영 (장 시작/마감 없음)
  */
 object GameTimeUtil {
 
     // 가속 배율 (현실 1분 = 게임 4분)
     const val TIME_SCALE = 4
 
-    // 게임 장 시간 (게임 시간 기준)
-    const val MARKET_OPEN_HOUR = 9   // 09:00
-    const val MARKET_CLOSE_HOUR = 21 // 21:00
-    const val MARKET_HOURS = 12
-
-    // 현실 시간으로 장 운영 시간 (3시간)
-    val REAL_MARKET_DURATION: Duration = Duration.ofHours(3)
-
     // 시즌 시작 기준 시간 (서버 시작 또는 시즌 시작 시 설정)
     @Volatile
     private var seasonStartRealTime: Instant = Instant.now()
 
     @Volatile
-    private var seasonStartGameTime: LocalDateTime = LocalDateTime.of(2025, 1, 1, MARKET_OPEN_HOUR, 0)
+    private var seasonStartGameTime: LocalDateTime = LocalDateTime.of(2025, 1, 1, 0, 0)
 
     /**
      * 시즌 시작 시간 설정
@@ -52,13 +45,9 @@ object GameTimeUtil {
     }
 
     /**
-     * 현재 장이 열려있는지 확인
+     * 장은 항상 열려있음 (24시간 운영)
      */
-    fun isMarketOpen(): Boolean {
-        val gameTime = getCurrentGameTime()
-        val hour = gameTime.hour
-        return hour in MARKET_OPEN_HOUR until MARKET_CLOSE_HOUR
-    }
+    fun isMarketOpen(): Boolean = true
 
     /**
      * 현실 시간 → 게임 시간 변환
@@ -85,34 +74,12 @@ object GameTimeUtil {
     fun getGameWeekInRealHours(): Long = 42L // 현실 42시간 = 게임 1주일
 
     /**
-     * 다음 장 시작까지 남은 현실 시간
+     * 24시간 운영이므로 항상 ZERO
      */
-    fun getTimeUntilMarketOpen(): Duration {
-        if (isMarketOpen()) return Duration.ZERO
-
-        val gameTime = getCurrentGameTime()
-        val hour = gameTime.hour
-
-        val hoursUntilOpen = if (hour >= MARKET_CLOSE_HOUR) {
-            // 장 마감 후: 다음날 09:00까지
-            24 - hour + MARKET_OPEN_HOUR
-        } else {
-            // 장 시작 전: 당일 09:00까지
-            MARKET_OPEN_HOUR - hour
-        }
-
-        val gameMinutesUntilOpen = hoursUntilOpen * 60L - gameTime.minute
-        return Duration.ofMinutes(gameMinutesUntilOpen / TIME_SCALE)
-    }
+    fun getTimeUntilMarketOpen(): Duration = Duration.ZERO
 
     /**
-     * 장 마감까지 남은 현실 시간
+     * 24시간 운영이므로 장 마감 없음
      */
-    fun getTimeUntilMarketClose(): Duration {
-        if (!isMarketOpen()) return Duration.ZERO
-
-        val gameTime = getCurrentGameTime()
-        val gameMinutesUntilClose = (MARKET_CLOSE_HOUR - gameTime.hour) * 60L - gameTime.minute
-        return Duration.ofMinutes(gameMinutesUntilClose / TIME_SCALE)
-    }
+    fun getTimeUntilMarketClose(): Duration = Duration.ZERO
 }
