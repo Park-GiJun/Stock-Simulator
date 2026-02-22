@@ -54,6 +54,7 @@ object KafkaTopics {
     const val INVESTOR_CREATED = "investor.created"
     const val NPC_CREATED = "npc.created"
     const val INSTITUTION_CREATED = "institution.created"
+    const val INVESTOR_BALANCE_INIT = "investor.balance.init"
 
     // Scheduler Trigger 관련
     const val TRIGGER_STOCK_LISTING = "trigger.stock.listing"
@@ -61,6 +62,8 @@ object KafkaTopics {
     const val TRIGGER_NPC_CREATION = "trigger.npc.creation"
     const val TRIGGER_INSTITUTION_CREATION = "trigger.institution.creation"
     const val TRIGGER_NEWS_GENERATION = "trigger.news.generation"
+    const val TRIGGER_NPC_TRADING = "trigger.npc.trading"
+    const val TRIGGER_INSTITUTION_TRADING = "trigger.institution.trading"
 }
 
 // ===== Trading Events =====
@@ -314,4 +317,32 @@ data class NewsGenerationTriggerEvent(
     val triggeredAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "TRIGGER_NEWS_GENERATION"
+}
+
+// ===== Trading Trigger Events =====
+
+data class NpcTradingTriggerEvent(
+    val tradingFrequency: String,
+    val maxBatchSize: Int,
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_NPC_TRADING"
+}
+
+data class InstitutionTradingTriggerEvent(
+    val tradingFrequency: String,
+    val maxBatchSize: Int,
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_INSTITUTION_TRADING"
+}
+
+// ===== Investor Balance Events =====
+
+data class InvestorBalanceInitEvent(
+    val investorId: String,
+    val investorType: String,
+    val initialCash: Long
+) : DomainEvent() {
+    override val eventType: String = "INVESTOR_BALANCE_INIT"
 }

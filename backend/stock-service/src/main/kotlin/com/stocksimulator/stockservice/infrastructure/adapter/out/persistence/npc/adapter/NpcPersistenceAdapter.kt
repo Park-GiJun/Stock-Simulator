@@ -1,5 +1,6 @@
 package com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.npc.adapter
 
+import com.stocksimulator.common.dto.TradingFrequency
 import com.stocksimulator.stockservice.application.port.out.npc.NpcPersistencePort
 import com.stocksimulator.stockservice.domain.model.NpcModel
 import com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.npc.entity.NpcJpaEntity
@@ -31,5 +32,9 @@ class NpcPersistenceAdapter(
 
     override fun findAllNames(): List<String> {
         return npcJpaRepository.findAllNpcNames()
+    }
+
+    override fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<NpcModel> {
+        return npcJpaRepository.findByTradingFrequency(frequency, pageable).map { it.toDomain() }
     }
 }

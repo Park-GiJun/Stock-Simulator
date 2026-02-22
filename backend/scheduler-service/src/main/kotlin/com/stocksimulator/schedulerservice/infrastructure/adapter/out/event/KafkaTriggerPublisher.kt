@@ -42,4 +42,16 @@ class KafkaTriggerPublisher(
         log.info("뉴스 생성 트리거 이벤트 발행: level={}, eventId={}", level, event.eventId)
         kafkaTemplate.send(KafkaTopics.TRIGGER_NEWS_GENERATION, event.eventId, event)
     }
+
+    override fun publishNpcTradingTrigger(tradingFrequency: String, maxBatchSize: Int) {
+        val event = NpcTradingTriggerEvent(tradingFrequency = tradingFrequency, maxBatchSize = maxBatchSize)
+        log.info("NPC 자동매매 트리거 이벤트 발행: frequency={}, maxBatchSize={}, eventId={}", tradingFrequency, maxBatchSize, event.eventId)
+        kafkaTemplate.send(KafkaTopics.TRIGGER_NPC_TRADING, event.eventId, event)
+    }
+
+    override fun publishInstitutionTradingTrigger(tradingFrequency: String, maxBatchSize: Int) {
+        val event = InstitutionTradingTriggerEvent(tradingFrequency = tradingFrequency, maxBatchSize = maxBatchSize)
+        log.info("기관 자동매매 트리거 이벤트 발행: frequency={}, maxBatchSize={}, eventId={}", tradingFrequency, maxBatchSize, event.eventId)
+        kafkaTemplate.send(KafkaTopics.TRIGGER_INSTITUTION_TRADING, event.eventId, event)
+    }
 }

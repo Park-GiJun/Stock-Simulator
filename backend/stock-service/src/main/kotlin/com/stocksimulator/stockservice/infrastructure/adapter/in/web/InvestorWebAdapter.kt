@@ -7,8 +7,10 @@ import com.stocksimulator.stockservice.application.dto.result.institution.Instit
 import com.stocksimulator.stockservice.application.dto.result.npc.NpcResult
 import com.stocksimulator.stockservice.application.port.`in`.institution.CheckInstitutionExistsUseCase
 import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionListUseCase
+import com.stocksimulator.stockservice.application.port.`in`.institution.GetInstitutionsByFrequencyUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcNamesUseCase
+import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcsByFrequencyUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,7 +26,9 @@ class InvestorWebAdapter(
     private val getInstitutionListUseCase: GetInstitutionListUseCase,
     private val getNpcListUseCase: GetNpcListUseCase,
     private val getNpcNamesUseCase: GetNpcNamesUseCase,
-    private val checkInstitutionExistsUseCase: CheckInstitutionExistsUseCase
+    private val checkInstitutionExistsUseCase: CheckInstitutionExistsUseCase,
+    private val getNpcsByFrequencyUseCase: GetNpcsByFrequencyUseCase,
+    private val getInstitutionsByFrequencyUseCase: GetInstitutionsByFrequencyUseCase
 ) {
 
     @GetMapping("/institutions")
@@ -53,6 +57,17 @@ class InvestorWebAdapter(
         ApiResponse.success(exists).toResponseEntity()
     }
 
+    @GetMapping("/institutions/by-frequency")
+    @Operation(summary = "빈도별 기관투자자 조회", description = "거래 빈도별 기관투자자 목록 조회")
+    fun getInstitutionsByFrequency(
+        @Parameter(description = "거래 빈도 (HIGH, MEDIUM, LOW)") @RequestParam frequency: String,
+        @Parameter(description = "최대 조회 수") @RequestParam(defaultValue = "3") maxCount: Int
+    ): Mono<ResponseEntity<ApiResponse<List<InstitutionResult>>>> = mono {
+        val institutions = getInstitutionsByFrequencyUseCase.getInstitutionsByFrequency(frequency, maxCount)
+        val results = institutions.map { InstitutionResult.from(it) }
+        ApiResponse.success(results).toResponseEntity()
+    }
+
     @GetMapping("/npcs")
     @Operation(summary = "개인 투자자(NPC) 목록 조회", description = "개인 투자자 목록을 페이지네이션으로 조회")
     fun getNpcs(
@@ -75,5 +90,16 @@ class InvestorWebAdapter(
     fun getNpcNames(): Mono<ResponseEntity<ApiResponse<List<String>>>> = mono {
         val names = getNpcNamesUseCase.getNpcNames()
         ApiResponse.success(names).toResponseEntity()
+    }
+
+    @GetMapping("/npcs/by-frequency")
+    @Operation(summary = "빈도별 NPC 조회", description = "거래 빈도별 NPC 목록 조회")
+    fun getNpcsByFrequency(
+        @Parameter(description = "거래 빈도 (HIGH, MEDIUM, LOW)") @RequestParam frequency: String,
+        @Parameter(description = "최대 조회 수") @RequestParam(defaultValue = "5") maxCount: Int
+    ): Mono<ResponseEntity<ApiResponse<List<NpcResult>>>> = mono {
+        val npcs = getNpcsByFrequencyUseCase.getNpcsByFrequency(frequency, maxCount)
+        val results = npcs.map { NpcResult.from(it) }
+        ApiResponse.success(results).toResponseEntity()
     }
 }

@@ -1,5 +1,6 @@
 package com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.institution.adapter
 
+import com.stocksimulator.common.dto.TradingFrequency
 import com.stocksimulator.stockservice.application.port.out.institution.InstitutionPersistencePort
 import com.stocksimulator.stockservice.domain.model.InstitutionModel
 import com.stocksimulator.stockservice.infrastructure.adapter.out.persistence.institution.entity.InstitutionJpaEntity
@@ -27,5 +28,9 @@ class InstitutionPersistenceAdapter(
 
     override fun findAll(pageable: Pageable): Page<InstitutionModel> {
         return institutionJpaRepository.findAll(pageable).map { it.toDomain() }
+    }
+
+    override fun findByTradingFrequency(frequency: TradingFrequency, pageable: Pageable): Page<InstitutionModel> {
+        return institutionJpaRepository.findByTradingFrequency(frequency, pageable).map { it.toDomain() }
     }
 }

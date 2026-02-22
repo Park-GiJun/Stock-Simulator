@@ -1,9 +1,12 @@
 package com.stocksimulator.stockservice.application.handler.npc
 
+import com.stocksimulator.common.dto.TradingFrequency
 import com.stocksimulator.stockservice.application.dto.command.npc.CreateNpcCommand
 import com.stocksimulator.stockservice.application.port.`in`.npc.CreateNpcUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcListUseCase
 import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcNamesUseCase
+import com.stocksimulator.stockservice.application.port.`in`.npc.GetNpcsByFrequencyUseCase
+import com.stocksimulator.stockservice.application.port.out.InvestorBalanceEventPublishPort
 import com.stocksimulator.stockservice.application.port.out.npc.NpcPersistencePort
 import com.stocksimulator.stockservice.domain.model.NpcModel
 import org.slf4j.LoggerFactory
@@ -14,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class NpcCommandHandler(
-    private val npcPersistencePort: NpcPersistencePort
-) : CreateNpcUseCase, GetNpcListUseCase, GetNpcNamesUseCase {
+    private val npcPersistencePort: NpcPersistencePort,
+    private val investorBalanceEventPublishPort: InvestorBalanceEventPublishPort
+) : CreateNpcUseCase, GetNpcListUseCase, GetNpcNamesUseCase, GetNpcsByFrequencyUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -33,6 +37,12 @@ class NpcCommandHandler(
         val saved = npcPersistencePort.save(newNpc)
         log.info("NPC created: name={}, style={}, capital={}",
             saved.npcName, saved.investmentStyle, saved.capital)
+
+        investorBalanceEventPublishPort.publishBalanceInit(
+            investorId = "NPC_${saved.npcId}",
+            investorType = "NPC",
+            initialCash = saved.capital
+        )
     }
 
     @Transactional(readOnly = true)
@@ -43,5 +53,11 @@ class NpcCommandHandler(
     @Transactional(readOnly = true)
     override fun getNpcNames(): List<String> {
         return npcPersistencePort.findAllNames()
+    }
+
+    @Transactional(readOnly = true)
+    override fun getNpcsByFrequency(frequency: String, maxCount: Int): List<NpcModel> {
+        val tradingFrequency = TradingFrequency.valueOf(frequency)
+        return npcPersistencePort.findByTradingFrequency(tradingFrequency, PageRequest.of(0, maxCount)).content
     }
 }
