@@ -26,36 +26,21 @@
 
 		// Public route가 아니면 세션 확인
 		if (!publicRoutes.includes(currentPath)) {
-			// authStore 상태 확인
-			let currentAuthState: any;
-			const unsubscribe = authStore.subscribe((state) => {
-				currentAuthState = state;
-			});
-			unsubscribe();
-
-			// 이미 authStore에 user 정보가 있으면 세션 검증 스킵
-			// (로그인 직후 또는 페이지 새로고침 시 localStorage 복원)
-			if (!currentAuthState?.user) {
-				getCurrentUser().then((response) => {
+			// 항상 서버 세션 검증 (localStorage만 믿지 않음)
+			getCurrentUser()
+				.then((response) => {
 					if (response.success && response.data) {
-						// Session 유효 -> authStore 업데이트
 						authStore.updateUser(response.data);
-						console.log('✅ Session valid, user:', response.data);
 					} else {
-						// Session 무효 -> 로그인 페이지로
 						console.warn('❌ Session invalid, redirecting to login');
 						authStore.logout();
 						goto('/login');
 					}
-				}).catch((error) => {
-					// Session 만료 또는 오류 -> 로그인 페이지로
-					console.error('❌ Session check failed:', error);
+				})
+				.catch(() => {
 					authStore.logout();
 					goto('/login');
 				});
-			} else {
-				console.log('✅ User already in authStore, skipping session check');
-			}
 		}
 
 		// Start game time

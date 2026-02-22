@@ -1,16 +1,48 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-svelte';
 	import { Card } from '$lib/components';
-	import { getTopGainers, getTopLosers, getStockListItems } from '$lib/mock/stocks.js';
+	import { getStocks } from '$lib/api/stockApi.js';
+	import { getEnrichedPortfolio } from '$lib/api/portfolioHelper.js';
 	import { getActiveNews } from '$lib/mock/news.js';
 	import { currentUser } from '$lib/stores/authStore.js';
-	import { SECTOR_NAMES } from '$lib/types/stock.js';
+	import { SECTOR_NAMES, type StockListItem } from '$lib/types/stock.js';
 	import { EVENT_LEVEL_NAMES, SENTIMENT_NAMES } from '$lib/types/news.js';
+	import type { Portfolio } from '$lib/types/user.js';
 
-	const topGainers = getTopGainers(3);
-	const topLosers = getTopLosers(3);
-	const stocks = getStockListItems().slice(0, 5);
+	let topGainers = $state<StockListItem[]>([]);
+	let topLosers = $state<StockListItem[]>([]);
+	let stocks = $state<StockListItem[]>([]);
+	let portfolio = $state<Portfolio | null>(null);
+	let loading = $state(true);
+
 	const activeNews = getActiveNews().slice(0, 3);
+
+	onMount(async () => {
+		try {
+			const [gainersRes, losersRes, stocksRes] = await Promise.all([
+				getStocks({ sortBy: 'changePercent', sortOrder: 'desc', size: 3 }),
+				getStocks({ sortBy: 'changePercent', sortOrder: 'asc', size: 3 }),
+				getStocks({ page: 0, size: 5 })
+			]);
+
+			if (gainersRes.success && gainersRes.data) topGainers = gainersRes.data.stocks;
+			if (losersRes.success && losersRes.data) topLosers = losersRes.data.stocks;
+			if (stocksRes.success && stocksRes.data) stocks = stocksRes.data.stocks;
+		} catch (e) {
+			console.error('Failed to fetch stock data:', e);
+		}
+
+		if ($currentUser) {
+			try {
+				portfolio = await getEnrichedPortfolio(String($currentUser.userId));
+			} catch (e) {
+				console.error('Failed to fetch portfolio:', e);
+			}
+		}
+
+		loading = false;
+	});
 
 	function formatPrice(price: number): string {
 		return price.toLocaleString();
@@ -31,8 +63,12 @@
 			</div>
 			<div class="mobile-user-info">
 				<div class="mobile-user-name">{$currentUser.username}</div>
-				<div class="mobile-user-capital">₩{$currentUser.capital?.toLocaleString() ?? '0'}</div>
-				<div class="mobile-user-return positive">+17.0%</div>
+				<div class="mobile-user-capital">₩{portfolio ? formatPrice(portfolio.totalAssetValue) : ($currentUser.capital?.toLocaleString() ?? '0')}</div>
+				{#if portfolio}
+					<div class="mobile-user-return" class:positive={portfolio.totalProfitLossPercent >= 0} class:negative={portfolio.totalProfitLossPercent < 0}>
+						{formatPercent(portfolio.totalProfitLossPercent)}
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -71,6 +107,9 @@
 							<span class="text-sm text-stock-up font-medium">{formatPercent(stock.changePercent)}</span>
 						</a>
 					{/each}
+					{#if topGainers.length === 0 && !loading}
+						<div class="text-secondary text-xs text-center">-</div>
+					{/if}
 				</div>
 			</Card>
 
@@ -90,6 +129,9 @@
 							<span class="text-sm text-stock-down font-medium">{formatPercent(stock.changePercent)}</span>
 						</a>
 					{/each}
+					{#if topLosers.length === 0 && !loading}
+						<div class="text-secondary text-xs text-center">-</div>
+					{/if}
 				</div>
 			</Card>
 		</div>
@@ -127,6 +169,9 @@
 					</Card>
 				</a>
 			{/each}
+			{#if stocks.length === 0 && !loading}
+				<div class="text-secondary text-sm text-center p-md">종목이 없습니다</div>
+			{/if}
 		</div>
 	</section>
 

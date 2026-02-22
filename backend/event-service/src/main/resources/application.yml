@@ -56,6 +56,10 @@ management:
     tags:
       application: ${spring.application.name}
 
+koog:
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:sk-placeholder}
+
 logging:
   level:
     com.stocksimulator: DEBUG

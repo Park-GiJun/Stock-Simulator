@@ -520,6 +520,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${POSTGRES_DB}?authSource=admin
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     networks:
       - stocksim-network
     depends_on:
@@ -551,51 +552,10 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     networks:
       - stocksim-network
     depends_on:
       eureka-server:
-        condition: service_healthy
-      postgres-primary:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-
-  # News Service
-  news-service:
-    image: ${DOCKER_REGISTRY:-ghcr.io/park-gijun/stocksim}/news-service:${IMAGE_TAG:-latest}
-    container_name: stockSimulator-news-service
-    profiles: ["services", "all"]
-    ports:
-      - "8086:8086"
-    environment:
-      - TZ=Asia/Seoul
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-primary:5432/${POSTGRES_DB}?currentSchema=news
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
-      - SPRING_DATA_MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${POSTGRES_DB}?authSource=admin
-      - SPRING_DATA_ELASTICSEARCH_URIS=http://elasticsearch:9200
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    networks:
-      - stocksim-network
-    depends_on:
-      eureka-server:
-        condition: service_healthy
-      postgres-primary:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
         condition: service_healthy
       kafka:
         condition: service_healthy

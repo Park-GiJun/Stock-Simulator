@@ -7,6 +7,7 @@
 		TrendingUp,
 		Newspaper,
 		User,
+		Users,
 		Trophy,
 		Clock,
 		ChevronLeft,
@@ -31,6 +32,7 @@
 		TrendingUp,
 		Newspaper,
 		User,
+		Users,
 		Trophy
 	};
 

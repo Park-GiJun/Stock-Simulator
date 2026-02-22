@@ -24,7 +24,7 @@
               "type": "loki",
               "uid": "loki"
             },
-            "expr": "{service=~\"user-service|stock-service|trading-service|event-service|scheduler-service|news-service|api-gateway\"}",
+            "expr": "{service=~\"user-service|stock-service|trading-service|event-service|scheduler-service|api-gateway\"}",
             "refId": "A"
           }
         ],

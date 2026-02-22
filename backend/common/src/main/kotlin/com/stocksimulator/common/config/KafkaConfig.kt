@@ -97,9 +97,6 @@ class KafkaConfig(
     fun eventOccurredTopic(): NewTopic = createTopic(KafkaTopics.EVENT_OCCURRED)
 
     @Bean
-    fun newsPublishedTopic(): NewTopic = createTopic(KafkaTopics.NEWS_PUBLISHED)
-
-    @Bean
     fun rankingUpdatedTopic(): NewTopic = createTopic(KafkaTopics.RANKING_UPDATED)
 
     @Bean
@@ -110,6 +107,19 @@ class KafkaConfig(
 
     @Bean
     fun userCreatedTopic(): NewTopic = createTopic(KafkaTopics.USER_CREATED)
+
+    // Scheduler Trigger Topics
+    @Bean
+    fun triggerStockListingTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_STOCK_LISTING)
+
+    @Bean
+    fun triggerStockDelistingTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_STOCK_DELISTING)
+
+    @Bean
+    fun triggerNpcCreationTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_NPC_CREATION)
+
+    @Bean
+    fun triggerInstitutionCreationTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_INSTITUTION_CREATION)
 
     private fun createTopic(name: String, partitions: Int = 3, replicas: Int = 1): NewTopic {
         return TopicBuilder.name(name)

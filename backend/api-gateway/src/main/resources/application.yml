@@ -48,14 +48,6 @@ spring:
           filters:
             - RewritePath=/event-service/(?<segment>.*), /$\{segment}
         
-        # News Service Routes
-        - id: news-service
-          uri: lb://news-service
-          predicates:
-            - Path=/news-service/**
-          filters:
-            - RewritePath=/news-service/(?<segment>.*), /$\{segment}
-        
         # Scheduler Service Routes
         - id: scheduler-service
           uri: lb://scheduler-service
@@ -118,9 +110,9 @@ gateway:
       # Public read-only service endpoints
       - /stock-service/api/stocks/**
       - /stock-service/api/stocks
+      - /stock-service/api/investors/**
+      - /stock-service/api/investors
       - /trading-service/api/trading/order-book/**
-      - /news-service/api/news/**
-      - /news-service/api/news
       # Monitoring
       - /**/actuator/**
       # Swagger / OpenAPI

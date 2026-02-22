@@ -98,3 +98,10 @@ enum class InstitutionType(val displayName: String) {
     ASSET_MANAGEMENT("자산운용사")
 
 }
+
+// 트레이딩 투자자 유형 (주문/포트폴리오용)
+enum class TradingInvestorType(val displayName: String) {
+    USER("사용자"),
+    NPC("개인투자자"),
+    INSTITUTION("기관투자자")
+}

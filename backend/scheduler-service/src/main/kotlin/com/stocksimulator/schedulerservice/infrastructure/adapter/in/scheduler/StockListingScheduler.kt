@@ -1,7 +1,6 @@
 package com.stocksimulator.schedulerservice.infrastructure.adapter.`in`.scheduler
 
-import com.stocksimulator.schedulerservice.application.handler.StockListingHandler
-import kotlinx.coroutines.runBlocking
+import com.stocksimulator.schedulerservice.application.port.out.TriggerPublishPort
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -14,7 +13,7 @@ import kotlin.random.Random
  */
 @Component
 class StockListingScheduler(
-    private val stockListingHandler: StockListingHandler
+    private val triggerPublishPort: TriggerPublishPort
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -23,7 +22,7 @@ class StockListingScheduler(
         val roll = Random.nextDouble()
         log.info("IPO 스케줄러 실행 - 확률: {} (기준: 0.4)", "%.2f".format(roll))
         if (roll < 0.4) {
-            runBlocking { stockListingHandler.initiateIPO() }
+            triggerPublishPort.publishStockListingTrigger()
         } else {
             log.info("IPO 스킵 (확률 미달)")
         }
@@ -34,7 +33,7 @@ class StockListingScheduler(
         val roll = Random.nextDouble()
         log.info("상장폐지 스케줄러 실행 - 확률: {} (기준: 0.1)", "%.2f".format(roll))
         if (roll < 0.1) {
-            stockListingHandler.initiateDelisting()
+            triggerPublishPort.publishStockDelistingTrigger()
         } else {
             log.info("상장폐지 스킵 (확률 미달)")
         }

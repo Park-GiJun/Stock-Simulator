@@ -3,3 +3,5 @@ export * from './api.js';
 export * from './stockApi.js';
 export * from './tradingApi.js';
 export * from './userApi.js';
+export * from './investorApi.js';
+export * from './portfolioHelper.js';

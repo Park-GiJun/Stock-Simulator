@@ -12,7 +12,6 @@
 		ArrowDownRight
 	} from 'lucide-svelte';
 	import { getStocks } from '$lib/api/stockApi.js';
-	import { getMockStocks } from '$lib/mock/stocks.js';
 	import {
 		SECTOR_NAMES,
 		MARKET_CAP_NAMES,
@@ -88,8 +87,10 @@
 
 	async function fetchMarketStats() {
 		try {
-			const allStocks = getMockStocks();
-			allStocksForStats = allStocks;
+			const res = await getStocks({ page: 0, size: 500 });
+			if (res.success && res.data) {
+				allStocksForStats = res.data.stocks;
+			}
 		} catch (e) {
 			console.error('Failed to fetch market stats:', e);
 		}

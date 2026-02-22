@@ -4,24 +4,6 @@ server:
 spring:
   application:
     name: scheduler-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/stocksimulator?currentSchema=scheduler
-    username: stocksim
-    password: stocksim123
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        default_schema: scheduler
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: stocksim123
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -59,19 +41,6 @@ management:
     tags:
       application: ${spring.application.name}
 
-koog:
-  anthropic:
-    api-key: ${ANTHROPIC_API_KEY:sk-placeholder}
-
 logging:
   level:
     com.stocksimulator: DEBUG
-
-# SpringDoc / OpenAPI Configuration
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
