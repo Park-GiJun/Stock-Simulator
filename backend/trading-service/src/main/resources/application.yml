@@ -68,6 +68,10 @@ management:
     tags:
       application: ${spring.application.name}
 
+ipo:
+  price-levels: 20
+  price-spread-percent: 15
+
 logging:
   level:
     com.stocksimulator: DEBUG

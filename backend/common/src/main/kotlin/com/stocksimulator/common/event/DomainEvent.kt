@@ -32,6 +32,9 @@ object KafkaTopics {
     // Event 관련
     const val EVENT_OCCURRED = "event.occurred"
 
+    // News 관련
+    const val NEWS_PUBLISHED = "news.published"
+
     // Ranking 관련
     const val RANKING_UPDATED = "ranking.updated"
 
@@ -49,14 +52,6 @@ object KafkaTopics {
 
     // Investor 관련
     const val INVESTOR_CREATED = "investor.created"
-    const val INSTITUTION_CREATED = "institution.created"
-    const val NPC_CREATED = "npc.created"
-
-    // Scheduler Trigger 관련 (scheduler → event-service)
-    const val TRIGGER_STOCK_LISTING = "trigger.stock-listing"
-    const val TRIGGER_STOCK_DELISTING = "trigger.stock-delisting"
-    const val TRIGGER_NPC_CREATION = "trigger.npc-creation"
-    const val TRIGGER_INSTITUTION_CREATION = "trigger.institution-creation"
 }
 
 // ===== Trading Events =====
@@ -142,6 +137,25 @@ data class EventOccurredEvent(
     override val eventType: String = "EVENT_OCCURRED"
 }
 
+// ===== News Events =====
+
+data class NewsPublishedEvent(
+    val newsId: String,
+    val gameEventId: String?,
+    val headline: String,
+    val content: String,
+    val summary: String,
+    val level: String,
+    val sentiment: String,
+    val intensity: Double,
+    val duration: Long,
+    val sector: String?,
+    val stockId: String?,
+    val publishedAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "NEWS_PUBLISHED"
+}
+
 // ===== Ranking Events =====
 
 data class RankingUpdatedEvent(
@@ -164,7 +178,6 @@ data class ScheduleTradeEvent(
     val orderType: OrderType,
     val quantity: Long,
     val reason: String,
-    val capital: Long = 0L,
     val scheduledAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "SCHEDULE_TRADE"
@@ -221,60 +234,6 @@ data class StockDelistedEvent(
 }
 
 // ===== Investor Events =====
-
-data class InstitutionCreatedEvent(
-    val institutionName: String,
-    val institutionType: String,
-    val investmentStyle: String,
-    val capital: Long,
-    val dailyIncome: Long,
-    val riskTolerance: Double,
-    val preferredSectors: List<String>,
-    val tradingFrequency: String,
-    val createdAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "INSTITUTION_CREATED"
-}
-
-data class NpcCreatedEvent(
-    val npcName: String,
-    val investmentStyle: String,
-    val capital: Long,
-    val weeklyIncome: Long,
-    val riskTolerance: Double,
-    val preferredSectors: List<String>,
-    val tradingFrequency: String,
-    val createdAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "NPC_CREATED"
-}
-
-// ===== Scheduler Trigger Events (scheduler → event-service) =====
-
-data class StockListingTriggerEvent(
-    val triggeredAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "STOCK_LISTING_TRIGGER"
-}
-
-data class StockDelistingTriggerEvent(
-    val triggeredAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "STOCK_DELISTING_TRIGGER"
-}
-
-data class NpcCreationTriggerEvent(
-    val count: Int,
-    val triggeredAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "NPC_CREATION_TRIGGER"
-}
-
-data class InstitutionCreationTriggerEvent(
-    val triggeredAt: Instant = Instant.now()
-) : DomainEvent() {
-    override val eventType: String = "INSTITUTION_CREATION_TRIGGER"
-}
 
 data class InvestorCreatedEvent(
     val investorId: String,

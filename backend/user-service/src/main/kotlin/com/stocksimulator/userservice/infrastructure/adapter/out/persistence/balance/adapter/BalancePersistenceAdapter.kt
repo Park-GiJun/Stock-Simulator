@@ -3,7 +3,7 @@ package com.stocksimulator.userservice.infrastructure.adapter.out.persistence.ba
 import com.stocksimulator.userservice.infrastructure.adapter.out.persistence.balance.entity.BalanceJpaEntity
 import com.stocksimulator.userservice.infrastructure.adapter.out.persistence.balance.repository.BalanceJpaRepository
 import com.stocksimulator.userservice.application.port.out.balance.BalancePersistencePort
-import com.stocksimulator.userservice.domain.BalanceModel
+import com.stocksimulator.userservice.domain.model.BalanceModel
 import org.springframework.stereotype.Component
 
 @Component

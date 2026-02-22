@@ -3,7 +3,7 @@ package com.stocksimulator.tradingservice.application.dto.result.order
 import com.stocksimulator.common.dto.OrderKind
 import com.stocksimulator.common.dto.OrderStatus
 import com.stocksimulator.common.dto.OrderType
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
 import com.stocksimulator.tradingservice.domain.model.OrderModel
 
 data class PlaceOrderResult(
@@ -25,7 +25,7 @@ data class PlaceOrderResult(
     )
 
     companion object {
-        fun from(order: OrderModel, matchResults: List<MatchResult>): PlaceOrderResult {
+        fun from(order: OrderModel, matchResults: List<MatchResultVo>): PlaceOrderResult {
             return PlaceOrderResult(
                 orderId = order.orderId,
                 userId = order.userId,

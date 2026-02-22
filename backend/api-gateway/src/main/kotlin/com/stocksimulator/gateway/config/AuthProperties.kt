@@ -23,6 +23,7 @@ data class AuthProperties(
         "/**/actuator/**",
         "/**/swagger-ui/**",
         "/**/api-docs/**",
-        "/**/v3/api-docs/**"
+        "/**/v3/api-docs/**",
+        "/event-service/api/news/**"
     )
 )

@@ -1,4 +1,4 @@
-package com.stocksimulator.userservice.domain
+package com.stocksimulator.userservice.domain.model
 
 import java.time.Instant
 

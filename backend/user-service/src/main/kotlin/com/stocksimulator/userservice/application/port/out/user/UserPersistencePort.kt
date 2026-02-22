@@ -1,6 +1,6 @@
 package com.stocksimulator.userservice.application.port.out.user
 
-import com.stocksimulator.userservice.domain.UserModel
+import com.stocksimulator.userservice.domain.model.UserModel
 
 /**
  * User 영속성 Port (Driven Port)

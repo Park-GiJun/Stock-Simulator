@@ -5,7 +5,7 @@ import com.stocksimulator.common.exception.ResourceNotFoundException
 import com.stocksimulator.userservice.infrastructure.adapter.out.persistence.user.entity.UserJpaEntity
 import com.stocksimulator.userservice.infrastructure.adapter.out.persistence.user.repository.UserJpaRepository
 import com.stocksimulator.userservice.application.port.out.user.UserPersistencePort
-import com.stocksimulator.userservice.domain.UserModel
+import com.stocksimulator.userservice.domain.model.UserModel
 import org.springframework.stereotype.Component
 
 @Component

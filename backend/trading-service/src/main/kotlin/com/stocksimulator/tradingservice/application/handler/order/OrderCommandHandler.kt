@@ -17,8 +17,8 @@ import com.stocksimulator.tradingservice.application.port.out.order.OrderPersist
 import com.stocksimulator.tradingservice.application.port.out.order.TradingEventPort
 import com.stocksimulator.tradingservice.application.handler.portfolio.PortfolioCommandHandler
 import com.stocksimulator.tradingservice.domain.model.OrderModel
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
-import com.stocksimulator.tradingservice.domain.vo.OrderEntry
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
+import com.stocksimulator.tradingservice.domain.vo.OrderEntryVo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -59,7 +59,7 @@ class OrderCommandHandler(
         orderPersistencePort.save(order)
 
         // 3. 호가창 매칭
-        val entry = OrderEntry(
+        val entry = OrderEntryVo(
             orderId = order.orderId,
             userId = order.userId,
             price = command.price ?: 0L,
@@ -126,7 +126,7 @@ class OrderCommandHandler(
         log.info("주문 취소 완료: orderId={}", order.orderId)
     }
 
-    private fun updateMatchedOrders(matches: List<MatchResult>) {
+    private fun updateMatchedOrders(matches: List<MatchResultVo>) {
         val matchQuantityByOrderId = mutableMapOf<String, Long>()
         for (match in matches) {
             matchQuantityByOrderId.merge(match.buyOrderId, match.quantity) { a, b -> a + b }

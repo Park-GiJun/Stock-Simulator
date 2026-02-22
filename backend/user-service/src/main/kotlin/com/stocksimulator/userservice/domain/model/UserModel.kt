@@ -1,4 +1,4 @@
-package com.stocksimulator.userservice.domain
+package com.stocksimulator.userservice.domain.model
 
 import com.stocksimulator.userservice.domain.enums.UserRole
 import java.time.Instant

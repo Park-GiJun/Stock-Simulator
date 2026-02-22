@@ -1,6 +1,6 @@
 package com.stocksimulator.tradingservice.domain.vo
 
-data class PriceLevel(
+data class PriceLevelVo(
     val price: Long,
     val quantity: Long,
     val orderCount: Int

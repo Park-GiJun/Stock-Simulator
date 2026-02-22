@@ -1,20 +1,23 @@
 package com.stocksimulator.tradingservice.infrastructure.adapter.out.persistence.portfolio.entity
 
-import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.tradingservice.domain.model.PortfolioModel
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
 @Table(
     name = "portfolios",
     schema = "trading",
-    uniqueConstraints = [
-        UniqueConstraint(name = "uq_portfolio_investor_stock", columnNames = ["investor_id", "investor_type", "stock_id"])
-    ],
     indexes = [
-        Index(name = "idx_portfolios_investor", columnList = "investor_id, investor_type"),
-        Index(name = "idx_portfolios_stock", columnList = "stock_id")
+        Index(name = "idx_portfolios_investor_id", columnList = "investor_id"),
+        Index(name = "idx_portfolios_stock_id", columnList = "stock_id"),
+        Index(name = "idx_portfolios_investor_type", columnList = "investor_type")
     ]
 )
 class PortfolioJpaEntity(
@@ -25,9 +28,8 @@ class PortfolioJpaEntity(
     @Column(name = "investor_id", nullable = false, length = 36)
     val investorId: String,
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "investor_type", nullable = false, length = 20)
-    val investorType: TradingInvestorType,
+    val investorType: String,
 
     @Column(name = "stock_id", nullable = false, length = 20)
     val stockId: String,
@@ -58,13 +60,6 @@ class PortfolioJpaEntity(
         createdAt = createdAt,
         updatedAt = updatedAt
     )
-
-    fun updateFromDomain(domain: PortfolioModel) {
-        quantity = domain.quantity
-        averagePrice = domain.averagePrice
-        totalInvested = domain.totalInvested
-        updatedAt = Instant.now()
-    }
 
     companion object {
         fun fromDomain(domain: PortfolioModel): PortfolioJpaEntity = PortfolioJpaEntity(

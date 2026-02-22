@@ -1,6 +1,6 @@
 package com.stocksimulator.userservice.infrastructure.adapter.out.persistence.user.entity
 
-import com.stocksimulator.userservice.domain.UserModel
+import com.stocksimulator.userservice.domain.model.UserModel
 import com.stocksimulator.userservice.domain.enums.UserRole
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

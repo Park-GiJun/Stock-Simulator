@@ -6,8 +6,8 @@ import com.stocksimulator.common.event.OrderBookUpdatedEvent
 import com.stocksimulator.common.event.OrderCancelledEvent
 import com.stocksimulator.common.event.OrderMatchedEvent
 import com.stocksimulator.tradingservice.application.port.out.order.TradingEventPort
-import com.stocksimulator.tradingservice.domain.vo.MatchResult
-import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshot
+import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
+import com.stocksimulator.tradingservice.domain.vo.OrderBookSnapshotVo
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
@@ -19,7 +19,7 @@ class KafkaTradingEventPublisher(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun publishOrderMatched(matchResult: MatchResult) {
+    override fun publishOrderMatched(matchResult: MatchResultVo) {
         val event = OrderMatchedEvent(
             tradeId = matchResult.tradeId,
             buyOrderId = matchResult.buyOrderId,
@@ -46,7 +46,7 @@ class KafkaTradingEventPublisher(
         log.debug("주문 취소 이벤트 발행: orderId={}, stockId={}", orderId, stockId)
     }
 
-    override fun publishOrderBookUpdated(snapshot: OrderBookSnapshot) {
+    override fun publishOrderBookUpdated(snapshot: OrderBookSnapshotVo) {
         val event = OrderBookUpdatedEvent(
             stockId = snapshot.stockId,
             bidOrders = snapshot.bids.map { OrderBookEntry(it.price, it.quantity, it.orderCount) },

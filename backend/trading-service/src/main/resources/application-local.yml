@@ -57,6 +57,12 @@ management:
     tags:
       application: ${spring.application.name}
 
+ipo:
+  float-ratio: 0.25
+  institution-ratio: 0.50
+  npc-ratio: 0.25
+  price-levels: 10
+
 logging:
   level:
     com.stocksimulator: DEBUG

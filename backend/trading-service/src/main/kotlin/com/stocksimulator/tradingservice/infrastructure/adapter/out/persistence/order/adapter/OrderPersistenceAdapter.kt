@@ -16,6 +16,11 @@ class OrderPersistenceAdapter(
         return orderJpaRepository.save(OrderJpaEntity.fromDomain(order)).toDomain()
     }
 
+    override fun saveAll(orders: List<OrderModel>): List<OrderModel> {
+        val entities = orders.map { OrderJpaEntity.fromDomain(it) }
+        return orderJpaRepository.saveAll(entities).map { it.toDomain() }
+    }
+
     override fun findById(orderId: String): OrderModel? {
         return orderJpaRepository.findByOrderId(orderId)?.toDomain()
     }
@@ -30,5 +35,19 @@ class OrderPersistenceAdapter(
     override fun findByStockIdAndStatusIn(stockId: String, statuses: List<OrderStatus>): List<OrderModel> {
         return orderJpaRepository.findByStockIdAndStatusIn(stockId, statuses)
             .map { it.toDomain() }
+    }
+
+    override fun updateRemainingQuantities(entries: Map<String, Long>) {
+        if (entries.isEmpty()) return
+        val orderIds = entries.keys.toList()
+        val entities = orderJpaRepository.findAllById(orderIds).associateBy { it.orderId }
+        for ((orderId, remainingQuantity) in entries) {
+            val entity = entities[orderId] ?: continue
+            val newFilledQuantity = entity.quantity - remainingQuantity
+            if (entity.filledQuantity != newFilledQuantity) {
+                entity.filledQuantity = newFilledQuantity
+                entity.updatedAt = java.time.Instant.now()
+            }
+        }
     }
 }

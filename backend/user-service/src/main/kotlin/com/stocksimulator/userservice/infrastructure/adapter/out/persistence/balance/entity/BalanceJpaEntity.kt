@@ -1,6 +1,6 @@
 package com.stocksimulator.userservice.infrastructure.adapter.out.persistence.balance.entity
 
-import com.stocksimulator.userservice.domain.BalanceModel
+import com.stocksimulator.userservice.domain.model.BalanceModel
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
