@@ -101,8 +101,8 @@ class NpcTradingHandler(
 
         val decision = tradingDecisionGeneratePort.generateDecision(request)
 
-        log.info("NPC 매매 결정: npc={}, action={}, stockId={}, quantity={}, reason={}",
-            npc.npcName, decision.action, decision.stockId, decision.quantity, decision.reason)
+        log.info("NPC 매매 결정: npc={}, action={}, stockId={}, quantity={}",
+            npc.npcName, decision.action, decision.stockId, decision.quantity)
 
         if (decision.action == "HOLD" || decision.stockId == null) {
             return
@@ -119,8 +119,7 @@ class NpcTradingHandler(
             investorType = "NPC",
             stockId = decision.stockId,
             orderType = orderType,
-            quantity = decision.quantity,
-            reason = decision.reason
+            quantity = decision.quantity
         )
 
         tradeEventPublishPort.publishScheduleTrade(event)

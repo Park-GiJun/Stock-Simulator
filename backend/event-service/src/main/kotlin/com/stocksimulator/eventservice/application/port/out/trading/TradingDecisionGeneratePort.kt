@@ -24,6 +24,5 @@ data class NewsInfoDto(
 data class TradingDecisionResult(
     val action: String,  // BUY, SELL, HOLD
     val stockId: String?,
-    val quantity: Long,
-    val reason: String
+    val quantity: Long
 )

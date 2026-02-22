@@ -189,7 +189,6 @@ data class ScheduleTradeEvent(
     val stockId: String,
     val orderType: OrderType,
     val quantity: Long,
-    val reason: String,
     val scheduledAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "SCHEDULE_TRADE"

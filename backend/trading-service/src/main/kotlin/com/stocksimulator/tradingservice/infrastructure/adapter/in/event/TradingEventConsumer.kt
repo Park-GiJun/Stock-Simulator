@@ -37,7 +37,8 @@ class TradingEventConsumer(
                 orderType = event.orderType,
                 orderKind = OrderKind.MARKET,
                 price = null,
-                quantity = event.quantity
+                quantity = event.quantity,
+                investorType = TradingInvestorType.valueOf(event.investorType)
             )
             placeOrderUseCase.placeOrder(command)
 

@@ -101,8 +101,8 @@ class InstitutionTradingHandler(
 
         val decision = tradingDecisionGeneratePort.generateDecision(request)
 
-        log.info("기관투자자 매매 결정: institution={}, action={}, stockId={}, quantity={}, reason={}",
-            institution.institutionName, decision.action, decision.stockId, decision.quantity, decision.reason)
+        log.info("기관투자자 매매 결정: institution={}, action={}, stockId={}, quantity={}",
+            institution.institutionName, decision.action, decision.stockId, decision.quantity)
 
         if (decision.action == "HOLD" || decision.stockId == null) {
             return
@@ -119,8 +119,7 @@ class InstitutionTradingHandler(
             investorType = "INSTITUTION",
             stockId = decision.stockId,
             orderType = orderType,
-            quantity = decision.quantity,
-            reason = decision.reason
+            quantity = decision.quantity
         )
 
         tradeEventPublishPort.publishScheduleTrade(event)

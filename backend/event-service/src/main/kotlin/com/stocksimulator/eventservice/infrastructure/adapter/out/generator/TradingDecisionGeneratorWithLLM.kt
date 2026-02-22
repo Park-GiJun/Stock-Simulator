@@ -22,8 +22,7 @@ class TradingDecisionGeneratorWithLLM(
     private data class LlmTradingResponse(
         val action: String,
         val stockId: String? = null,
-        val quantity: Long = 0,
-        val reason: String = ""
+        val quantity: Long = 0
     )
 
     override suspend fun generateDecision(request: TradingDecisionRequest): TradingDecisionResult {
@@ -45,7 +44,7 @@ class TradingDecisionGeneratorWithLLM(
         }
 
         log.warn("LLM 매매 결정 {}회 시도 실패, HOLD 반환: investor={}", maxRetries, request.investorName)
-        return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0, reason = "LLM 결정 실패로 HOLD")
+        return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
     }
 
     private fun buildPrompt(request: TradingDecisionRequest): String {
@@ -82,36 +81,17 @@ class TradingDecisionGeneratorWithLLM(
         }
 
         return """
-            당신은 한국 가상 주식시장의 AI 투자 결정 시스템입니다.
-            아래 투자자 프로필과 시장 정보를 바탕으로 매매 결정을 내려주세요.
+            투자 결정 시스템. JSON만 응답.
 
-            === 투자자 프로필 ===
-            이름: ${request.investorName}
-            투자성향: ${request.investmentStyle}
-            위험허용도: ${request.riskTolerance}
-            보유현금: ${request.availableCash}원
-            최대 투자가능금액: ${maxInvestment}원 (현금의 ${maxInvestmentRate}%)
-            선호섹터: ${request.preferredSectors.joinToString(", ")}
+            투자자: ${request.investorName}, 성향: ${request.investmentStyle}, 위험허용도: ${request.riskTolerance}
+            현금: ${request.availableCash}원, 최대투자: ${maxInvestment}원, 선호섹터: ${request.preferredSectors.joinToString(",")}
 
-            === 현재 보유종목 ===
-            $holdingsDesc
+            보유: $holdingsDesc
+            후보: $candidatesDesc
+            뉴스: $newsDesc
 
-            === 매매 후보 종목 ===
-            $candidatesDesc
-
-            === 최근 뉴스 ===
-            $newsDesc
-
-            === 규칙 ===
-            - action: BUY, SELL, HOLD 중 하나
-            - BUY: 후보 종목 중에서 선택, quantity * 현재가 <= ${maxInvestment}원
-            - SELL: 보유 종목에서만 선택, quantity <= 보유수량
-            - HOLD: 매매하지 않음 (시장 상황이 불확실할 때)
-            - stockId: BUY/SELL 시 대상 종목 ID (HOLD 시 null)
-            - quantity: 매매 수량 (HOLD 시 0)
-
-            반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요:
-            {"action":"BUY|SELL|HOLD","stockId":"종목ID또는null","quantity":수량,"reason":"결정 이유"}
+            규칙: BUY(후보중 선택, qty*현재가<=${maxInvestment}), SELL(보유중, qty<=보유수량), HOLD(매매안함)
+            JSON만: {"action":"BUY|SELL|HOLD","stockId":"ID|null","quantity":수량}
         """.trimIndent()
     }
 
@@ -121,14 +101,13 @@ class TradingDecisionGeneratorWithLLM(
 
         val action = parsed.action.uppercase()
         if (action !in listOf("BUY", "SELL", "HOLD")) {
-            return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0, reason = "잘못된 action: ${parsed.action}")
+            return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
         }
 
         return TradingDecisionResult(
             action = action,
             stockId = if (action == "HOLD") null else parsed.stockId,
-            quantity = if (action == "HOLD") 0 else parsed.quantity.coerceAtLeast(1),
-            reason = parsed.reason
+            quantity = if (action == "HOLD") 0 else parsed.quantity.coerceAtLeast(1)
         )
     }
 
