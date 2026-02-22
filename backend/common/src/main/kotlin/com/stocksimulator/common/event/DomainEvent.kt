@@ -143,7 +143,12 @@ data class NewsPublishedEvent(
     val newsId: String,
     val gameEventId: String?,
     val headline: String,
+    val content: String,
     val summary: String,
+    val level: String,
+    val sentiment: String,
+    val intensity: Double,
+    val duration: Long,
     val sector: String?,
     val stockId: String?,
     val publishedAt: Instant = Instant.now()

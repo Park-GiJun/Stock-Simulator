@@ -9,6 +9,9 @@ spring:
     password: ${POSTGRES_PASSWORD:stocksim123}
   kafka:
     bootstrap-servers: ${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}
+    consumer:
+      properties:
+        spring.json.trusted.packages: "com.stocksimulator.common.event,com.stocksimulator.common.dto"
 
 eureka:
   client:

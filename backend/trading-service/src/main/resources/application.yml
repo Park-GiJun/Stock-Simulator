@@ -69,10 +69,8 @@ management:
       application: ${spring.application.name}
 
 ipo:
-  float-ratio: 0.25
-  institution-ratio: 0.50
-  npc-ratio: 0.25
-  price-levels: 10
+  price-levels: 20
+  price-spread-percent: 15
 
 logging:
   level:

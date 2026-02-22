@@ -4,6 +4,7 @@ import com.stocksimulator.common.dto.Sector
 
 object SystemConstants {
     const val SYSTEM_IPO_USER_ID = "SYSTEM_IPO"
+    const val SYSTEM_MARKET_MAKER_ID = "SYSTEM_MARKET_MAKER"
 
     // 시스템 기관 투자자 (5개)
     val SYSTEM_INSTITUTIONS = (1..5).map { "SYSTEM_INST_%02d".format(it) }

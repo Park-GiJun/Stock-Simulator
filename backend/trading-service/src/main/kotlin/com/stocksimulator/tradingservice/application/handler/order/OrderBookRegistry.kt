@@ -53,6 +53,26 @@ class OrderBookRegistry(
         }
     }
 
+    fun persistToCacheAndDb(stockId: String) {
+        withStockLock(stockId) {
+            val orderBook = orderBooks[stockId] ?: return@withStockLock
+            val (bidEntries, askEntries) = orderBook.getAllEntries()
+
+            // Redis 캐시 저장
+            orderBookCachePort.saveEntries(stockId, bidEntries.map { it.first }, OrderType.BUY)
+            orderBookCachePort.saveEntries(stockId, askEntries.map { it.first }, OrderType.SELL)
+            orderBookCachePort.saveSnapshot(stockId, orderBook.getSnapshot())
+
+            // DB 잔량 동기화 (PENDING/PARTIALLY_FILLED 주문의 잔량 업데이트)
+            val allEntries = bidEntries.map { it.first } + askEntries.map { it.first }
+            if (allEntries.isNotEmpty()) {
+                val remainingMap = allEntries.associate { it.orderId to it.remainingQuantity }
+                orderPersistencePort.updateRemainingQuantities(remainingMap)
+                log.debug("호가창 DB 동기화 완료: stockId={}, 주문수={}", stockId, allEntries.size)
+            }
+        }
+    }
+
     fun seedIpoOrders(stockId: String, entries: List<OrderEntryVo>) {
         withStockLock(stockId) {
             getOrCreate(stockId).restore(entries, OrderType.SELL)
