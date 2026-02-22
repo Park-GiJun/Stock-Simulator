@@ -109,13 +109,6 @@ class OrderCommandHandler(
             portfolioCommandHandler.settleMatches(matches, command.investorType, sellerTypes)
         }
 
-        // 6. 시장가 유동성 없으면 REJECTED
-        if (command.orderKind == OrderKind.MARKET && totalFilledQuantity == 0L) {
-            updatedOrder = updatedOrder.reject()
-            orderPersistencePort.update(updatedOrder)
-            log.info("시장가 주문 거부 (유동성 부족): orderId={}", order.orderId)
-        }
-
         // 7. 캐시 저장 및 이벤트 발행
         orderBookRegistry.persistToCache(command.stockId)
         matches.forEach { tradingEventPort.publishOrderMatched(it) }
