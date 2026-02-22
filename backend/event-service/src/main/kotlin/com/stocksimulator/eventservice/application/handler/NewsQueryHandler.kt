@@ -21,11 +21,13 @@ class NewsQueryHandler(
     override suspend fun getNewsList(query: NewsListQuery): NewsListResult {
         val pageable = PageRequest.of(query.page, query.size, Sort.by(Sort.Direction.DESC, "publishedAt"))
 
-        val page = when {
-            query.stockId != null -> newsPersistencePort.findByStockId(query.stockId, pageable)
-            query.sector != null -> newsPersistencePort.findBySector(query.sector, pageable)
-            else -> newsPersistencePort.findAll(pageable)
-        }
+        val page = newsPersistencePort.findByFilters(
+            level = query.level,
+            sentiment = query.sentiment,
+            sector = query.sector,
+            stockId = query.stockId,
+            pageable = pageable
+        )
 
         return NewsListResult(
             news = page.content.map { NewsArticleResult.from(it) },

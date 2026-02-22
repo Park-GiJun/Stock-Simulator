@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import kotlin.random.Random
 
 @Component
 class NewsContentGeneratorWithLLM(
@@ -32,23 +31,27 @@ class NewsContentGeneratorWithLLM(
         val duration: Long
     )
 
-    override suspend fun generateNews(level: EventLevel, sector: Sector?): GeneratedNewsContent {
-        val prompt = buildPrompt(level, sector)
+    override suspend fun generateNews(level: EventLevel, sector: Sector?, stockName: String?): GeneratedNewsContent {
+        val prompt = buildPrompt(level, sector, stockName)
+        val maxRetries = 3
 
-        return try {
-            val agent = AIAgent(
-                promptExecutor = llmExecutor,
-                llmModel = AnthropicModels.Haiku_4_5
-            )
-            val rawResponse = agent.run(prompt).trim()
-            parseLlmResponse(rawResponse)
-        } catch (e: Exception) {
-            log.warn("LLM 뉴스 생성 실패, fallback 사용: level={}, sector={}, error={}", level, sector, e.message)
-            generateFallback(level, sector)
+        repeat(maxRetries) { attempt ->
+            try {
+                val agent = AIAgent(
+                    promptExecutor = llmExecutor,
+                    llmModel = AnthropicModels.Haiku_4_5
+                )
+                val rawResponse = agent.run(prompt).trim()
+                return parseLlmResponse(rawResponse)
+            } catch (e: Exception) {
+                log.warn("LLM 뉴스 생성 실패 (시도 {}회): level={}, sector={}, error={}", attempt + 1, level, sector, e.message)
+            }
         }
+
+        throw RuntimeException("LLM 뉴스 생성 ${maxRetries}회 시도 실패: level=$level, sector=$sector")
     }
 
-    private fun buildPrompt(level: EventLevel, sector: Sector?): String {
+    private fun buildPrompt(level: EventLevel, sector: Sector?, stockName: String?): String {
         val levelDesc = when (level) {
             EventLevel.COMPANY -> "특정 기업에 영향을 미치는 기업 뉴스"
             EventLevel.INDUSTRY -> "특정 산업 전체에 영향을 미치는 산업 뉴스"
@@ -61,10 +64,16 @@ class NewsContentGeneratorWithLLM(
             "특정 산업에 국한되지 않는 범사회적 뉴스"
         }
 
+        val stockDesc = if (stockName != null) {
+            "\n대상 기업: $stockName (이 종목명을 반드시 headline과 content에 포함)"
+        } else {
+            ""
+        }
+
         return """
             한국 가상 주식시장 시뮬레이터의 ${levelDesc}를 1건 생성해주세요.
 
-            $sectorDesc
+            $sectorDesc$stockDesc
 
             규칙:
             - headline: 한국어 뉴스 제목 (20~40자)
@@ -79,7 +88,6 @@ class NewsContentGeneratorWithLLM(
     }
 
     private fun parseLlmResponse(raw: String): GeneratedNewsContent {
-        // JSON 블록 추출 (마크다운 코드블록 또는 직접 JSON)
         val jsonStr = extractJson(raw)
         val parsed = json.decodeFromString<LlmNewsResponse>(jsonStr)
 
@@ -99,14 +107,12 @@ class NewsContentGeneratorWithLLM(
     }
 
     private fun extractJson(raw: String): String {
-        // ```json ... ``` 블록 추출
         val codeBlockRegex = Regex("```(?:json)?\\s*\\n?(\\{.*?})\\s*\\n?```", RegexOption.DOT_MATCHES_ALL)
         val codeBlockMatch = codeBlockRegex.find(raw)
         if (codeBlockMatch != null) {
             return codeBlockMatch.groupValues[1].trim()
         }
 
-        // 직접 JSON 객체 추출
         val jsonRegex = Regex("\\{.*}", RegexOption.DOT_MATCHES_ALL)
         val jsonMatch = jsonRegex.find(raw)
         if (jsonMatch != null) {
@@ -114,35 +120,5 @@ class NewsContentGeneratorWithLLM(
         }
 
         return raw
-    }
-
-    private fun generateFallback(level: EventLevel, sector: Sector?): GeneratedNewsContent {
-        val sentiment = listOf(Sentiment.POSITIVE, Sentiment.NEGATIVE, Sentiment.NEUTRAL).random()
-        val intensity = Random.nextDouble(0.2, 0.8)
-        val duration = listOf(60L, 120L, 180L, 240L).random()
-
-        return when (level) {
-            EventLevel.COMPANY -> GeneratedNewsContent(
-                headline = "${sector?.displayName ?: "기업"} 관련 주요 뉴스 발생",
-                content = "${sector?.displayName ?: "해당 기업"} 분야에서 주목할 만한 변화가 감지되었습니다. 시장 전문가들은 향후 추이를 주시하고 있습니다.",
-                sentiment = sentiment,
-                intensity = intensity,
-                duration = duration
-            )
-            EventLevel.INDUSTRY -> GeneratedNewsContent(
-                headline = "${sector?.displayName ?: "산업"} 산업 동향 변화 감지",
-                content = "${sector?.displayName ?: "해당"} 산업 전반에 걸쳐 새로운 동향이 포착되었습니다. 관련 종목들의 변동성 확대가 예상됩니다.",
-                sentiment = sentiment,
-                intensity = intensity,
-                duration = duration
-            )
-            EventLevel.SOCIETY -> GeneratedNewsContent(
-                headline = "경제 전반에 영향 미칠 새로운 정책 발표",
-                content = "정부의 새로운 경제 정책 발표로 시장 전반에 영향이 예상됩니다. 투자자들의 신중한 대응이 필요합니다.",
-                sentiment = sentiment,
-                intensity = intensity,
-                duration = duration
-            )
-        }
     }
 }

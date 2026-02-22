@@ -10,4 +10,5 @@ interface NewsPersistencePort {
     fun findAll(pageable: Pageable): Page<NewsArticleModel>
     fun findByStockId(stockId: String, pageable: Pageable): Page<NewsArticleModel>
     fun findBySector(sector: String, pageable: Pageable): Page<NewsArticleModel>
+    fun findByFilters(level: String?, sentiment: String?, sector: String?, stockId: String?, pageable: Pageable): Page<NewsArticleModel>
 }

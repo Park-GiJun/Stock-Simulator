@@ -6,7 +6,6 @@ import ai.koog.prompt.executor.model.PromptExecutor
 import com.stocksimulator.eventservice.application.port.out.npc.NpcNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import kotlin.random.Random
 
 @Component
 class NpcNameGeneratorWithLLM(
@@ -51,12 +50,6 @@ class NpcNameGeneratorWithLLM(
             }
         }
 
-        return generateFallbackName()
-    }
-
-    private fun generateFallbackName(): String {
-        val fallbackName = "투자자${Random.nextInt(100, 999)}"
-        log.warn("fallback NPC 이름 사용: {}", fallbackName)
-        return fallbackName
+        throw RuntimeException("NPC 이름 생성 ${maxRetries}회 시도 실패")
     }
 }

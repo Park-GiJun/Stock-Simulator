@@ -5,7 +5,7 @@ import com.stocksimulator.common.dto.Sector
 import com.stocksimulator.common.dto.Sentiment
 
 interface NewsContentGeneratePort {
-    suspend fun generateNews(level: EventLevel, sector: Sector?): GeneratedNewsContent
+    suspend fun generateNews(level: EventLevel, sector: Sector?, stockName: String? = null): GeneratedNewsContent
 }
 
 data class GeneratedNewsContent(

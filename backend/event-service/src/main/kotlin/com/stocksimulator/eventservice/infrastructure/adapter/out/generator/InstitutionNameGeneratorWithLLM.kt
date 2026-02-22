@@ -7,7 +7,6 @@ import com.stocksimulator.common.dto.InstitutionType
 import com.stocksimulator.eventservice.application.port.out.institution.InstitutionNameGeneratePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import kotlin.random.Random
 
 @Component
 class InstitutionNameGeneratorWithLLM(
@@ -32,30 +31,22 @@ class InstitutionNameGeneratorWithLLM(
             - 기관명만 출력 (설명 없이)
         """.trimIndent()
 
-        return try {
-            val agent = AIAgent(
-                promptExecutor = llmExecutor,
-                llmModel = AnthropicModels.Haiku_4_5
-            )
-            val name = agent.run(prompt).trim()
-            log.debug("기관 이름 생성 성공: {} (유형: {})", name, type.displayName)
-            name
-        } catch (e: Exception) {
-            log.warn("LLM 기관 이름 생성 실패 (유형: {}): {}, fallback 사용", type.displayName, e.message)
-            generateFallbackName(type)
-        }
-    }
+        val maxRetries = 3
 
-    private fun generateFallbackName(type: InstitutionType): String {
-        val suffix = Random.nextInt(10, 100)
-        val baseName = when (type) {
-            InstitutionType.INSTITUTIONAL_INVESTOR -> "가상증권"
-            InstitutionType.FOREIGN_INVESTOR -> "글로벌투자"
-            InstitutionType.PENSION_FUNDS -> "국민연금"
-            InstitutionType.ASSET_MANAGEMENT -> "미래자산"
+        repeat(maxRetries) { attempt ->
+            try {
+                val agent = AIAgent(
+                    promptExecutor = llmExecutor,
+                    llmModel = AnthropicModels.Haiku_4_5
+                )
+                val name = agent.run(prompt).trim()
+                log.debug("기관 이름 생성 성공: {} (유형: {}, 시도 {}회)", name, type.displayName, attempt + 1)
+                return name
+            } catch (e: Exception) {
+                log.warn("LLM 기관 이름 생성 실패 (시도 {}회, 유형: {}): {}", attempt + 1, type.displayName, e.message)
+            }
         }
-        val fallbackName = "$baseName$suffix"
-        log.warn("fallback 기관 이름 사용: {}", fallbackName)
-        return fallbackName
+
+        throw RuntimeException("기관 이름 생성 ${maxRetries}회 시도 실패: type=${type.displayName}")
     }
 }

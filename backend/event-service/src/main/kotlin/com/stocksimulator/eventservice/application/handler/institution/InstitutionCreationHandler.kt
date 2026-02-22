@@ -79,9 +79,7 @@ class InstitutionCreationHandler(
             log.info("기관 이름 중복 발견: {} (시도 {}회), 재생성 시도", name, attempt + 1)
         }
 
-        val fallbackName = "${institutionNameGeneratePort.generate(institutionType)}${Random.nextInt(10, 100)}"
-        log.warn("기관 이름 재시도 초과, fallback 이름 사용: {}", fallbackName)
-        return fallbackName
+        throw RuntimeException("기관 고유 이름 생성 ${maxRetries}회 시도 실패: type=${institutionType.displayName}")
     }
 
     private fun generateRiskTolerance(style: InvestmentStyle): Double {

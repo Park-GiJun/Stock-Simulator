@@ -64,13 +64,17 @@
 		fetchNews();
 	});
 
-	$effect(() => {
-		// Re-fetch when filters change
-		selectedLevel;
-		selectedSentiment;
+	function setLevel(level: EventLevel | 'ALL') {
+		selectedLevel = level;
 		currentPage = 0;
 		fetchNews();
-	});
+	}
+
+	function setSentiment(sentiment: Sentiment | 'ALL') {
+		selectedSentiment = sentiment;
+		currentPage = 0;
+		fetchNews();
+	}
 
 	function getTimeAgo(dateStr: string): string {
 		const date = new Date(dateStr);
@@ -156,7 +160,7 @@
 					class="btn btn-sm"
 					class:btn-primary={selectedLevel === level}
 					class:btn-secondary={selectedLevel !== level}
-					onclick={() => (selectedLevel = level)}
+					onclick={() => setLevel(level)}
 				>
 					{level === 'ALL' ? '전체' : EVENT_LEVEL_NAMES[level]}
 				</button>
@@ -171,7 +175,7 @@
 					class="btn btn-sm"
 					class:btn-primary={selectedSentiment === sentiment}
 					class:btn-secondary={selectedSentiment !== sentiment}
-					onclick={() => (selectedSentiment = sentiment)}
+					onclick={() => setSentiment(sentiment)}
 				>
 					{#if sentiment === 'ALL'}
 						전체
