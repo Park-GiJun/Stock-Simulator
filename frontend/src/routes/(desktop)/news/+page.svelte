@@ -1,32 +1,30 @@
 <script lang="ts">
-	import { getNewsList, getNewsById, MOCK_NEWS } from '$lib/mock/news.js';
+	import { onMount } from 'svelte';
+	import { getNewsList, getNewsById } from '$lib/api/newsApi.js';
 	import {
 		EVENT_LEVEL_NAMES,
 		SENTIMENT_NAMES,
 		type EventLevel,
-		type Sentiment
+		type Sentiment,
+		type NewsArticle
 	} from '$lib/types/news.js';
 	import { SECTOR_NAMES, type Sector } from '$lib/types/stock.js';
 	import { Modal } from '$lib/components';
 	import { Zap, Star } from 'lucide-svelte';
-	import type { NewsEvent, NewsListItem } from '$lib/types/news.js';
 
-	const allNews = getNewsList();
+	let allNews = $state<NewsArticle[]>([]);
+	let loading = $state(true);
+	let currentPage = $state(0);
+	let totalPages = $state(0);
+	let totalElements = $state(0);
 
 	let selectedLevel = $state<EventLevel | 'ALL'>('ALL');
 	let selectedSentiment = $state<Sentiment | 'ALL'>('ALL');
 	let showModal = $state(false);
-	let selectedNews = $state<NewsEvent | null>(null);
+	let selectedNews = $state<NewsArticle | null>(null);
 
 	const filteredNews = $derived(() => {
-		let result = allNews;
-		if (selectedLevel !== 'ALL') {
-			result = result.filter((n) => n.level === selectedLevel);
-		}
-		if (selectedSentiment !== 'ALL') {
-			result = result.filter((n) => n.sentiment === selectedSentiment);
-		}
-		return result;
+		return allNews;
 	});
 
 	const featuredNews = $derived(() => {
@@ -37,6 +35,41 @@
 	const timelineNews = $derived(() => {
 		const list = filteredNews();
 		return list.length > 1 ? list.slice(1) : [];
+	});
+
+	async function fetchNews() {
+		loading = true;
+		try {
+			const params: Record<string, string | number | undefined> = {
+				page: currentPage,
+				size: 20
+			};
+			if (selectedLevel !== 'ALL') params.level = selectedLevel;
+			if (selectedSentiment !== 'ALL') params.sentiment = selectedSentiment;
+
+			const res = await getNewsList(params);
+			if (res.success && res.data) {
+				allNews = res.data.news;
+				totalPages = res.data.totalPages;
+				totalElements = res.data.totalElements;
+			}
+		} catch (e) {
+			console.error('Failed to fetch news:', e);
+		} finally {
+			loading = false;
+		}
+	}
+
+	onMount(() => {
+		fetchNews();
+	});
+
+	$effect(() => {
+		// Re-fetch when filters change
+		selectedLevel;
+		selectedSentiment;
+		currentPage = 0;
+		fetchNews();
 	});
 
 	function getTimeAgo(dateStr: string): string {
@@ -83,11 +116,15 @@
 		return Math.min((intensity / 2.0) * 100, 100);
 	}
 
-	function openNewsDetail(eventId: string) {
-		const news = getNewsById(eventId);
-		if (news) {
-			selectedNews = news;
-			showModal = true;
+	async function openNewsDetail(newsId: string) {
+		try {
+			const res = await getNewsById(newsId);
+			if (res.success && res.data) {
+				selectedNews = res.data;
+				showModal = true;
+			}
+		} catch (e) {
+			console.error('Failed to fetch news detail:', e);
 		}
 	}
 
@@ -100,11 +137,6 @@
 			case 'COMPANY':
 				return 'badge-success';
 		}
-	}
-
-	function getIntensityFromId(eventId: string): number {
-		const event = MOCK_NEWS.find((n) => n.eventId === eventId);
-		return event?.intensity ?? 0;
 	}
 
 	const levels: (EventLevel | 'ALL')[] = ['ALL', 'SOCIETY', 'INDUSTRY', 'COMPANY'];
@@ -151,134 +183,150 @@
 		</div>
 	</div>
 
-	<!-- Featured News -->
-	{#if featuredNews()}
-		{@const featured = featuredNews()!}
-		{@const featuredIntensity = getIntensityFromId(featured.eventId)}
-		<div
-			class="news-featured"
-			onclick={() => openNewsDetail(featured.eventId)}
-			onkeydown={(e) => e.key === 'Enter' && openNewsDetail(featured.eventId)}
-			role="button"
-			tabindex="0"
-		>
-			<div class="news-featured-label">
-				<Star size={14} />
-				<span>주요 뉴스</span>
-			</div>
+	{#if loading}
+		<div class="news-empty">뉴스를 불러오는 중...</div>
+	{:else}
+		<!-- Featured News -->
+		{#if featuredNews()}
+			{@const featured = featuredNews()!}
+			<div
+				class="news-featured"
+				onclick={() => openNewsDetail(featured.newsId)}
+				onkeydown={(e) => e.key === 'Enter' && openNewsDetail(featured.newsId)}
+				role="button"
+				tabindex="0"
+			>
+				<div class="news-featured-label">
+					<Star size={14} />
+					<span>주요 뉴스</span>
+				</div>
 
-			<h2 class="news-featured-headline">{featured.headline}</h2>
+				<h2 class="news-featured-headline">{featured.headline}</h2>
 
-			<div class="news-featured-meta">
-				<span class="badge {getLevelBadgeVariant(featured.level)}">
-					{EVENT_LEVEL_NAMES[featured.level]}
-				</span>
-				<span
-					class="badge badge-outline"
-					class:text-success={featured.sentiment === 'POSITIVE'}
-					class:text-error={featured.sentiment === 'NEGATIVE'}
-					class:text-info={featured.sentiment === 'NEUTRAL'}
-				>
-					{SENTIMENT_NAMES[featured.sentiment]}
-				</span>
-				{#if featured.targetSector}
-					<span class="badge badge-secondary">
-						{SECTOR_NAMES[featured.targetSector]}
+				<div class="news-featured-meta">
+					<span class="badge {getLevelBadgeVariant(featured.level)}">
+						{EVENT_LEVEL_NAMES[featured.level]}
 					</span>
-				{/if}
-				{#if featured.targetStockName}
-					<span class="badge badge-secondary">
-						{featured.targetStockName}
+					<span
+						class="badge badge-outline"
+						class:text-success={featured.sentiment === 'POSITIVE'}
+						class:text-error={featured.sentiment === 'NEGATIVE'}
+						class:text-info={featured.sentiment === 'NEUTRAL'}
+					>
+						{SENTIMENT_NAMES[featured.sentiment]}
 					</span>
-				{/if}
-				<span class="news-card-time">{getTimeAgo(featured.createdAt)}</span>
+					{#if featured.sector}
+						<span class="badge badge-secondary">
+							{SECTOR_NAMES[featured.sector as Sector] ?? featured.sector}
+						</span>
+					{/if}
+					<span class="news-card-time">{getTimeAgo(featured.publishedAt)}</span>
 
-				<div class="news-impact-bar">
-					<span class="news-impact-label">
-						<Zap size={12} />
-						영향력
-					</span>
-					<div class="news-impact-track">
-						<div
-							class="news-impact-fill {getImpactLevel(featuredIntensity)}"
-							style="width: {getImpactPercent(featuredIntensity)}%"
-						></div>
+					<div class="news-impact-bar">
+						<span class="news-impact-label">
+							<Zap size={12} />
+							영향력
+						</span>
+						<div class="news-impact-track">
+							<div
+								class="news-impact-fill {getImpactLevel(featured.intensity)}"
+								style="width: {getImpactPercent(featured.intensity)}%"
+							></div>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
 
-	<!-- Timeline News -->
-	{#if timelineNews().length > 0}
-		<div class="news-timeline">
-			{#each timelineNews() as news, i}
-				<div
-					class="news-timeline-item"
-					style="animation-delay: {i * 80}ms"
-				>
-					<div class="news-timeline-dot {getSentimentDotClass(news.sentiment)}"></div>
-
+		<!-- Timeline News -->
+		{#if timelineNews().length > 0}
+			<div class="news-timeline">
+				{#each timelineNews() as news, i}
 					<div
-						class="news-card-timeline {getSentimentClass(news.sentiment)}"
-						onclick={() => openNewsDetail(news.eventId)}
-						onkeydown={(e) => e.key === 'Enter' && openNewsDetail(news.eventId)}
-						role="button"
-						tabindex="0"
+						class="news-timeline-item"
+						style="animation-delay: {i * 80}ms"
 					>
-						<div class="news-card-badges">
-							<span class="badge {getLevelBadgeVariant(news.level)}">
-								{EVENT_LEVEL_NAMES[news.level]}
-							</span>
-							<span
-								class="badge badge-outline"
-								class:text-success={news.sentiment === 'POSITIVE'}
-								class:text-error={news.sentiment === 'NEGATIVE'}
-								class:text-info={news.sentiment === 'NEUTRAL'}
-							>
-								{SENTIMENT_NAMES[news.sentiment]}
-							</span>
-							{#if news.targetSector}
-								<span class="badge badge-secondary">
-									{SECTOR_NAMES[news.targetSector]}
-								</span>
-							{/if}
-							{#if news.targetStockName}
-								<span class="badge badge-secondary">
-									{news.targetStockName}
-								</span>
-							{/if}
-						</div>
+						<div class="news-timeline-dot {getSentimentDotClass(news.sentiment)}"></div>
 
-						<h3 class="news-card-headline">{news.headline}</h3>
-
-						<div class="news-card-bottom">
-							<span class="news-card-time">{getTimeAgo(news.createdAt)}</span>
-
-							<div class="news-impact-bar">
-								<span class="news-impact-label">
-									<Zap size={12} />
-									영향력
+						<div
+							class="news-card-timeline {getSentimentClass(news.sentiment)}"
+							onclick={() => openNewsDetail(news.newsId)}
+							onkeydown={(e) => e.key === 'Enter' && openNewsDetail(news.newsId)}
+							role="button"
+							tabindex="0"
+						>
+							<div class="news-card-badges">
+								<span class="badge {getLevelBadgeVariant(news.level)}">
+									{EVENT_LEVEL_NAMES[news.level]}
 								</span>
-								<div class="news-impact-track">
-									<div
-										class="news-impact-fill {getImpactLevel(getIntensityFromId(news.eventId))}"
-										style="width: {getImpactPercent(getIntensityFromId(news.eventId))}%"
-									></div>
+								<span
+									class="badge badge-outline"
+									class:text-success={news.sentiment === 'POSITIVE'}
+									class:text-error={news.sentiment === 'NEGATIVE'}
+									class:text-info={news.sentiment === 'NEUTRAL'}
+								>
+									{SENTIMENT_NAMES[news.sentiment]}
+								</span>
+								{#if news.sector}
+									<span class="badge badge-secondary">
+										{SECTOR_NAMES[news.sector as Sector] ?? news.sector}
+									</span>
+								{/if}
+							</div>
+
+							<h3 class="news-card-headline">{news.headline}</h3>
+
+							<div class="news-card-bottom">
+								<span class="news-card-time">{getTimeAgo(news.publishedAt)}</span>
+
+								<div class="news-impact-bar">
+									<span class="news-impact-label">
+										<Zap size={12} />
+										영향력
+									</span>
+									<div class="news-impact-track">
+										<div
+											class="news-impact-fill {getImpactLevel(news.intensity)}"
+											style="width: {getImpactPercent(news.intensity)}%"
+										></div>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			{/each}
-		</div>
-	{/if}
+				{/each}
+			</div>
+		{/if}
 
-	<!-- Empty State -->
-	{#if filteredNews().length === 0}
-		<div class="news-empty">
-			해당 조건의 뉴스가 없습니다.
-		</div>
+		<!-- Pagination -->
+		{#if totalPages > 1}
+			<div class="news-pagination" style="display: flex; justify-content: center; gap: var(--spacing-sm); margin-top: var(--spacing-lg);">
+				<button
+					class="btn btn-sm btn-secondary"
+					disabled={currentPage === 0}
+					onclick={() => { currentPage--; fetchNews(); }}
+				>
+					이전
+				</button>
+				<span class="text-sm text-secondary" style="display: flex; align-items: center;">
+					{currentPage + 1} / {totalPages}
+				</span>
+				<button
+					class="btn btn-sm btn-secondary"
+					disabled={currentPage >= totalPages - 1}
+					onclick={() => { currentPage++; fetchNews(); }}
+				>
+					다음
+				</button>
+			</div>
+		{/if}
+
+		<!-- Empty State -->
+		{#if filteredNews().length === 0}
+			<div class="news-empty">
+				해당 조건의 뉴스가 없습니다.
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -298,11 +346,6 @@
 				>
 					{SENTIMENT_NAMES[selectedNews.sentiment]}
 				</span>
-				{#if selectedNews.isActive}
-					<span class="badge badge-success">진행중</span>
-				{:else}
-					<span class="badge badge-secondary">종료</span>
-				{/if}
 			</div>
 
 			<h2 class="news-modal-headline">{selectedNews.headline}</h2>
@@ -326,21 +369,16 @@
 			</div>
 
 			<div class="news-modal-tags">
-				{#if selectedNews.targetSector}
+				{#if selectedNews.sector}
 					<span class="badge badge-secondary">
-						{SECTOR_NAMES[selectedNews.targetSector]}
-					</span>
-				{/if}
-				{#if selectedNews.targetStockName}
-					<span class="badge badge-secondary">
-						{selectedNews.targetStockName}
+						{SECTOR_NAMES[selectedNews.sector as Sector] ?? selectedNews.sector}
 					</span>
 				{/if}
 				<span class="badge badge-outline">
 					지속시간: {selectedNews.duration}분
 				</span>
 				<span class="badge badge-outline">
-					{getTimeAgo(selectedNews.createdAt)}
+					{getTimeAgo(selectedNews.publishedAt)}
 				</span>
 			</div>
 		</div>

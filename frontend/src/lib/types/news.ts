@@ -38,6 +38,23 @@ export interface NewsFilter {
 	search?: string;
 }
 
+export interface NewsArticle {
+	newsId: string;
+	gameEventId: string | null;
+	headline: string;
+	content: string;
+	summary: string;
+	level: EventLevel;
+	sentiment: Sentiment;
+	intensity: number;
+	duration: number;
+	sector: string | null;
+	stockId: string | null;
+	sourceType: 'IPO' | 'DELISTING' | 'GAME_EVENT';
+	publishedAt: string;
+	createdAt: string;
+}
+
 // Event level display names
 export const EVENT_LEVEL_NAMES: Record<EventLevel, string> = {
 	SOCIETY: '사회',

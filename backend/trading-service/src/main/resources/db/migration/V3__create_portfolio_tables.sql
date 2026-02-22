@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS trading.investor_balances (
     id BIGSERIAL PRIMARY KEY,
     investor_id VARCHAR(36) NOT NULL,
     investor_type VARCHAR(20) NOT NULL,
-    balance BIGINT NOT NULL DEFAULT 0,
+    cash BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_investor_balance UNIQUE (investor_id, investor_type)

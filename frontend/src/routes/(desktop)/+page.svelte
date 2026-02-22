@@ -15,12 +15,12 @@
 	import { Card, MiniSparkline } from '$lib/components';
 	import { getStocks } from '$lib/api/stockApi.js';
 	import { getEnrichedPortfolio } from '$lib/api/portfolioHelper.js';
-	import { getActiveNews } from '$lib/mock/news.js';
+	import { getNewsList } from '$lib/api/newsApi.js';
 	import { getTopRankers } from '$lib/mock/ranking.js';
 	import { currentUser } from '$lib/stores/authStore.js';
 	import { isMarketOpen } from '$lib/stores/gameTimeStore.js';
 	import { SECTOR_NAMES, type Sector, type StockListItem } from '$lib/types/stock.js';
-	import { EVENT_LEVEL_NAMES, SENTIMENT_NAMES } from '$lib/types/news.js';
+	import { EVENT_LEVEL_NAMES, SENTIMENT_NAMES, type NewsArticle } from '$lib/types/news.js';
 	import type { Portfolio } from '$lib/types/user.js';
 
 	let topGainers = $state<StockListItem[]>([]);
@@ -32,8 +32,8 @@
 	let totalCount = $state(0);
 	let portfolio = $state<Portfolio | null>(null);
 	let loading = $state(true);
+	let activeNews = $state<NewsArticle[]>([]);
 
-	const activeNews = getActiveNews().slice(0, 5);
 	const topRankers = getTopRankers(5);
 
 	const sparkData7d = [100, 103, 101, 106, 104, 109, 117];
@@ -43,12 +43,17 @@
 
 	onMount(async () => {
 		try {
-			const [gainersRes, losersRes, volumeRes, allRes] = await Promise.all([
+			const [gainersRes, losersRes, volumeRes, allRes, newsRes] = await Promise.all([
 				getStocks({ sortBy: 'changePercent', sortOrder: 'desc', size: 5 }),
 				getStocks({ sortBy: 'changePercent', sortOrder: 'asc', size: 5 }),
 				getStocks({ sortBy: 'volume', sortOrder: 'desc', size: 5 }),
-				getStocks({ page: 0, size: 500 })
+				getStocks({ page: 0, size: 500 }),
+				getNewsList({ size: 5 }).catch(() => null)
 			]);
+
+			if (newsRes?.success && newsRes.data) {
+				activeNews = newsRes.data.news;
+			}
 
 			if (gainersRes.success && gainersRes.data) topGainers = gainersRes.data.stocks;
 			if (losersRes.success && losersRes.data) topLosers = losersRes.data.stocks;
@@ -335,9 +340,12 @@
 							</span>
 						</div>
 						<div class="font-medium line-clamp-1">{news.headline}</div>
-						<div class="text-xs text-secondary mt-xs">{getTimeAgo(news.createdAt)}</div>
+						<div class="text-xs text-secondary mt-xs">{getTimeAgo(news.publishedAt)}</div>
 					</div>
 				{/each}
+				{#if activeNews.length === 0 && !loading}
+					<div class="text-secondary text-sm text-center p-md">뉴스가 없습니다</div>
+				{/if}
 			</div>
 		</Card>
 
