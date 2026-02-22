@@ -22,7 +22,7 @@ class StockCandidateQueryAdapter(
                     stockName = stock.stockName,
                     sector = stock.sector,
                     currentPrice = stock.currentPrice,
-                    changeRate = stock.changeRate
+                    changePercent = stock.changePercent
                 )
             } ?: emptyList()
         } catch (e: Exception) {

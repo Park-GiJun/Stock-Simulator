@@ -9,5 +9,5 @@ data class StockCandidateDto(
     val stockName: String,
     val sector: String,
     val currentPrice: Long,
-    val changeRate: Double
+    val changePercent: Double
 )

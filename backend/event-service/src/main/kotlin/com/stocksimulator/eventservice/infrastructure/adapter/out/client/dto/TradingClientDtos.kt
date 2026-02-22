@@ -49,5 +49,8 @@ data class StockListResponse(
     val stockName: String,
     val sector: String,
     val currentPrice: Long,
-    val changeRate: Double
+    val change: Long = 0,
+    val changePercent: Double = 0.0,
+    val volume: Long = 0,
+    val marketCapGrade: String? = null
 )

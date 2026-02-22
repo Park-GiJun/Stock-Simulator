@@ -69,7 +69,7 @@ class TradingDecisionGeneratorWithLLM(
             "매매 후보 종목 없음"
         } else {
             request.stockCandidates.joinToString("\n") { s ->
-                "  - 종목ID: ${s.stockId}, 종목명: ${s.stockName}, 섹터: ${s.sector}, 현재가: ${s.currentPrice}원, 변동률: ${s.changeRate}%"
+                "  - 종목ID: ${s.stockId}, 종목명: ${s.stockName}, 섹터: ${s.sector}, 현재가: ${s.currentPrice}원, 변동률: ${s.changePercent}%"
             }
         }
 
