@@ -52,6 +52,8 @@ object KafkaTopics {
 
     // Investor 관련
     const val INVESTOR_CREATED = "investor.created"
+    const val NPC_CREATED = "npc.created"
+    const val INSTITUTION_CREATED = "institution.created"
 
     // Scheduler Trigger 관련
     const val TRIGGER_STOCK_LISTING = "trigger.stock.listing"
@@ -250,4 +252,58 @@ data class InvestorCreatedEvent(
     val createdAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "INVESTOR_CREATED"
+}
+
+data class NpcCreatedEvent(
+    val npcName: String,
+    val investmentStyle: String,
+    val capital: Long,
+    val weeklyIncome: Long,
+    val riskTolerance: Double,
+    val preferredSectors: List<String>,
+    val tradingFrequency: String,
+    val createdAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "NPC_CREATED"
+}
+
+data class InstitutionCreatedEvent(
+    val institutionName: String,
+    val institutionType: String,
+    val investmentStyle: String,
+    val capital: Long,
+    val dailyIncome: Long,
+    val riskTolerance: Double,
+    val preferredSectors: List<String>,
+    val tradingFrequency: String,
+    val createdAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "INSTITUTION_CREATED"
+}
+
+// ===== Scheduler Trigger Events =====
+
+data class StockListingTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_STOCK_LISTING"
+}
+
+data class StockDelistingTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_STOCK_DELISTING"
+}
+
+data class NpcCreationTriggerEvent(
+    val count: Int,
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_NPC_CREATION"
+}
+
+data class InstitutionCreationTriggerEvent(
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_INSTITUTION_CREATION"
 }
