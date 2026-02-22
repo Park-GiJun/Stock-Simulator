@@ -37,6 +37,11 @@ class OrderPersistenceAdapter(
             .map { it.toDomain() }
     }
 
+    override fun findByStockId(stockId: String): List<OrderModel> {
+        return orderJpaRepository.findByStockIdOrderByCreatedAtDesc(stockId)
+            .map { it.toDomain() }
+    }
+
     override fun updateRemainingQuantities(entries: Map<String, Long>) {
         if (entries.isEmpty()) return
         val orderIds = entries.keys.toList()

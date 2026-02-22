@@ -9,9 +9,13 @@ import com.stocksimulator.tradingservice.application.dto.query.order.OrderBookQu
 import com.stocksimulator.tradingservice.application.port.`in`.order.CancelOrderUseCase
 import com.stocksimulator.tradingservice.application.port.`in`.order.GetOrderBookUseCase
 import com.stocksimulator.tradingservice.application.port.`in`.order.PlaceOrderUseCase
+import com.stocksimulator.tradingservice.application.port.`in`.portfolio.GetTradeHistoryUseCase
+import com.stocksimulator.tradingservice.application.port.out.order.OrderPersistencePort
 import com.stocksimulator.tradingservice.infrastructure.adapter.`in`.web.dto.OrderBookResponse
+import com.stocksimulator.tradingservice.infrastructure.adapter.`in`.web.dto.OrderHistoryResponse
 import com.stocksimulator.tradingservice.infrastructure.adapter.`in`.web.dto.PlaceOrderRequest
 import com.stocksimulator.tradingservice.infrastructure.adapter.`in`.web.dto.PlaceOrderResponse
+import com.stocksimulator.tradingservice.infrastructure.adapter.`in`.web.dto.TradeResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -33,7 +37,9 @@ import reactor.core.publisher.Mono
 class OrderBookWebAdapter(
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val cancelOrderUseCase: CancelOrderUseCase,
-    private val getOrderBookUseCase: GetOrderBookUseCase
+    private val getOrderBookUseCase: GetOrderBookUseCase,
+    private val getTradeHistoryUseCase: GetTradeHistoryUseCase,
+    private val orderPersistencePort: OrderPersistencePort
 ) {
     @PostMapping("/orders")
     @Operation(summary = "주문 접수")
@@ -62,6 +68,24 @@ class OrderBookWebAdapter(
         val command = CancelOrderCommand(orderId = orderId, userId = userId)
         cancelOrderUseCase.cancelOrder(command)
         ApiResponse.success<Unit>("주문이 취소되었습니다").toResponseEntity()
+    }
+
+    @GetMapping("/trades/stock/{stockId}")
+    @Operation(summary = "종목별 체결 내역 조회")
+    fun getStockTrades(
+        @Parameter(description = "종목 ID") @PathVariable stockId: String
+    ): Mono<ResponseEntity<ApiResponse<List<TradeResponse>>>> = mono {
+        val results = getTradeHistoryUseCase.getTradesByStock(stockId)
+        ApiResponse.success(results.map { TradeResponse.from(it) }).toResponseEntity()
+    }
+
+    @GetMapping("/orders/stock/{stockId}")
+    @Operation(summary = "종목별 주문 내역 조회 (REJECTED 포함)")
+    fun getStockOrders(
+        @Parameter(description = "종목 ID") @PathVariable stockId: String
+    ): Mono<ResponseEntity<ApiResponse<List<OrderHistoryResponse>>>> = mono {
+        val results = orderPersistencePort.findByStockId(stockId)
+        ApiResponse.success(results.map { OrderHistoryResponse.from(it) }).toResponseEntity()
     }
 
     @GetMapping("/order-book/{stockId}")

@@ -34,6 +34,11 @@ class PortfolioQueryHandler(
             .map { TradeResult.from(it) }
     }
 
+    override fun getTradesByStock(stockId: String): List<TradeResult> {
+        return tradePersistencePort.findByStockId(stockId)
+            .map { TradeResult.from(it) }
+    }
+
     override fun getBalance(query: InvestorBalanceQuery): InvestorBalanceResult {
         val balance = investorBalancePersistencePort.findByInvestor(query.investorId, query.investorType)
             ?: throw ResourceNotFoundException(ErrorCode.RESOURCE_NOT_FOUND, "잔고 정보가 없습니다")

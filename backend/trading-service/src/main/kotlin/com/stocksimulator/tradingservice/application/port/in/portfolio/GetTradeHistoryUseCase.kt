@@ -5,4 +5,5 @@ import com.stocksimulator.tradingservice.application.dto.result.portfolio.TradeR
 
 interface GetTradeHistoryUseCase {
     fun getTradeHistory(query: TradeHistoryQuery): List<TradeResult>
+    fun getTradesByStock(stockId: String): List<TradeResult>
 }

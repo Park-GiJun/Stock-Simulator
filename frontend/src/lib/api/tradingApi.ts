@@ -120,7 +120,9 @@ const ENDPOINTS = {
 	order: (id: string) => `/trading-service/api/trading/orders/${id}`,
 	portfolio: (investorId: string) => `/trading-service/api/trading/portfolio/${investorId}`,
 	balance: (investorId: string) => `/trading-service/api/trading/portfolio/${investorId}/balance`,
-	trades: (investorId: string) => `/trading-service/api/trading/portfolio/${investorId}/trades`
+	trades: (investorId: string) => `/trading-service/api/trading/portfolio/${investorId}/trades`,
+	stockTrades: (stockId: string) => `/trading-service/api/trading/trades/stock/${stockId}`,
+	stockOrders: (stockId: string) => `/trading-service/api/trading/orders/stock/${stockId}`
 };
 
 // API Functions
@@ -190,6 +192,32 @@ export async function getTradeHistory(
 	return api.get<BackendTradeResponse[]>(ENDPOINTS.trades(investorId), {
 		params: { investorType }
 	});
+}
+
+export async function getStockTrades(
+	stockId: string
+): Promise<ApiResponse<BackendTradeResponse[]>> {
+	return api.get<BackendTradeResponse[]>(ENDPOINTS.stockTrades(stockId));
+}
+
+export interface BackendOrderResponse {
+	orderId: string;
+	userId: string;
+	investorType: string;
+	stockId: string;
+	orderType: 'BUY' | 'SELL';
+	orderKind: 'LIMIT' | 'MARKET';
+	price: number | null;
+	quantity: number;
+	filledQuantity: number;
+	status: 'PENDING' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+	createdAt: string;
+}
+
+export async function getStockOrders(
+	stockId: string
+): Promise<ApiResponse<BackendOrderResponse[]>> {
+	return api.get<BackendOrderResponse[]>(ENDPOINTS.stockOrders(stockId));
 }
 
 // Keep legacy getPortfolio for backward compatibility (mock only)

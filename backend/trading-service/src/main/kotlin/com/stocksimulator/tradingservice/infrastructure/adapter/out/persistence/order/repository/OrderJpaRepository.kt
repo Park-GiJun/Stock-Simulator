@@ -11,4 +11,6 @@ interface OrderJpaRepository : JpaRepository<OrderJpaEntity, String> {
     fun findByStockIdAndStatusIn(stockId: String, statuses: List<OrderStatus>): List<OrderJpaEntity>
 
     fun findByUserIdAndStatusIn(userId: String, statuses: List<OrderStatus>): List<OrderJpaEntity>
+
+    fun findByStockIdOrderByCreatedAtDesc(stockId: String): List<OrderJpaEntity>
 }

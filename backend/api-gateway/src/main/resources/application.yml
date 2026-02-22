@@ -113,6 +113,9 @@ gateway:
       - /stock-service/api/investors/**
       - /stock-service/api/investors
       - /trading-service/api/trading/order-book/**
+      - /trading-service/api/trading/trades/stock/**
+      - /trading-service/api/trading/orders/stock/**
+      - /trading-service/api/trading/portfolio/**
       # Monitoring
       - /**/actuator/**
       # Swagger / OpenAPI

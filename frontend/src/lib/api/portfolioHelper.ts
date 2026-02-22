@@ -34,13 +34,13 @@ export async function getEnrichedPortfolio(
 	try {
 		const [portfolioRes, balanceRes, stockMap] = await Promise.all([
 			getPortfolioRaw(investorId, investorType),
-			getBalance(investorId, investorType),
+			getBalance(investorId, investorType).catch(() => null),
 			getStockLookupMap()
 		]);
 
 		if (!portfolioRes.success || !portfolioRes.data) return null;
 
-		const cash = balanceRes.success && balanceRes.data ? balanceRes.data.cash : 0;
+		const cash = balanceRes?.success && balanceRes.data ? balanceRes.data.cash : 0;
 		const backendHoldings = portfolioRes.data.holdings;
 
 		const holdings: Holding[] = backendHoldings.map((h) => {

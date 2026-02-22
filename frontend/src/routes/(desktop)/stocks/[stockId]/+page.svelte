@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { ArrowLeft, TrendingUp, TrendingDown, Star, Users, Building2 } from 'lucide-svelte';
+	import { ArrowLeft, TrendingUp, TrendingDown, Star, Users, Building2, ArrowUpRight, ArrowDownRight } from 'lucide-svelte';
 	import { get } from 'svelte/store';
 	import { StockChart } from '$lib/components';
 	import { getStock, getOrderBook, getCandles } from '$lib/api/stockApi.js';
-	import { createOrder } from '$lib/api/tradingApi.js';
+	import { createOrder, getStockTrades, getStockOrders, type BackendTradeResponse, type BackendOrderResponse } from '$lib/api/tradingApi.js';
 	import { authStore } from '$lib/stores/authStore.js';
 	import { toastStore } from '$lib/stores/toastStore.js';
 	import { getActiveNews } from '$lib/mock/news.js';
@@ -17,6 +17,8 @@
 	let stock = $state<Stock | null>(null);
 	let orderBook = $state<OrderBookType | null>(null);
 	let candleData = $state<Candle[]>([]);
+	let recentTrades = $state<BackendTradeResponse[]>([]);
+	let recentOrders = $state<BackendOrderResponse[]>([]);
 	let loading = $state(true);
 
 	let orderSide = $state<'BUY' | 'SELL'>('BUY');
@@ -71,10 +73,12 @@
 
 	onMount(async () => {
 		try {
-			const [stockRes, orderBookRes, candlesRes] = await Promise.all([
+			const [stockRes, orderBookRes, candlesRes, tradesRes, ordersRes] = await Promise.all([
 				getStock(stockId),
 				getOrderBook(stockId),
-				getCandles(stockId, { limit: 30 })
+				getCandles(stockId, { limit: 30 }),
+				getStockTrades(stockId).catch(() => null),
+				getStockOrders(stockId).catch(() => null)
 			]);
 
 			if (stockRes.success && stockRes.data) {
@@ -86,6 +90,12 @@
 			}
 			if (candlesRes.success && candlesRes.data) {
 				candleData = candlesRes.data.candles;
+			}
+			if (tradesRes?.success && tradesRes.data) {
+				recentTrades = tradesRes.data.slice(0, 50);
+			}
+			if (ordersRes?.success && ordersRes.data) {
+				recentOrders = ordersRes.data.slice(0, 100);
 			}
 		} catch (e) {
 			console.error('Failed to fetch stock detail:', e);
@@ -323,10 +333,118 @@
 					</div>
 				</div>
 
+				<!-- Recent Trades -->
+				<div class="stock-detail-section animate-entry-3">
+					<div class="stock-detail-section-header">
+						<h3 class="stock-detail-section-title">체결 내역</h3>
+						<span class="text-xs text-secondary">{recentTrades.length}건</span>
+					</div>
+					{#if recentTrades.length > 0}
+						<div class="table-wrapper border-none" style="border: none; box-shadow: none; border-radius: 0; background: transparent; backdrop-filter: none; max-height: 400px; overflow-y: auto;">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>시각</th>
+										<th class="text-right">체결가</th>
+										<th class="text-right">수량</th>
+										<th class="text-right">체결금액</th>
+										<th>매수자</th>
+										<th>매도자</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each recentTrades as trade}
+										<tr>
+											<td class="text-xs text-secondary">
+												{new Date(trade.tradedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+											</td>
+											<td class="text-right font-medium">₩{formatPrice(trade.price)}</td>
+											<td class="text-right">{trade.quantity.toLocaleString()}</td>
+											<td class="text-right">{formatPrice(trade.tradeAmount)}원</td>
+											<td>
+												<span class="badge badge-success text-xs">{trade.buyerType === 'USER' ? '개인' : trade.buyerType === 'NPC' ? 'NPC' : trade.buyerType === 'INSTITUTION' ? '기관' : 'MM'}</span>
+											</td>
+											<td>
+												<span class="badge badge-error text-xs">{trade.sellerType === 'USER' ? '개인' : trade.sellerType === 'NPC' ? 'NPC' : trade.sellerType === 'INSTITUTION' ? '기관' : 'MM'}</span>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<div class="stock-detail-empty">체결 내역이 없습니다</div>
+					{/if}
+				</div>
+
+				<!-- Order History (REJECTED 포함) -->
+				<div class="stock-detail-section animate-entry-4">
+					<div class="stock-detail-section-header">
+						<h3 class="stock-detail-section-title">주문 내역</h3>
+						<span class="text-xs text-secondary">{recentOrders.length}건</span>
+					</div>
+					{#if recentOrders.length > 0}
+						<div class="table-wrapper border-none" style="border: none; box-shadow: none; border-radius: 0; background: transparent; backdrop-filter: none; max-height: 400px; overflow-y: auto;">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>시각</th>
+										<th>구분</th>
+										<th>유형</th>
+										<th class="text-right">가격</th>
+										<th class="text-right">수량</th>
+										<th class="text-right">체결</th>
+										<th>상태</th>
+										<th>투자자</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each recentOrders as order}
+										<tr>
+											<td class="text-xs text-secondary">
+												{new Date(order.createdAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+											</td>
+											<td>
+												<span class="badge text-xs" class:badge-success={order.orderType === 'BUY'} class:badge-error={order.orderType === 'SELL'}>
+													{order.orderType === 'BUY' ? '매수' : '매도'}
+												</span>
+											</td>
+											<td class="text-xs">{order.orderKind === 'MARKET' ? '시장가' : '지정가'}</td>
+											<td class="text-right font-medium">
+												{order.price ? `₩${formatPrice(order.price)}` : '-'}
+											</td>
+											<td class="text-right">{order.quantity.toLocaleString()}</td>
+											<td class="text-right">{order.filledQuantity.toLocaleString()}</td>
+											<td>
+												{#if order.status === 'FILLED'}
+													<span class="badge badge-success text-xs">체결</span>
+												{:else if order.status === 'PARTIALLY_FILLED'}
+													<span class="badge badge-info text-xs">부분체결</span>
+												{:else if order.status === 'REJECTED'}
+													<span class="badge badge-error text-xs">거부</span>
+												{:else if order.status === 'CANCELLED'}
+													<span class="badge text-xs" style="background: var(--color-text-tertiary); color: var(--color-bg-primary);">취소</span>
+												{:else}
+													<span class="badge text-xs">대기</span>
+												{/if}
+											</td>
+											<td class="text-xs">
+												{order.investorType === 'USER' ? '개인' : order.investorType === 'NPC' ? 'NPC' : order.investorType === 'INSTITUTION' ? '기관' : 'MM'}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<div class="stock-detail-empty">주문 내역이 없습니다</div>
+					{/if}
+				</div>
+
 				<!-- Investor Trend + Related News -->
 				<div class="stock-detail-content-grid">
 					<!-- Investor Trend -->
-					<div class="stock-detail-section animate-entry-3">
+					<div class="stock-detail-section animate-entry-5">
 						<div class="stock-detail-section-header">
 							<h3 class="stock-detail-section-title">투자자 동향</h3>
 						</div>
@@ -365,7 +483,7 @@
 					</div>
 
 					<!-- Related News -->
-					<div class="stock-detail-section animate-entry-4">
+					<div class="stock-detail-section animate-entry-5">
 						<div class="stock-detail-section-header">
 							<h3 class="stock-detail-section-title">관련 뉴스</h3>
 						</div>
