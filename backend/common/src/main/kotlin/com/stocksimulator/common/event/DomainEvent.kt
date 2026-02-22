@@ -60,6 +60,7 @@ object KafkaTopics {
     const val TRIGGER_STOCK_DELISTING = "trigger.stock.delisting"
     const val TRIGGER_NPC_CREATION = "trigger.npc.creation"
     const val TRIGGER_INSTITUTION_CREATION = "trigger.institution.creation"
+    const val TRIGGER_NEWS_GENERATION = "trigger.news.generation"
 }
 
 // ===== Trading Events =====
@@ -306,4 +307,11 @@ data class InstitutionCreationTriggerEvent(
     val triggeredAt: Instant = Instant.now()
 ) : DomainEvent() {
     override val eventType: String = "TRIGGER_INSTITUTION_CREATION"
+}
+
+data class NewsGenerationTriggerEvent(
+    val level: String,
+    val triggeredAt: Instant = Instant.now()
+) : DomainEvent() {
+    override val eventType: String = "TRIGGER_NEWS_GENERATION"
 }

@@ -1,5 +1,6 @@
 package com.stocksimulator.eventservice.infrastructure.adapter.out.event
 
+import com.stocksimulator.common.event.EventOccurredEvent
 import com.stocksimulator.common.event.KafkaTopics
 import com.stocksimulator.common.event.NewsPublishedEvent
 import com.stocksimulator.eventservice.application.port.out.NewsEventPort
@@ -32,5 +33,10 @@ class KafkaNewsEventPublisher(
         )
         kafkaTemplate.send(KafkaTopics.NEWS_PUBLISHED, news.newsId, event)
         log.debug("뉴스 발행 이벤트 전송: newsId={}, headline={}", news.newsId, news.headline)
+    }
+
+    override fun publishEventOccurred(event: EventOccurredEvent) {
+        kafkaTemplate.send(KafkaTopics.EVENT_OCCURRED, event.gameEventId, event)
+        log.debug("게임 이벤트 발행: gameEventId={}, headline={}", event.gameEventId, event.headline)
     }
 }

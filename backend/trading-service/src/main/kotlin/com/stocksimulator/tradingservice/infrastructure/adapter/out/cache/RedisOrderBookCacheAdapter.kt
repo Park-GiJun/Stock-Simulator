@@ -18,8 +18,8 @@ class RedisOrderBookCacheAdapter(
 
     override fun saveSnapshot(stockId: String, snapshot: OrderBookSnapshotVo) {
         try {
-            val bucket = redissonClient.getBucket<Map<String, Any>>("orderbook:$stockId:snapshot")
-            bucket.set(mapOf(
+            val map = redissonClient.getMap<String, String>("orderbook:$stockId:snapshot")
+            map.putAll(mapOf(
                 "stockId" to snapshot.stockId,
                 "bestBid" to (snapshot.bestBid?.toString() ?: ""),
                 "bestAsk" to (snapshot.bestAsk?.toString() ?: ""),

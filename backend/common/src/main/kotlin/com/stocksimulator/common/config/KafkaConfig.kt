@@ -121,6 +121,9 @@ class KafkaConfig(
     @Bean
     fun triggerInstitutionCreationTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_INSTITUTION_CREATION)
 
+    @Bean
+    fun triggerNewsGenerationTopic(): NewTopic = createTopic(KafkaTopics.TRIGGER_NEWS_GENERATION)
+
     private fun createTopic(name: String, partitions: Int = 3, replicas: Int = 1): NewTopic {
         return TopicBuilder.name(name)
             .partitions(partitions)

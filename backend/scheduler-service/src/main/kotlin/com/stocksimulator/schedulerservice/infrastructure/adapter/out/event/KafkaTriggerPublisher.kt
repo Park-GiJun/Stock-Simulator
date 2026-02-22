@@ -36,4 +36,10 @@ class KafkaTriggerPublisher(
         log.info("기관투자자 생성 트리거 이벤트 발행: {}", event.eventId)
         kafkaTemplate.send(KafkaTopics.TRIGGER_INSTITUTION_CREATION, event.eventId, event)
     }
+
+    override fun publishNewsGenerationTrigger(level: String) {
+        val event = NewsGenerationTriggerEvent(level = level)
+        log.info("뉴스 생성 트리거 이벤트 발행: level={}, eventId={}", level, event.eventId)
+        kafkaTemplate.send(KafkaTopics.TRIGGER_NEWS_GENERATION, event.eventId, event)
+    }
 }
