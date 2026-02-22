@@ -5,6 +5,7 @@ import com.stocksimulator.common.dto.OrderStatus
 import com.stocksimulator.common.dto.TradingInvestorType
 import com.stocksimulator.common.exception.BusinessException
 import com.stocksimulator.common.exception.ErrorCode
+import com.stocksimulator.common.exception.InsufficientResourceException
 import com.stocksimulator.common.exception.InvalidInputException
 import com.stocksimulator.common.exception.ResourceNotFoundException
 import com.stocksimulator.common.util.PriceUtil
@@ -15,6 +16,8 @@ import com.stocksimulator.tradingservice.application.port.`in`.order.CancelOrder
 import com.stocksimulator.tradingservice.application.port.`in`.order.PlaceOrderUseCase
 import com.stocksimulator.tradingservice.application.port.out.order.OrderPersistencePort
 import com.stocksimulator.tradingservice.application.port.out.order.TradingEventPort
+import com.stocksimulator.tradingservice.application.port.out.portfolio.InvestorBalancePersistencePort
+import com.stocksimulator.tradingservice.application.port.out.portfolio.PortfolioPersistencePort
 import com.stocksimulator.tradingservice.application.handler.portfolio.PortfolioCommandHandler
 import com.stocksimulator.tradingservice.domain.model.OrderModel
 import com.stocksimulator.tradingservice.domain.vo.MatchResultVo
@@ -23,12 +26,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+private val SYSTEM_INVESTOR_TYPES = setOf(TradingInvestorType.MARKET_MAKER)
+
 @Service
 class OrderCommandHandler(
     private val orderPersistencePort: OrderPersistencePort,
     private val orderBookRegistry: OrderBookRegistry,
     private val tradingEventPort: TradingEventPort,
-    private val portfolioCommandHandler: PortfolioCommandHandler
+    private val portfolioCommandHandler: PortfolioCommandHandler,
+    private val investorBalancePersistencePort: InvestorBalancePersistencePort,
+    private val portfolioPersistencePort: PortfolioPersistencePort
 ) : PlaceOrderUseCase, CancelOrderUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -46,7 +53,12 @@ class OrderCommandHandler(
             }
         }
 
-        // 2. 도메인 모델 생성 및 DB 저장
+        // 2. 잔액/보유량 사전 검증 (시스템 투자자 제외)
+        if (command.investorType !in SYSTEM_INVESTOR_TYPES) {
+            validatePreOrder(command)
+        }
+
+        // 3. 도메인 모델 생성 및 DB 저장
         val order = OrderModel.create(
             userId = command.userId,
             stockId = command.stockId,
@@ -58,7 +70,7 @@ class OrderCommandHandler(
         )
         orderPersistencePort.save(order)
 
-        // 3. 호가창 매칭
+        // 4. 호가창 매칭
         val entry = OrderEntryVo(
             orderId = order.orderId,
             userId = order.userId,
@@ -68,7 +80,7 @@ class OrderCommandHandler(
         )
         val matches = orderBookRegistry.placeOrder(command.stockId, entry, command.orderType, command.orderKind)
 
-        // 4. 매칭 결과 반영
+        // 5. 매칭 결과 반영
         var updatedOrder = order
         val totalFilledQuantity = matches.sumOf { it.quantity }
 
@@ -82,14 +94,14 @@ class OrderCommandHandler(
             portfolioCommandHandler.settleMatches(matches, command.investorType, sellerTypes)
         }
 
-        // 5. 시장가 유동성 없으면 REJECTED
+        // 6. 시장가 유동성 없으면 REJECTED
         if (command.orderKind == OrderKind.MARKET && totalFilledQuantity == 0L) {
             updatedOrder = updatedOrder.reject()
             orderPersistencePort.update(updatedOrder)
             log.info("시장가 주문 거부 (유동성 부족): orderId={}", order.orderId)
         }
 
-        // 6. 캐시 저장 및 이벤트 발행
+        // 7. 캐시 저장 및 이벤트 발행
         orderBookRegistry.persistToCache(command.stockId)
         matches.forEach { tradingEventPort.publishOrderMatched(it) }
         tradingEventPort.publishOrderBookUpdated(orderBookRegistry.getSnapshot(command.stockId))
@@ -124,6 +136,41 @@ class OrderCommandHandler(
         tradingEventPort.publishOrderBookUpdated(orderBookRegistry.getSnapshot(order.stockId))
 
         log.info("주문 취소 완료: orderId={}", order.orderId)
+    }
+
+    private fun validatePreOrder(command: PlaceOrderCommand) {
+        when (command.orderType) {
+            com.stocksimulator.common.dto.OrderType.BUY -> {
+                val balance = investorBalancePersistencePort.findByInvestor(command.userId, command.investorType)
+                if (balance == null || balance.cash <= 0) {
+                    throw InsufficientResourceException(
+                        ErrorCode.INSUFFICIENT_BALANCE,
+                        "잔액이 부족합니다: 보유=${balance?.cash ?: 0}"
+                    )
+                }
+                // 지정가: 정확한 필요금액 검증
+                if (command.orderKind == OrderKind.LIMIT && command.price != null) {
+                    val requiredAmount = command.price * command.quantity
+                    if (balance.cash < requiredAmount) {
+                        throw InsufficientResourceException(
+                            ErrorCode.INSUFFICIENT_BALANCE,
+                            "잔액이 부족합니다: 보유=${balance.cash}, 필요=$requiredAmount"
+                        )
+                    }
+                }
+            }
+            com.stocksimulator.common.dto.OrderType.SELL -> {
+                val portfolio = portfolioPersistencePort.findByInvestorAndStock(
+                    command.userId, command.investorType, command.stockId
+                )
+                if (portfolio == null || portfolio.quantity < command.quantity) {
+                    throw InsufficientResourceException(
+                        ErrorCode.INSUFFICIENT_STOCK,
+                        "보유 수량이 부족합니다: 보유=${portfolio?.quantity ?: 0}, 요청=${command.quantity}"
+                    )
+                }
+            }
+        }
     }
 
     private fun updateMatchedOrders(matches: List<MatchResultVo>) {
