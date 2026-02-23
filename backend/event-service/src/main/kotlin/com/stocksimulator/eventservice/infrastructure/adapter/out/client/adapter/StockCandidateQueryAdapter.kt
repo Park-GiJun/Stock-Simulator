@@ -30,4 +30,22 @@ class StockCandidateQueryAdapter(
             emptyList()
         }
     }
+
+    override fun getAllStocks(maxCount: Int): List<StockCandidateDto> {
+        return try {
+            val response = stockServiceFeignClient.getStocks(page = 0, size = maxCount, sector = null)
+            response.data?.content?.map { stock ->
+                StockCandidateDto(
+                    stockId = stock.stockId,
+                    stockName = stock.stockName,
+                    sector = stock.sector,
+                    currentPrice = stock.currentPrice,
+                    changePercent = stock.changePercent
+                )
+            } ?: emptyList()
+        } catch (e: Exception) {
+            log.warn("전체 종목 조회 실패: error={}", e.message)
+            emptyList()
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.stocksimulator.eventservice.application.port.out.trading
 
 interface StockCandidateQueryPort {
     fun getStocksBySector(sector: String, maxCount: Int): List<StockCandidateDto>
+    fun getAllStocks(maxCount: Int): List<StockCandidateDto>
 }
 
 data class StockCandidateDto(

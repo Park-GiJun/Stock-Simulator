@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import kotlin.random.Random
 
 @Service
 class NpcTradingHandler(
@@ -21,14 +20,6 @@ class NpcTradingHandler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    companion object {
-        private val TRADING_PROBABILITY = mapOf(
-            "HIGH" to 0.60,
-            "MEDIUM" to 0.30,
-            "LOW" to 0.15
-        )
-    }
-
     suspend fun handleNpcTrading() {
         log.info("NPC 자동매매 처리 시작 (전체 대상)")
 
@@ -38,18 +29,20 @@ class NpcTradingHandler(
             return
         }
 
+        // 전체 종목 한 번만 조회
+        val allStocks = stockCandidateQueryPort.getAllStocks(100)
+        if (allStocks.isEmpty()) {
+            log.info("상장 종목 없음, 매매 스킵")
+            return
+        }
+
+        val recentNews = fetchRecentNews()
+
         var executedCount = 0
-        var skippedCount = 0
 
         for (npc in npcs) {
-            val probability = TRADING_PROBABILITY[npc.tradingFrequency] ?: 0.15
-            if (Random.nextDouble() > probability) {
-                skippedCount++
-                continue
-            }
-
             try {
-                processNpcTrading(npc)
+                processNpcTrading(npc, allStocks, recentNews)
                 executedCount++
             } catch (e: Exception) {
                 log.error("NPC 매매 처리 실패: npcId={}, name={}, error={}",
@@ -57,20 +50,11 @@ class NpcTradingHandler(
             }
         }
 
-        log.info("NPC 자동매매 처리 완료: 전체={}, 실행={}, 스킵={}", npcs.size, executedCount, skippedCount)
+        log.info("NPC 자동매매 처리 완료: 전체={}, 실행={}", npcs.size, executedCount)
     }
 
-    private suspend fun processNpcTrading(npc: NpcProfileDto) {
-        val investorId = "NPC_${npc.npcId}"
-
-        val balance = investorPortfolioQueryPort.getBalance(investorId, "NPC")
-        val holdings = investorPortfolioQueryPort.getPortfolioHoldings(investorId, "NPC")
-
-        val stockCandidates = npc.preferredSectors.flatMap { sector ->
-            stockCandidateQueryPort.getStocksBySector(sector, 5)
-        }.distinctBy { it.stockId }.take(10)
-
-        val recentNews = try {
+    private fun fetchRecentNews(): List<NewsInfoDto> {
+        return try {
             val newsPage = newsPersistencePort.findAll(
                 PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "publishedAt"))
             )
@@ -85,17 +69,21 @@ class NpcTradingHandler(
             log.warn("뉴스 조회 실패, 빈 목록으로 진행: {}", e.message)
             emptyList()
         }
+    }
+
+    private suspend fun processNpcTrading(npc: NpcProfileDto, allStocks: List<StockCandidateDto>, recentNews: List<NewsInfoDto>) {
+        val investorId = "NPC_${npc.npcId}"
+
+        val balance = investorPortfolioQueryPort.getBalance(investorId, "NPC")
+        val holdings = investorPortfolioQueryPort.getPortfolioHoldings(investorId, "NPC")
 
         val availableCash = if (balance > 0) balance else npc.capital
 
-        // 잔액/보유량 기반 허용 액션 결정
-        val allowedActions = mutableListOf("HOLD")
-        if (availableCash > 0 && stockCandidates.isNotEmpty()) allowedActions.add("BUY")
+        val allowedActions = mutableListOf<String>()
+        if (availableCash > 0 && allStocks.isNotEmpty()) allowedActions.add("BUY")
         if (holdings.isNotEmpty()) allowedActions.add("SELL")
 
-        if (allowedActions.size == 1) {
-            log.info("NPC 매매 스킵 (가능한 액션 없음): npc={}, cash={}, holdings={}",
-                npc.npcName, availableCash, holdings.size)
+        if (allowedActions.isEmpty()) {
             return
         }
 
@@ -106,7 +94,7 @@ class NpcTradingHandler(
             availableCash = availableCash,
             preferredSectors = npc.preferredSectors,
             currentHoldings = holdings,
-            stockCandidates = stockCandidates,
+            stockCandidates = allStocks,
             recentNews = recentNews,
             allowedActions = allowedActions
         )

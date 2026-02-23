@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component
 
 /**
  * NPC 자동매매 트리거 스케줄러 (Inbound Adapter)
- * - 5분마다 전체 NPC 대상 매매 트리거 발행
- * - 개별 NPC의 tradingFrequency 기반 확률 판정은 event-service에서 수행
+ * - 1분마다 전체 NPC 대상 매매 트리거 발행
+ * - 모든 NPC가 매 트리거마다 매매 실행
  */
 @Component
 class NpcTradingScheduler(
@@ -16,7 +16,7 @@ class NpcTradingScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 300_000)
+    @Scheduled(fixedRate = 60_000)
     fun triggerNpcTrading() {
         log.info("NPC 자동매매 트리거 실행")
         triggerPublishPort.publishNpcTradingTrigger()

@@ -13,7 +13,7 @@ class TradingDecisionGeneratorWithLLM : TradingDecisionGeneratePort {
     override suspend fun generateDecision(request: TradingDecisionRequest): TradingDecisionResult {
         val allowedActions = request.allowedActions
 
-        // 투자 성향별 행동 확률 결정
+        // 매수/매도 비율 계산 (HOLD 거의 없음)
         val (buyProb, sellProb) = calculateActionProbabilities(request)
 
         val roll = Random.nextDouble()
@@ -46,49 +46,46 @@ class TradingDecisionGeneratorWithLLM : TradingDecisionGeneratePort {
     }
 
     /**
-     * 투자 성향 + 리스크 허용도 + 뉴스 감정 기반 매수/매도 확률 계산
+     * 투자 성향 + 뉴스 감정 기반 매수/매도 확률 계산
+     * HOLD는 거의 발생하지 않도록 매수+매도 확률 합계를 높게 유지
      */
     private fun calculateActionProbabilities(request: TradingDecisionRequest): Pair<Double, Double> {
-        // 기본 확률 (투자 성향별)
+        // 기본 확률 (투자 성향별) - 매수+매도 합계가 거의 1.0에 가깝도록
         var baseBuyProb = when (request.investmentStyle) {
-            "AGGRESSIVE" -> 0.40
-            "STABLE" -> 0.15
-            "VALUE" -> 0.25
-            else -> 0.20 // RANDOM
+            "AGGRESSIVE" -> 0.60
+            "STABLE" -> 0.45
+            "VALUE" -> 0.50
+            else -> 0.50 // RANDOM
         }
 
         var baseSellProb = when (request.investmentStyle) {
-            "AGGRESSIVE" -> 0.25
-            "STABLE" -> 0.10
-            "VALUE" -> 0.15
-            else -> 0.20
+            "AGGRESSIVE" -> 0.35
+            "STABLE" -> 0.45
+            "VALUE" -> 0.40
+            else -> 0.40
         }
 
-        // 리스크 허용도 보정 (높을수록 매수 확률 증가)
-        baseBuyProb *= (0.7 + request.riskTolerance * 0.6)
-        baseSellProb *= (1.3 - request.riskTolerance * 0.6)
-
-        // 뉴스 감정 보정
+        // 뉴스 감정 보정 (소폭)
         if (request.recentNews.isNotEmpty()) {
             val positiveCount = request.recentNews.count { it.sentiment == "POSITIVE" }
             val negativeCount = request.recentNews.count { it.sentiment == "NEGATIVE" }
             val newsTotal = request.recentNews.size.toDouble()
 
-            val sentimentBias = (positiveCount - negativeCount) / newsTotal * 0.15
+            val sentimentBias = (positiveCount - negativeCount) / newsTotal * 0.10
             baseBuyProb += sentimentBias
             baseSellProb -= sentimentBias
         }
 
-        // 보유 종목이 많으면 매도 확률 증가, 적으면 매수 확률 증가
+        // 보유 종목이 없으면 매수만, 현금이 없으면 매도만
         if (request.currentHoldings.isEmpty()) {
-            baseBuyProb += 0.10
+            baseBuyProb = 0.95
             baseSellProb = 0.0
-        } else if (request.currentHoldings.size >= 5) {
-            baseSellProb += 0.10
-            baseBuyProb -= 0.05
+        } else if (request.availableCash <= 0) {
+            baseBuyProb = 0.0
+            baseSellProb = 0.95
         }
 
-        return Pair(baseBuyProb.coerceIn(0.0, 0.6), baseSellProb.coerceIn(0.0, 0.4))
+        return Pair(baseBuyProb.coerceIn(0.0, 0.95), baseSellProb.coerceIn(0.0, 0.95))
     }
 
     private fun generateBuyDecision(request: TradingDecisionRequest): TradingDecisionResult {
