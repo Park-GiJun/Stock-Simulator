@@ -40,7 +40,7 @@ class GameNewsGenerationHandler(
             }
         }
 
-        log.info("LLM 뉴스 생성 시작: level={}, sector={}, stockName={}", level, sector?.name, stockName)
+        log.info("뉴스 생성 시작: level={}, sector={}, stockName={}", level, sector?.name, stockName)
 
         val generated = newsContentGeneratePort.generateNews(level, sector, stockName)
 
@@ -59,7 +59,7 @@ class GameNewsGenerationHandler(
         newsEventPort.publishEventOccurred(event)
 
         log.info(
-            "LLM 뉴스 생성 완료 및 event.occurred 발행: gameEventId={}, level={}, sector={}, stockName={}, sentiment={}, headline={}",
+            "뉴스 생성 완료 및 event.occurred 발행: gameEventId={}, level={}, sector={}, stockName={}, sentiment={}, headline={}",
             event.gameEventId, level, sector?.name, stockName, generated.sentiment, generated.headline
         )
     }

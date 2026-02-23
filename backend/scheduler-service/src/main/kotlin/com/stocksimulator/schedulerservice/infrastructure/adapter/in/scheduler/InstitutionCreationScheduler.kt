@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import kotlin.random.Random
 
 /**
- * 기관투자자 생성 스케줄러 (Inbound Adapter)
+ * 기관투자자 생성 스케줄러 (Inbound Adapter) - 비활성화됨
  * - 24시간마다 50% 확률로 기관투자자 1개 생성
  */
 @Component
@@ -16,7 +16,7 @@ class InstitutionCreationScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 86_400_000)
+    // @Scheduled(fixedRate = 86_400_000) // 비활성화
     fun checkForInstitutionCreation() {
         val roll = Random.nextDouble()
         log.info("기관투자자 생성 스케줄러 실행 - 확률: {} (기준: 0.5)", "%.2f".format(roll))

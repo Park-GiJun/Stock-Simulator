@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import kotlin.random.Random
 
 /**
- * 개인투자자(NPC) 생성 스케줄러 (Inbound Adapter)
+ * 개인투자자(NPC) 생성 스케줄러 (Inbound Adapter) - 비활성화됨
  * - 24시간마다 1~3명의 개인투자자 생성
  */
 @Component
@@ -16,7 +16,7 @@ class NpcCreationScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedRate = 86_400_000)
+    // @Scheduled(fixedRate = 86_400_000) // 비활성화
     fun createNpcs() {
         val count = Random.nextInt(1, 4)
         log.info("개인투자자(NPC) 생성 스케줄러 실행 - 생성 수: {}", count)

@@ -1,136 +1,170 @@
 package com.stocksimulator.eventservice.infrastructure.adapter.out.generator
 
-import ai.koog.agents.core.agent.AIAgent
-import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
-import ai.koog.prompt.executor.model.PromptExecutor
 import com.stocksimulator.eventservice.application.port.out.trading.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import kotlin.random.Random
 
 @Component
-class TradingDecisionGeneratorWithLLM(
-    private val llmExecutor: PromptExecutor
-) : TradingDecisionGeneratePort {
+class TradingDecisionGeneratorWithLLM : TradingDecisionGeneratePort {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val json = Json { ignoreUnknownKeys = true }
-
-    @Serializable
-    private data class LlmTradingResponse(
-        val action: String,
-        val stockId: String? = null,
-        val quantity: Long = 0
-    )
-
     override suspend fun generateDecision(request: TradingDecisionRequest): TradingDecisionResult {
-        val prompt = buildPrompt(request)
-        val maxRetries = 3
+        val allowedActions = request.allowedActions
 
-        repeat(maxRetries) { attempt ->
-            try {
-                val agent = AIAgent(
-                    promptExecutor = llmExecutor,
-                    llmModel = AnthropicModels.Haiku_4_5
-                )
-                val rawResponse = agent.run(prompt).trim()
-                return parseLlmResponse(rawResponse)
-            } catch (e: Exception) {
-                log.warn("LLM 매매 결정 생성 실패 (시도 {}회): investor={}, error={}",
-                    attempt + 1, request.investorName, e.message)
+        // 투자 성향별 행동 확률 결정
+        val (buyProb, sellProb) = calculateActionProbabilities(request)
+
+        val roll = Random.nextDouble()
+
+        val action = when {
+            "BUY" in allowedActions && "SELL" in allowedActions -> {
+                when {
+                    roll < buyProb -> "BUY"
+                    roll < buyProb + sellProb -> "SELL"
+                    else -> "HOLD"
+                }
             }
+            "BUY" in allowedActions -> {
+                if (roll < buyProb) "BUY" else "HOLD"
+            }
+            "SELL" in allowedActions -> {
+                if (roll < sellProb) "SELL" else "HOLD"
+            }
+            else -> "HOLD"
         }
 
-        log.warn("LLM 매매 결정 {}회 시도 실패, HOLD 반환: investor={}", maxRetries, request.investorName)
-        return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
+        return when (action) {
+            "BUY" -> generateBuyDecision(request)
+            "SELL" -> generateSellDecision(request)
+            else -> {
+                log.debug("매매 결정: HOLD - investor={}", request.investorName)
+                TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
+            }
+        }
     }
 
-    private fun buildPrompt(request: TradingDecisionRequest): String {
-        val maxInvestmentRate = when (request.investmentStyle) {
-            "AGGRESSIVE" -> 30
-            "STABLE" -> 10
-            "VALUE" -> 20
-            else -> 15
-        }
-        val maxInvestment = request.availableCash * maxInvestmentRate / 100
-
-        val holdingsDesc = if (request.currentHoldings.isEmpty()) {
-            "보유 종목 없음"
-        } else {
-            request.currentHoldings.joinToString("\n") { h ->
-                "  - 종목ID: ${h.stockId}, 보유수량: ${h.quantity}주, 평균매입가: ${h.averagePrice}원"
-            }
+    /**
+     * 투자 성향 + 리스크 허용도 + 뉴스 감정 기반 매수/매도 확률 계산
+     */
+    private fun calculateActionProbabilities(request: TradingDecisionRequest): Pair<Double, Double> {
+        // 기본 확률 (투자 성향별)
+        var baseBuyProb = when (request.investmentStyle) {
+            "AGGRESSIVE" -> 0.40
+            "STABLE" -> 0.15
+            "VALUE" -> 0.25
+            else -> 0.20 // RANDOM
         }
 
-        val candidatesDesc = if (request.stockCandidates.isEmpty()) {
-            "매매 후보 종목 없음"
-        } else {
-            request.stockCandidates.joinToString("\n") { s ->
-                "  - 종목ID: ${s.stockId}, 종목명: ${s.stockName}, 섹터: ${s.sector}, 현재가: ${s.currentPrice}원, 변동률: ${s.changePercent}%"
-            }
+        var baseSellProb = when (request.investmentStyle) {
+            "AGGRESSIVE" -> 0.25
+            "STABLE" -> 0.10
+            "VALUE" -> 0.15
+            else -> 0.20
         }
 
-        val newsDesc = if (request.recentNews.isEmpty()) {
-            "최근 뉴스 없음"
-        } else {
-            request.recentNews.joinToString("\n") { n ->
-                "  - ${n.headline} (감정: ${n.sentiment}, 섹터: ${n.sector ?: "전체"})"
-            }
+        // 리스크 허용도 보정 (높을수록 매수 확률 증가)
+        baseBuyProb *= (0.7 + request.riskTolerance * 0.6)
+        baseSellProb *= (1.3 - request.riskTolerance * 0.6)
+
+        // 뉴스 감정 보정
+        if (request.recentNews.isNotEmpty()) {
+            val positiveCount = request.recentNews.count { it.sentiment == "POSITIVE" }
+            val negativeCount = request.recentNews.count { it.sentiment == "NEGATIVE" }
+            val newsTotal = request.recentNews.size.toDouble()
+
+            val sentimentBias = (positiveCount - negativeCount) / newsTotal * 0.15
+            baseBuyProb += sentimentBias
+            baseSellProb -= sentimentBias
         }
 
-        val actionsDesc = request.allowedActions.joinToString("|")
-        val rulesDesc = buildList {
-            if ("BUY" in request.allowedActions) add("BUY(후보중 선택, qty*현재가<=${maxInvestment})")
-            if ("SELL" in request.allowedActions) add("SELL(보유중, qty<=보유수량)")
-            add("HOLD(매매안함)")
-        }.joinToString(", ")
+        // 보유 종목이 많으면 매도 확률 증가, 적으면 매수 확률 증가
+        if (request.currentHoldings.isEmpty()) {
+            baseBuyProb += 0.10
+            baseSellProb = 0.0
+        } else if (request.currentHoldings.size >= 5) {
+            baseSellProb += 0.10
+            baseBuyProb -= 0.05
+        }
 
-        return """
-            투자 결정 시스템. JSON만 응답.
-
-            투자자: ${request.investorName}, 성향: ${request.investmentStyle}, 위험허용도: ${request.riskTolerance}
-            현금: ${request.availableCash}원, 최대투자: ${maxInvestment}원, 선호섹터: ${request.preferredSectors.joinToString(",")}
-
-            보유: $holdingsDesc
-            후보: $candidatesDesc
-            뉴스: $newsDesc
-
-            규칙: $rulesDesc
-            JSON만: {"action":"$actionsDesc","stockId":"ID|null","quantity":수량}
-        """.trimIndent()
+        return Pair(baseBuyProb.coerceIn(0.0, 0.6), baseSellProb.coerceIn(0.0, 0.4))
     }
 
-    private fun parseLlmResponse(raw: String): TradingDecisionResult {
-        val jsonStr = extractJson(raw)
-        val parsed = json.decodeFromString<LlmTradingResponse>(jsonStr)
-
-        val action = parsed.action.uppercase()
-        if (action !in listOf("BUY", "SELL", "HOLD")) {
+    private fun generateBuyDecision(request: TradingDecisionRequest): TradingDecisionResult {
+        if (request.stockCandidates.isEmpty()) {
             return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
         }
 
+        // 투자 성향별 최대 투자 비율
+        val maxInvestmentRate = when (request.investmentStyle) {
+            "AGGRESSIVE" -> 0.30
+            "STABLE" -> 0.10
+            "VALUE" -> 0.20
+            else -> 0.15
+        }
+        val maxInvestment = (request.availableCash * maxInvestmentRate).toLong()
+        if (maxInvestment <= 0) {
+            return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
+        }
+
+        // 후보 종목 중 선호 섹터 우선, 없으면 전체 중 랜덤
+        val preferredCandidates = request.stockCandidates.filter { it.sector in request.preferredSectors }
+        val candidates = preferredCandidates.ifEmpty { request.stockCandidates }
+
+        // 뉴스 감정 가중치 적용: 긍정 뉴스 관련 섹터 종목 우선
+        val positiveNewsSectors = request.recentNews
+            .filter { it.sentiment == "POSITIVE" && it.sector != null }
+            .mapNotNull { it.sector }
+            .toSet()
+
+        val weightedCandidates = if (positiveNewsSectors.isNotEmpty()) {
+            val boosted = candidates.filter { it.sector in positiveNewsSectors }
+            if (boosted.isNotEmpty() && Random.nextDouble() < 0.6) boosted else candidates
+        } else {
+            candidates
+        }
+
+        val selected = weightedCandidates.random()
+
+        // 수량 계산: 최대 투자금 범위 내에서 랜덤 비율
+        val investmentRatio = Random.nextDouble(0.3, 1.0)
+        val investAmount = (maxInvestment * investmentRatio).toLong()
+        val quantity = (investAmount / selected.currentPrice).coerceAtLeast(1)
+
+        log.info("매매 결정: BUY - investor={}, stock={}, qty={}", request.investorName, selected.stockId, quantity)
+
         return TradingDecisionResult(
-            action = action,
-            stockId = if (action == "HOLD") null else parsed.stockId,
-            quantity = if (action == "HOLD") 0 else parsed.quantity.coerceAtLeast(1)
+            action = "BUY",
+            stockId = selected.stockId,
+            quantity = quantity
         )
     }
 
-    private fun extractJson(raw: String): String {
-        val codeBlockRegex = Regex("```(?:json)?\\s*\\n?(\\{.*?})\\s*\\n?```", RegexOption.DOT_MATCHES_ALL)
-        val codeBlockMatch = codeBlockRegex.find(raw)
-        if (codeBlockMatch != null) {
-            return codeBlockMatch.groupValues[1].trim()
+    private fun generateSellDecision(request: TradingDecisionRequest): TradingDecisionResult {
+        if (request.currentHoldings.isEmpty()) {
+            return TradingDecisionResult(action = "HOLD", stockId = null, quantity = 0)
         }
 
-        val jsonRegex = Regex("\\{.*}", RegexOption.DOT_MATCHES_ALL)
-        val jsonMatch = jsonRegex.find(raw)
-        if (jsonMatch != null) {
-            return jsonMatch.value.trim()
+        // 보유 종목 중 랜덤 선택
+        val holding = request.currentHoldings.random()
+
+        // 투자 성향별 매도 비율
+        val sellRatio = when (request.investmentStyle) {
+            "AGGRESSIVE" -> Random.nextDouble(0.3, 1.0)
+            "STABLE" -> Random.nextDouble(0.1, 0.5)
+            "VALUE" -> Random.nextDouble(0.2, 0.7)
+            else -> Random.nextDouble(0.1, 1.0)
         }
 
-        return raw
+        val quantity = (holding.quantity * sellRatio).toLong().coerceAtLeast(1).coerceAtMost(holding.quantity)
+
+        log.info("매매 결정: SELL - investor={}, stock={}, qty={}", request.investorName, holding.stockId, quantity)
+
+        return TradingDecisionResult(
+            action = "SELL",
+            stockId = holding.stockId,
+            quantity = quantity
+        )
     }
 }
